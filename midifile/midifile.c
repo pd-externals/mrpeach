@@ -24,6 +24,13 @@
 #include <stdio.h>
 #include <string.h>
 
+/* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 44
+#define sys_open open
+#define sys_fopen fopen
+#define sys_fclose fclose
+#endif
+
 #define NO_MORE_ELEMENTS 0xFFFFFFFF
 
 static t_class *midifile_class;
@@ -185,12 +192,12 @@ static void midifile_close(t_midifile *x)
 {
     if (x->fP != NULL)
     {
-        fclose (x->fP);
+        sys_fclose (x->fP);
         x->fP = NULL;
     }
     if (x->tmpFP != NULL)
     {
-        fclose(x->tmpFP);
+        sys_fclose(x->tmpFP);
         x->tmpFP = NULL;
     }
     x->fPath[0] = '\0';
@@ -238,7 +245,7 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (absolute): %s\n", tryPath);
-        fP = fopen(tryPath, mode);
+        fP = sys_fopen(tryPath, mode);
     }
     if (fP == NULL)
     {
@@ -249,7 +256,7 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (relative): %s\n", tryPath);
-        fP = fopen(tryPath, mode);
+        fP = sys_fopen(tryPath, mode);
     }
     if (fP == NULL) return 0;
     x->fP = fP;
