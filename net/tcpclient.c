@@ -47,6 +47,13 @@
 #include <ws2tcpip.h> /* for socklen_t */
 #endif
 
+/* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 44
+#define sys_open open
+#define sys_fopen fopen
+#define sys_fclose fclose
+#endif
+
 #ifdef _MSC_VER
 #define snprintf sprintf_s
 #endif
@@ -305,7 +312,7 @@ static void tcpclient_send(t_tcpclient *x, t_symbol *s, int argc, t_atom *argv)
         else if (argv[i].a_type == A_SYMBOL)
         {
             atom_string(&argv[i], fpath, FILENAME_MAX);
-            fptr = fopen(fpath, "rb");
+            fptr = sys_fopen(fpath, "rb");
             if (fptr == NULL)
             {
                 post("%s_send: unable to open \"%s\"", objName, fpath);
@@ -322,7 +329,7 @@ static void tcpclient_send(t_tcpclient *x, t_symbol *s, int argc, t_atom *argv)
                     j = 0;
                 }
             }
-            fclose(fptr);
+            sys_fclose(fptr);
             fptr = NULL;
             if (x->x_verbosity) post("%s_send: read \"%s\" length %d byte%s", objName, fpath, j, ((d==1)?"":"s"));
         }
