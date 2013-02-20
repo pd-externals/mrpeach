@@ -33,6 +33,7 @@ static void *unpackxbee_new(t_floatarg f);
 static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *argv);
 static void unpackxbee_API(t_unpackxbee *x, t_float api);
 static void unpackxbee_verbosity(t_unpackxbee *x, t_float verbosity_level);
+static int unpackxbee_add(t_unpackxbee *x, unsigned char d);
 static void unpackxbee_free(t_unpackxbee *x);
 void unpackxbee_setup(void);
 
@@ -66,7 +67,7 @@ static void unpackxbee_verbosity(t_unpackxbee *x, t_float verbosity_level)
     else error ("packxbee: verbosity_level must be positive");
 }
 
-int unpackxbee_add(t_unpackxbee *x, unsigned char d)
+static int unpackxbee_add(t_unpackxbee *x, unsigned char d)
 {
     if (XFRAME == d)
     {
