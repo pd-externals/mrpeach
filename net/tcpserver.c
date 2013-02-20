@@ -52,6 +52,12 @@
 #include <winsock2.h>
 #endif
 
+/* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 44
+#define sys_open open
+#define sys_fopen fopen
+#define sys_fclose fclose
+#endif
 
 #ifdef _MSC_VER
 #define snprintf sprintf_s
@@ -407,7 +413,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
 #ifdef DEBUG
                 post ("%s: fname: %s", objName, fpath);
 #endif
-                fptr = fopen(fpath, "rb");
+                fptr = sys_fopen(fpath, "rb");
                 if (fptr == NULL)
                 {
                     error("%s: unable to open \"%s\"", objName, fpath);
@@ -455,7 +461,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     }
                 }
                 flen += j;
-                fclose(fptr);
+                sys_fclose(fptr);
                 fptr = NULL;
                 post("%s: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
             }
@@ -874,7 +880,7 @@ static void *tcpserver_broadcast_thread(void *arg)
 #ifdef DEBUG
             post ("%s_broadcast_thread: fname: %s", objName, fpath);
 #endif
-            fptr = fopen(fpath, "rb");
+            fptr = sys_fopen(fpath, "rb");
             if (fptr == NULL)
             {
                 error("%s_broadcast_thread: unable to open \"%s\"", objName, fpath);
@@ -924,7 +930,7 @@ static void *tcpserver_broadcast_thread(void *arg)
                 }
             }
             flen += j;
-            fclose(fptr);
+            sys_fclose(fptr);
             fptr = NULL;
             post("%s_broadcast_thread: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
         }
