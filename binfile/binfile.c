@@ -30,6 +30,13 @@ static t_class *binfile_class;
 #define ALLOC_BLOCK_SIZE 65536 /* number of bytes to add when resizing buffer */
 #define PATH_BUF_SIZE 1024 /* maximumn length of a file path */
 
+/* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 44
+#define sys_open open
+#define sys_fopen fopen
+#define sys_fclose fclose
+#endif
+
 typedef struct t_binfile
 {
     t_object    x_obj;
@@ -154,7 +161,7 @@ static FILE *binfile_open_path(t_binfile *x, char *path, char *mode)
         strncpy(tryPath, path, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
-        fP = fopen(tryPath, mode);
+        fP = sys_fopen(tryPath, mode);
     }
     if (fP == NULL)
     {
@@ -164,7 +171,7 @@ static FILE *binfile_open_path(t_binfile *x, char *path, char *mode)
         strncat(tryPath, path, PATH_BUF_SIZE-1); /* append path to a length-limited buffer */
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* make sure there is a null termination */
-        fP = fopen(tryPath, mode);
+        fP = sys_fopen(tryPath, mode);
     }
     if (fP != NULL)
         strncpy(x->x_fPath, tryPath, PATH_BUF_SIZE);
@@ -183,7 +190,7 @@ static void binfile_write(t_binfile *x, t_symbol *path)
     bytes_written = fwrite(x->x_buf, 1L, x->x_length, x->x_fP);
     if (bytes_written != x->x_length) post("binfile: %ld bytes written != %ld", bytes_written, x->x_length);
     else post("binfile: wrote %ld bytes to %s", bytes_written, path->s_name);
-    fclose(x->x_fP);
+    sys_fclose(x->x_fP);
     x->x_fP = NULL;
 }
 
@@ -219,7 +226,7 @@ static void binfile_read(t_binfile *x, t_symbol *path)
     x->x_wr_offset = x->x_buf_length; /* write new data at end of file */
     x->x_length = x->x_buf_length; /* file length is same as buffer size 7*/
     x->x_rd_offset = 0L; /* read from start of file */
-    fclose (x->x_fP);
+    sys_fclose (x->x_fP);
     x->x_fP = NULL;
     if (bytes_read != file_length) post("binfile length %ld not equal to bytes read (%ld)", file_length, bytes_read);
     else post("binfle: read %ld bytes from %s", bytes_read, path->s_name);
