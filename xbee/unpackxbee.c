@@ -1,5 +1,7 @@
-/* unpackxbee outputs a list of floats which are the bytes making up an xbee api packet. */
-/* The packet can then be sent through [comport]. */
+/* [unpackxbee] outputs a list of floats which are the bytes making up the data part of an xbee api packet. */
+/* a status outlet provides the address and status information for each packet received */
+/* a sample outlet emits IO samples */
+/* [unpackxbee]'s inlet is typically connected to the data outlet of a [comport] object */
 /* Started by Martin Peach 20110731 */
 /* Information taken from "XBee®/XBee-PRO® ZB RF Modules" (document 90000976_G, 11/15/2010)*/
 /* by Digi International Inc. http://www.digi.com */
@@ -16,6 +18,7 @@ typedef struct _unpackxbee
 {
     t_object        x_obj;
     t_outlet        *x_status_out;
+    t_outlet        *x_sample_out;
     t_outlet        *x_payload_out;
     int             x_api_mode;
     unsigned char   x_frame_ID;
@@ -26,7 +29,6 @@ typedef struct _unpackxbee
     unsigned int    x_message_index;
     int             x_escaped;
     t_atom          x_outbuf[MAX_XBEE_PACKET_LENGTH];
-    t_atom          x_statusbuf[32]; /* some number bigger than we will ever reach */
 } t_unpackxbee;
 
 static void *unpackxbee_new(t_floatarg f);
@@ -44,8 +46,9 @@ static void *unpackxbee_new(t_floatarg f)
     t_unpackxbee *x = (t_unpackxbee *)pd_new(unpackxbee_class);
     if (x)
     {
-        x->x_payload_out = outlet_new(&x->x_obj, &s_list); /* the first outlet on the left */
-        x->x_status_out = outlet_new(&x->x_obj, &s_list);
+        x->x_payload_out = outlet_new(&x->x_obj, &s_list); /* the outlet on the left fro raw data */
+        x->x_sample_out = outlet_new(&x->x_obj, &s_list); /* the middle outlet for sample frames */
+        x->x_status_out = outlet_new(&x->x_obj, &s_list); /* the rightmost outlet for status */
 
         if (1 == f) x->x_api_mode = 1;
         else x->x_api_mode = 2; /* default to escaped mode */
@@ -116,9 +119,14 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
     unsigned int        d, checksum = 0;
     unsigned char       c;
     t_symbol            *type_selector;
-    int                 statuslength = 0, payloadstart = 0;
+    int                 statuslength = 0, samplelength = 0, payloadstart = 0;
+    int                 payload_is_sample_frame = 0;
+    int                 digital_bits = 0, digital_ins = 0, digital_channel = 0;
+    int                 analog_bits = 0, analog_channel = 0;
     char                atbuf[64];
     unsigned char       floatstring[256]; /* longer than the longest hex number with each character escaped plus the header and checksum overhead */
+    t_atom              status_atoms[32]; /* some number bigger than we will ever reach */
+    t_atom              sample_atoms[12]; /* up to 5 analog samples + 1 digital sample + their names */
     unsigned long long  addr64;
     unsigned int        addr16;
 
@@ -222,7 +230,7 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
                 type_selector = gensym("unknown");
         }
         statuslength = 0;
-        SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_type);
+        SETFLOAT(&status_atoms[statuslength], x->x_frame_type);
         statuslength++;
         if
         (
@@ -233,17 +241,17 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
         {
             if (x->x_verbosity > 0) 
                 post("AT_Command_Response  AT_Command AT_Command_Queue_Parameter_Value statuslength %d", statuslength);
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_ID);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
             statuslength++;
             /* data doesn't include 1byte frame type 1byte ID 2byte AT command 1byte AT command status = 5bytes */
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_length-5);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-5);
             statuslength++;
             atbuf[0] = x->x_message[5]; /* the AT command string */
             atbuf[1] = x->x_message[6];
             atbuf[2] = '\0';
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym(atbuf));
+            SETSYMBOL(&status_atoms[statuslength], gensym(atbuf));
             statuslength++;
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[7]);/* AT command status */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[7]);/* AT command status */
             statuslength++;
             if ((0 == x->x_message[7]) && ('N' == x->x_message[5]) && ('D' == x->x_message[6]))
             { /* a succesful node discover response: output the addresses as symbols */
@@ -259,7 +267,7 @@ buf[7]: 0 [0x00] status
 */
                 addr16 = (x->x_message[8]<<8) + x->x_message[9];
                 sprintf((char *)floatstring, "0x%X", addr16);
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring));
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring));
                 statuslength++;
 /*
 buf[8]: 121 [0x79] MY
@@ -287,7 +295,7 @@ buf[9]: 214 [0xD6]
 #else
                 sprintf((char *)floatstring, "0x%016LX", addr64);
 #endif
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* addr64 */
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr64 */
                 statuslength++;
 /* 
 buf[10]: 0 [0x00] SH
@@ -308,7 +316,7 @@ buf[17]: 30 [0x1E]
                         break;/* Node Identifier should be a null-terminated ascii string */
                     }
                 }
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* Node Identifier */
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* Node Identifier */
                 statuslength++;
 /*
 buf[18]: 32 [0x20] NI
@@ -317,18 +325,18 @@ buf[19]: 0 [0x00]
                 addr16 = (x->x_message[i]<<8) + x->x_message[i+1];
                 sprintf((char *)floatstring, "0x%X", addr16);
                 i += 2;
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* parent addr16 */
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* parent addr16 */
                 statuslength++;
 /*
 buf[20]: 255 [0xFF] parent
 buf[21]: 254 [0xFE]
 */
-                SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[i++]);/* Device Type */
+                SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* Device Type */
                 statuslength++;
 /*
 buf[22]: 1 [0x01] device type
 */
-                SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[i++]);/* Source Event */
+                SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* Source Event */
                 statuslength++;
 /*
 buf[23]: 0 [0x00] source event
@@ -336,7 +344,7 @@ buf[23]: 0 [0x00] source event
                 addr16 = x->x_message[i++]<<8;
                 addr16 |= x->x_message[i++];
                 sprintf((char *)floatstring, "0x%X", addr16);
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* Profile ID */
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* Profile ID */
                 statuslength++;
 /*
 buf[24]: 193 [0xC1] Profile ID
@@ -345,7 +353,7 @@ buf[25]: 5 [0x05]
                 addr16 = (x->x_message[i]<<8) + x->x_message[i+1];
                 sprintf((char *)floatstring, "0x%X", addr16);
                 i += 2;
-                SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* Manufacturer ID */
+                SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* Manufacturer ID */
                 statuslength++;
 /*
 buf[26]: 16 [0x10] Manufacturer ID
@@ -367,7 +375,7 @@ buf[28]: 36 [0x24] checksum
         {
             if (x->x_verbosity > 0) 
                 post("Remote_Command_Response statuslength %d", statuslength);
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_ID);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
             statuslength++;
 /*
 buf[0]: 126 [0x7E] packet start
@@ -403,23 +411,25 @@ buf[18...] data
 #else
             sprintf((char *)floatstring, "0x%016LX", addr64);
 #endif
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* addr64 */
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr64 */
             statuslength++;
 
             addr16 = (x->x_message[13]<<8) + x->x_message[14];
             sprintf((char *)floatstring, "0x%X", addr16);
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring));
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring));
             statuslength++;
             atbuf[0] = x->x_message[15]; /* the remote AT command string */
             atbuf[1] = x->x_message[16];
             atbuf[2] = '\0';
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym(atbuf));
+            SETSYMBOL(&status_atoms[statuslength], gensym(atbuf));
             statuslength++;
+            
+            if ((atbuf[0] == 'I') && (atbuf[1] == 'S')) payload_is_sample_frame = 1; /* output sample frame via middle outlet */
 
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[17]);/* AT command status */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[17]);/* AT command status */
             statuslength++;
             /* data doesn't include 1byte frame type 1byte ID 8byte addr64 2byte addr16 2byte AT command 1byte status = 15bytes */
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_length-15);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-15);
             statuslength++;
             payloadstart = 18;
          }
@@ -428,16 +438,16 @@ buf[18...] data
         {
             if (x->x_verbosity > 0) 
                 post("ZigBee_Transmit_Status statuslength %d", statuslength);
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_ID);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
             statuslength++;
             sprintf(atbuf, "0x%X", (x->x_message[5]<<8) + x->x_message[6]); /* the 16-bit address as a symbol */
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym(atbuf));
+            SETSYMBOL(&status_atoms[statuslength], gensym(atbuf));
             statuslength++;
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[7]);/* Transmit Retry Count */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[7]);/* Transmit Retry Count */
             statuslength++;
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[8]);/* Delivery Status */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[8]);/* Delivery Status */
             statuslength++;
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[9]);/* Discovery Status */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[9]);/* Discovery Status */
             statuslength++;
             payloadstart = 0; /* no payload */
         }
@@ -446,7 +456,7 @@ buf[18...] data
             if (x->x_verbosity > 0) 
                 post("ZigBee_Receive_Packet statuslength %d", statuslength);
             /* data doesn't include 1byte frametype, 8byte addr64, 2byte addr16, 1byte options = 12bytes*/
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_length-12);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-12);
             statuslength++;
             /* frame type */
             /* 64-bit source address */
@@ -471,16 +481,61 @@ buf[18...] data
 #else
             sprintf((char *)floatstring, "0x%016LX", addr64);
 #endif
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* addr64 */
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr64 */
             statuslength++;
             /* 16-bit source address */
             addr16 = x->x_message[i++]<<8;
             addr16 |= x->x_message[i++];
             sprintf((char *)floatstring, "0x%X", addr16);
-            SETSYMBOL(&x->x_statusbuf[statuslength], gensym((char *)floatstring)); /* addr16 */
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr16 */
             statuslength++;
             /* receive options byte */
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_message[i++]);/* 1 2 32 64 */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* 1 2 32 64 */
+            statuslength++;
+            /* data */
+            payloadstart = i;
+        }
+        else if (ZigBee_IO_Data_Sample_Rx_Indicator == x->x_frame_type)
+        {
+            if (x->x_verbosity > 0) 
+                post("ZigBee_IO_Data_Sample_Rx_Indicator statuslength %d", statuslength);
+            payload_is_sample_frame = 1;
+            /* data doesn't include 1byte frametype, 8byte addr64, 2byte addr16, 1byte options = 12bytes*/
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-12);
+            statuslength++;
+            /* frame type */
+            /* 64-bit source address */
+            i = 4;
+            addr64 = x->x_message[i++]; 
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+#ifdef _MSC_VER
+            sprintf((char *)floatstring, "0x%016I64X", addr64);
+#else
+            sprintf((char *)floatstring, "0x%016LX", addr64);
+#endif
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr64 */
+            statuslength++;
+            /* 16-bit source address */
+            addr16 = x->x_message[i++]<<8;
+            addr16 |= x->x_message[i++];
+            sprintf((char *)floatstring, "0x%X", addr16);
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr16 */
+            statuslength++;
+            /* receive options byte */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* 1 2 32 64 */
             statuslength++;
             /* data */
             payloadstart = i;
@@ -489,15 +544,68 @@ buf[18...] data
         {
             if (x->x_verbosity > 0) 
                 post("some other packet statuslength %d", statuslength);
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_ID);/* may not be valid */
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);/* may not be valid */
             statuslength++;
-            SETFLOAT(&x->x_statusbuf[statuslength], x->x_frame_length-2);/* payload doesn't include frame type and ID */
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-2);/* payload doesn't include frame type and ID */
             statuslength++;
             payloadstart = 5;
         }
-        outlet_anything(x->x_status_out, type_selector, statuslength, x->x_statusbuf);
+        outlet_anything(x->x_status_out, type_selector, statuslength, status_atoms);
         if (payloadstart > 0)
         {
+            if (payload_is_sample_frame)
+            {
+                /* sample frame payload first byte is always 1 */
+                i = payloadstart;
+                if (x->x_message[i] != 1) post ("unpackxbee: bad sample frame");
+                else
+                {
+                    digital_bits = (x->x_message[i+1]<<8) + x->x_message[i+2];
+                    if (x->x_verbosity > 0) 
+                        post("digital bitmask %04X", digital_bits);
+                    analog_bits = x->x_message[i+3];
+                    if (x->x_verbosity > 0) 
+                        post("analog bitmask %04X", analog_bits);
+                    i = i+4; 
+
+                    if (0 != digital_bits)
+                    {
+                        digital_channel = 0;
+                        digital_ins = (x->x_message[i]<<8) + x->x_message[i+1];
+                        while (0 != digital_bits)
+                        {
+                            while (0 == (digital_bits & 1))
+                            {
+                                digital_bits >>= 1;
+                                digital_ins >>= 1;
+                                digital_channel++;
+                            }
+                            sprintf(atbuf, "D%d", digital_channel);
+                            SETFLOAT(&sample_atoms[0], ((digital_ins & 1)?1:0));
+                            outlet_anything(x->x_sample_out, gensym(atbuf), 1, sample_atoms);
+                            digital_bits >>= 1;
+                            digital_ins >>= 1;
+                            digital_channel++;
+                        }
+                        i += 2;
+                    }
+                    analog_channel = 0;
+                    while ((i < k-1) && (0 != analog_bits))
+                    {
+                        while (0 == (analog_bits & 1))
+                        {
+                            analog_bits >>= 1;
+                            analog_channel++;
+                        }
+                        sprintf(atbuf, "A%d", analog_channel);
+                        SETFLOAT(&sample_atoms[0], (x->x_message[i]<<8) + x->x_message[i+1]);
+                        outlet_anything(x->x_sample_out, gensym(atbuf), 1, sample_atoms);
+                        analog_bits >>= 1;
+                        analog_channel++;
+                        i += 2;
+                    }
+                }
+            }
             for (j = 0, i = payloadstart; i < k-1; ++j, ++i)
                 SETFLOAT(&x->x_outbuf[j], x->x_message[i]); /* the payload */
             if (j > 0)
@@ -505,6 +613,7 @@ buf[18...] data
         }
     }
 }
+
 
 static void unpackxbee_free(t_unpackxbee *x)
 {
