@@ -63,7 +63,7 @@
 #define snprintf sprintf_s
 #endif
 
-#define MAX_CONNECT 32 /* maximum number of connections */
+#define MAX_CONNECT 1024 /* maximum number of connections to reserve space for */
 #define INBUFSIZE 65536L /* was 4096: size of receiving data buffer */
 #define MAX_UDP_RECEIVE 65536L /* longer than data in maximum UDP packet */
 
@@ -195,7 +195,7 @@ static t_tcpserver_socketreceiver *tcpserver_socketreceiver_new(void *owner, t_t
     t_tcpserver_socketreceiver *x = (t_tcpserver_socketreceiver *)getbytes(sizeof(*x));
     if (!x)
     {
-        error("%s_socketreceiver: unable to allocate %d bytes", objName, sizeof(*x));
+        error("%s_socketreceiver: unable to allocate %lu bytes", objName, sizeof(*x));
     }
     else
     {
@@ -388,7 +388,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                     if (ttsp == NULL)
                     {
-                        error("%s: unable to allocate %d bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                        error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                         goto failed;
                     }
                     ttsp->client = client;
@@ -442,7 +442,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                         ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                         if (ttsp == NULL)
                         {
-                            error("%s: unable to allocate %d bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                            error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                             goto failed;
                         }
                         ttsp->client = client;
@@ -484,7 +484,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
             ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
             if (ttsp == NULL)
             {
-                error("%s: unable to allocate %d bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                 goto failed;
             }
             ttsp->client = client;
@@ -754,7 +754,7 @@ static void tcpserver_buf_size(t_tcpserver *x, t_symbol *s, int argc, t_atom *ar
 {
     int     client = -1;
     float   buf_size = 0;
-    t_atom  output_atom[3];
+//    t_atom  output_atom[3];
 
     if(x->x_nconnections <= 0)
     {
@@ -809,11 +809,11 @@ static void *tcpserver_broadcast_thread(void *arg)
     int                             sockfd = 0;
     char                            fpath[FILENAME_MAX];
     FILE                            *fptr;
-    t_atom                          output_atom[3];
-    t_tcpserver_send_params         *ttsp;
-    pthread_t                       sender_thread;
-    pthread_attr_t                  sender_attr;
-    int                             sender_thread_result;
+//    t_atom                          output_atom[3];
+//    t_tcpserver_send_params         *ttsp;
+//    pthread_t                       sender_thread;
+//    pthread_attr_t                  sender_attr;
+//    int                             sender_thread_result;
     int                             result;
 
     for (i = j = 0; i < ttbp->argc; ++i)
@@ -1003,7 +1003,7 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
                 ttbp = (t_tcpserver_broadcast_params *)getbytes(sizeof(t_tcpserver_broadcast_params));
                 if (ttbp == NULL)
                 {
-                    error("%s_broadcast: unable to allocate %d bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
+                    error("%s_broadcast: unable to allocate %lu bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
                 }
                 else
                 {
@@ -1060,11 +1060,17 @@ static void tcpserver_connectpoll(t_tcpserver *x)
 {
     struct sockaddr_in  incomer_address;
     unsigned int        sockaddrl = sizeof( struct sockaddr );
-    int                 fd = accept(x->x_connectsocket, (struct sockaddr*)&incomer_address, &sockaddrl);
+    int                 fd;
     int                 i;
     int                 optVal;
     unsigned int        optLen = sizeof(int);
 
+    if (MAX_CONNECT <= x->x_nconnections)
+    { /* no more free space for t_tcpserver_socketreceiver pointers, maybe increase MAX_CONNECT? */
+        post("%s: too many connections (MAX_CONNECT is %d)", objName, x->x_nconnections);
+        return;
+    }
+    fd = accept(x->x_connectsocket, (struct sockaddr*)&incomer_address, &sockaddrl);
     if (fd < 0) post("%s: accept failed", objName);
     else
     {
