@@ -31,7 +31,7 @@ static void runningmean_free(t_runningmean *x);
 static void runningmean_bang(t_runningmean *x);
 static void runningmean_float(t_runningmean *x, t_float f);
 static void runningmean_length(t_runningmean *x, t_float f);
-static void runningmean_zero(t_runningmean *x);
+static void runningmean_zero(t_runningmean *x, t_float f);
 
 static void runningmean_float(t_runningmean *x, t_float f)
 {
@@ -63,20 +63,20 @@ static void runningmean_length(t_runningmean *x, t_float f)
     if ((f >= 1) && ((int)f == f) && (f <= x->x_originalsize))
     {
         x->x_n = (int)f;
-        runningmean_zero(x);
+        runningmean_zero(x, x->x_mean); // set the entire new array to the old mean
     }
     else post("runningmean length must be an integer between 1 and %d.", x->x_originalsize);
     return;
 }
 
-static void runningmean_zero(t_runningmean *x)
+static void runningmean_zero(t_runningmean *x, t_float f)
 {
     float   *p = x->x_data;
     int     i;
 
-    /* zero the entire array */
-    for (i = 0; i < x->x_n; ++i) *p++ = 0;
-    x->x_mean = 0;
+    /* set the entire array to f */
+    for (i = 0; i < x->x_n; ++i) *p++ = f;
+    x->x_mean = f;
     x->x_pointer = 0;
     return;
 }
@@ -118,7 +118,7 @@ static void *runningmean_new(t_floatarg f)
             }
         }
         x->x_originalsize = x->x_n;
-        runningmean_zero(x);
+        runningmean_zero(x, 0);
     }
     return (x);
 }
@@ -138,7 +138,7 @@ void runningmean_setup(void)
     class_addbang(runningmean_class, runningmean_bang);
     class_addfloat(runningmean_class, runningmean_float);
     class_addmethod(runningmean_class, (t_method)runningmean_length, gensym("length"), A_FLOAT, 0);
-    class_addmethod(runningmean_class, (t_method)runningmean_zero, gensym("clear"), 0);
+    class_addmethod(runningmean_class, (t_method)runningmean_zero, gensym("clear"), A_DEFFLOAT, 0);
 }
 /* end runningmean.c */
 
