@@ -5,6 +5,7 @@
 /* Started by Martin Peach 20110731 */
 /* Information taken from "XBee®/XBee-PRO® ZB RF Modules" (document 90000976_G, 11/15/2010)*/
 /* by Digi International Inc. http://www.digi.com */
+/* Series 1 info from "XBee®/XBee-PRO® RF Modules" (document 90000982_L 4/30/2013) */
 
 #include <stdio.h>
 //#include <string.h>
@@ -119,7 +120,7 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
     unsigned int        d, checksum = 0;
     unsigned char       c;
     t_symbol            *type_selector;
-    int                 statuslength = 0, samplelength = 0, payloadstart = 0;
+    int                 statuslength = 0, payloadstart = 0;
     int                 payload_is_sample_frame = 0;
     int                 digital_bits = 0, digital_ins = 0, digital_channel = 0;
     int                 analog_bits = 0, analog_channel = 0;
@@ -202,6 +203,18 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
             case ZigBee_Receive_Packet:
                 type_selector = gensym("ZigBee_Receive_Packet");
                 break;
+            case Receive_Packet_64_Bit_Address:
+                type_selector = gensym("Receive_Packet_64_Bit_Address");
+                break;
+            case Receive_Packet_16_Bit_Address:
+                type_selector = gensym("Receive_Packet_16_Bit_Address");
+                break;
+            case Receive_Packet_64_Bit_Address_IO:
+                type_selector = gensym("Receive_Packet_64_Bit_Address_IO");
+                break;
+            case Receive_Packet_16_Bit_Address_IO:
+                type_selector = gensym("Receive_Packet_16_Bit_Address_IO");
+                break;
             case ZigBee_Explicit_Rx_Indicator:
                 type_selector = gensym("ZigBee_Explicit_Rx_Indicator");
                 break;
@@ -232,13 +245,11 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
         statuslength = 0;
         SETFLOAT(&status_atoms[statuslength], x->x_frame_type);
         statuslength++;
-        if
-        (
-            (AT_Command_Response == x->x_frame_type)
-            ||(AT_Command == x->x_frame_type)
-            ||(AT_Command_Queue_Parameter_Value == x->x_frame_type)
-        )
+        switch (x->x_frame_type)
         {
+        case AT_Command_Response:
+        case AT_Command:
+        case AT_Command_Queue_Parameter_Value:
             if (x->x_verbosity > 0) 
                 post("AT_Command_Response  AT_Command AT_Command_Queue_Parameter_Value statuslength %d", statuslength);
             SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
@@ -369,10 +380,9 @@ buf[28]: 36 [0x24] checksum
             {
                 payloadstart = 8;
             }
-        }
+            break;
 /* RAT */
-        if (Remote_Command_Response == x->x_frame_type)
-        {
+        case Remote_Command_Response:
             if (x->x_verbosity > 0) 
                 post("Remote_Command_Response statuslength %d", statuslength);
             SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
@@ -432,10 +442,9 @@ buf[18...] data
             SETFLOAT(&status_atoms[statuslength], x->x_frame_length-15);
             statuslength++;
             payloadstart = 18;
-         }
+            break;
 /* RAT */
-        else if (ZigBee_Transmit_Status == x->x_frame_type)
-        {
+        case ZigBee_Transmit_Status:
             if (x->x_verbosity > 0) 
                 post("ZigBee_Transmit_Status statuslength %d", statuslength);
             SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
@@ -450,9 +459,8 @@ buf[18...] data
             SETFLOAT(&status_atoms[statuslength], x->x_message[9]);/* Discovery Status */
             statuslength++;
             payloadstart = 0; /* no payload */
-        }
-        else if (ZigBee_Receive_Packet == x->x_frame_type)
-        {
+            break;
+        case ZigBee_Receive_Packet:
             if (x->x_verbosity > 0) 
                 post("ZigBee_Receive_Packet statuslength %d", statuslength);
             /* data doesn't include 1byte frametype, 8byte addr64, 2byte addr16, 1byte options = 12bytes*/
@@ -494,9 +502,72 @@ buf[18...] data
             statuslength++;
             /* data */
             payloadstart = i;
-        }
-        else if (ZigBee_IO_Data_Sample_Rx_Indicator == x->x_frame_type)
-        {
+            break;
+        case Receive_Packet_64_Bit_Address:
+            if (x->x_verbosity > 0) 
+                post("Receive_Packet_64_Bit_Address statuslength %d", statuslength);
+            /* data doesn't include 1byte frametype, 8byte addr64, 1byte RSSI, 1byte options = 11bytes*/
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-11);
+            statuslength++;
+            /* frame type */
+            /* 64-bit source address */
+            i = 4;
+            addr64 = x->x_message[i++]; 
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+            addr64 <<= 8;
+            addr64 |= x->x_message[i++];
+#ifdef _MSC_VER
+            sprintf((char *)floatstring, "0x%016I64X", addr64);
+#else
+            sprintf((char *)floatstring, "0x%016LX", addr64);
+#endif
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr64 */
+            statuslength++;
+            /* receive signal strength indicator */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);
+            statuslength++;
+            /* receive options byte */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* 1 2 32 64 */
+            statuslength++;
+            /* data */
+            payloadstart = i;
+            break;
+        case Receive_Packet_16_Bit_Address:
+            if (x->x_verbosity > 0) 
+                post("Receive_Packet_16_Bit_Address statuslength %d", statuslength);
+            /* data doesn't include 1byte frametype, 2byte addr64, 1byte RSSI, 1byte options = 5bytes*/
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_length-5);
+            statuslength++;
+            /* frame type */
+            /* 16-bit source address */
+            i = 4;
+            /* 16-bit source address */
+            addr16 = x->x_message[i++]<<8;
+            addr16 |= x->x_message[i++];
+            sprintf((char *)floatstring, "0x%X", addr16);
+            SETSYMBOL(&status_atoms[statuslength], gensym((char *)floatstring)); /* addr16 */
+            statuslength++;
+            /* receive signal strength indicator */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);
+            statuslength++;
+            /* receive options byte */
+            SETFLOAT(&status_atoms[statuslength], x->x_message[i++]);/* 1 2 32 64 */
+            statuslength++;
+            /* data */
+            payloadstart = i;
+            break;
+        case ZigBee_IO_Data_Sample_Rx_Indicator:
             if (x->x_verbosity > 0) 
                 post("ZigBee_IO_Data_Sample_Rx_Indicator statuslength %d", statuslength);
             payload_is_sample_frame = 1;
@@ -539,9 +610,8 @@ buf[18...] data
             statuslength++;
             /* data */
             payloadstart = i;
-        }
-        else
-        {
+            break;
+        default:
             if (x->x_verbosity > 0) 
                 post("some other packet statuslength %d", statuslength);
             SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);/* may not be valid */
@@ -549,7 +619,8 @@ buf[18...] data
             SETFLOAT(&status_atoms[statuslength], x->x_frame_length-2);/* payload doesn't include frame type and ID */
             statuslength++;
             payloadstart = 5;
-        }
+        } /* end of switch */
+
         outlet_anything(x->x_status_out, type_selector, statuslength, status_atoms);
         if (payloadstart > 0)
         {
