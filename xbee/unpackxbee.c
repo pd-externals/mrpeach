@@ -197,6 +197,9 @@ static void unpackxbee_input(t_unpackxbee *x, t_symbol *s, int argc, t_atom *arg
             case Modem_Status:
                 type_selector = gensym("Modem_Status");
                 break;
+            case Transmit_Status:
+                type_selector = gensym("Transmit_Status");
+                break;
             case ZigBee_Transmit_Status:
                 type_selector = gensym("ZigBee_Transmit_Status");
                 break;
@@ -444,6 +447,15 @@ buf[18...] data
             payloadstart = 18;
             break;
 /* RAT */
+        case Transmit_Status:
+            if (x->x_verbosity > 0) 
+                post("Transmit_Status statuslength %d", statuslength);
+            SETFLOAT(&status_atoms[statuslength], x->x_frame_ID);
+            statuslength++;
+            SETFLOAT(&status_atoms[statuslength], x->x_message[5]);/* Delivery Status */
+            statuslength++;
+            payloadstart = 0; /* no payload */
+            break;
         case ZigBee_Transmit_Status:
             if (x->x_verbosity > 0) 
                 post("ZigBee_Transmit_Status statuslength %d", statuslength);

@@ -26,6 +26,7 @@
 #define Receive_Packet_64_Bit_Address_IO            0x82
 #define Receive_Packet_16_Bit_Address_IO            0x83
 #define AT_Command_Response                         0x88
+#define Transmit_Status                             0x89
 #define Modem_Status                                0x8A
 #define ZigBee_Transmit_Status                      0x8B
 #define ZigBee_Receive_Packet                       0x90
