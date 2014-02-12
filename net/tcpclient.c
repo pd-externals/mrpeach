@@ -96,7 +96,7 @@ typedef struct _tcpclient
     char                        *x_hostname; // address we want to connect to as text
     int                         x_connectstate; // 0 = not connected, 1 = connected
     int                         x_port; // port we're connected to
-    long                        x_addr; // address we're connected to as 32bit int
+    uint32_t                    x_addr; // address we're connected to as 32bit int
     t_atom                      x_addrbytes[4]; // address we're connected to as 4 bytes
     t_atom                      x_msgoutbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as float atoms
     unsigned char               x_msginbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as bytes
@@ -222,7 +222,7 @@ static void *tcpclient_child_connect(void *w)
         return (x);
     }
     x->x_fd = sockfd;
-    x->x_addr = ntohl(*(long *)hp->h_addr);
+    x->x_addr = ntohl(*(uint32_t *)hp->h_addr);
     /* outlet_float is not threadsafe ! */
     // outlet_float(x->x_obj.ob_outlet, 1);
     x->x_connectstate = 1;
