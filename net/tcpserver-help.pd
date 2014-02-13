@@ -1,4 +1,4 @@
-#N canvas 322 104 1272 779 12;
+#N canvas 4 103 1272 816 12;
 #X msg 39 -10 print;
 #X floatatom 404 376 5 0 0 0 - - -;
 #X floatatom 428 426 5 0 0 0 - - -;
@@ -53,7 +53,7 @@
 #X msg -41 -90 disconnectsocket \$1;
 #X msg -84 -133 disconnectclient \$1;
 #X obj 647 257 s toserver;
-#X obj 381 324 r toserver;
+#X obj 376 327 r toserver;
 #X floatatom 143 -172 5 0 0 0 - - -;
 #X obj 121 -153 f;
 #X obj 121 -172 bng 15 250 50 0 empty empty empty 17 7 0 10 -258699
@@ -119,7 +119,7 @@ hang pd!;
 #X text -143 233 If sending too many messages blocks the system \,
 tcpserver will stop sending until it receives an unblock message;
 #X obj 712 419 print blocked;
-#N canvas 529 82 494 344 META 0;
+#N canvas 530 81 494 344 META 0;
 #X text 12 225 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
 Wilkes for Pd version 0.42.;
 #X text 12 205 AUTHOR Martin Peach;
@@ -134,10 +134,14 @@ send print broadcast dump clientbuf unblock;
 #X text 12 165 OUTLET_3 list;
 #X text 12 185 OUTLET_4 sent client blocked;
 #X restore 899 458 pd META;
-#X msg 335 286 port 12345;
-#X text 417 285 change listening port (only if no connections are active)
+#X msg 354 305 port 12345;
+#X text 436 304 change listening port (only if no connections are active)
 ;
-#X text -9 536 2013/05/20 Martin Peach;
+#X msg 332 283 verbosity \$1;
+#X obj 332 263 hradio 15 1 0 4 empty empty empty 0 -8 0 10 -1 -4034
+-1 0;
+#X text 425 281 set verbosity level;
+#X text -9 536 2014/02/13 Martin Peach;
 #X connect 0 0 60 0;
 #X connect 3 0 4 0;
 #X connect 3 1 5 0;
@@ -201,3 +205,5 @@ send print broadcast dump clientbuf unblock;
 #X connect 96 2 98 0;
 #X connect 96 3 67 0;
 #X connect 100 0 60 0;
+#X connect 102 0 60 0;
+#X connect 103 0 102 0;

@@ -95,6 +95,7 @@ typedef struct _tcpserver_send_params
     int     sockfd;
     char    *byte_buf;
     size_t  length;
+    int     verbosity;
 } t_tcpserver_send_params;
 
 typedef struct _tcpserver
@@ -115,6 +116,7 @@ typedef struct _tcpserver
     t_int                       x_port;
     t_int                       x_nconnections;
     t_int                       x_blocked;
+    t_int                       x_verbosity;
     t_atom                      x_msgoutbuf[MAX_UDP_RECEIVE];
     char                        x_msginbuf[MAX_UDP_RECEIVE];
 } t_tcpserver;
@@ -146,6 +148,7 @@ static void tcpserver_buf_size(t_tcpserver *x, t_symbol *s, int argc, t_atom *ar
 static void tcpserver_disconnect(t_tcpserver *x);
 static void tcpserver_client_disconnect(t_tcpserver *x, t_floatarg fclient);
 static void tcpserver_socket_disconnect(t_tcpserver *x, t_floatarg fsocket);
+static void tcpserver_verbosity(t_tcpserver *x, t_floatarg verbosity_level);
 static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *argv);
 static void tcpserver_notify(t_tcpserver *x);
 static void tcpserver_connectpoll(t_tcpserver *x);
@@ -156,22 +159,28 @@ static void tcpserver_port(t_tcpserver *x, t_floatarg fportno);
 static void tcpserver_free(t_tcpserver *x);
 void tcpserver_setup(void);
 static void tcpserver_dump(t_tcpserver *x, t_float dump);
-static void tcpserver_hexdump(unsigned char *buf, long len);
+static void tcpserver_hexdump(unsigned char *buf, long len, int verbosity);
+
+
+static void tcpserver_verbosity(t_tcpserver *x, t_floatarg verbosity_level)
+{
+    x->x_verbosity = verbosity_level;
+    if (x->x_verbosity > 0)  post("tcpserver_verbosity now %d", x->x_verbosity);
+}
 
 static void tcpserver_dump(t_tcpserver *x, t_float dump)
 {
     x->x_dump = (dump == 0)?0:1;
 }
 
-static void tcpserver_hexdump(unsigned char *buf, long len)
+static void tcpserver_hexdump(unsigned char *buf, long len, int verbosity)
 {
 #define BYTES_PER_LINE 16
     char hexStr[(3*BYTES_PER_LINE)+1];
     char ascStr[BYTES_PER_LINE+1];
     long i, j, k = 0L;
-#ifdef DEBUG
-    post("tcpserver_hexdump %d", len);
-#endif
+
+    if (verbosity > 0)  post("tcpserver_hexdump of %d bytes", len);
     while (k < len)
     {
         for (i = j = 0; i < BYTES_PER_LINE; ++i, ++k, j+=3)
@@ -197,7 +206,7 @@ static t_tcpserver_socketreceiver *tcpserver_socketreceiver_new(void *owner, t_t
     t_tcpserver_socketreceiver *x = (t_tcpserver_socketreceiver *)getbytes(sizeof(*x));
     if (!x)
     {
-        error("%s_socketreceiver: unable to allocate %lu bytes", objName, sizeof(*x));
+        error("%s_socketreceiver: unable to allocate %zu bytes", objName, sizeof(*x));
     }
     else
     {
@@ -229,9 +238,7 @@ static int tcpserver_socketreceiver_doread(t_tcpserver_socketreceiver *x)
     unsigned char   *inbuf = x->sr_inbuf;
 
     if (intail == inhead) return (0);
-#ifdef DEBUG
-    post ("%s_socketreceiver_doread: intail=%d inhead=%d", objName, intail, inhead);
-#endif
+    if (y->x_verbosity > 1) post ("%s_socketreceiver_doread: intail=%d inhead=%d", objName, intail, inhead);
 
     for (indx = intail, i = 0; indx != inhead; indx = (indx+1)&(INBUFSIZE-1), ++i)
     {
@@ -239,7 +246,7 @@ static int tcpserver_socketreceiver_doread(t_tcpserver_socketreceiver *x)
         y->x_msgoutbuf[i].a_w.w_float = (float)c;
     }
 
-    if (y->x_dump)tcpserver_hexdump(&inbuf[intail], i);
+    if (y->x_dump)tcpserver_hexdump(&inbuf[intail], i, y->x_verbosity);
 
     if (i > 1) outlet_list(y->x_msgout, &s_list, i, y->x_msgoutbuf);
     else outlet_float(y->x_msgout, y->x_msgoutbuf[0].a_w.w_float);
@@ -260,7 +267,7 @@ static void tcpserver_socketreceiver_read(t_tcpserver_socketreceiver *x, int fd)
     /* the input buffer might be full.  If so, drop the whole thing */
     if (readto == x->sr_inhead)
     {
-        post("%s: dropped message", objName);
+        if (y->x_verbosity > 0)  post("%s: dropped message", objName);
         x->sr_inhead = x->sr_intail = 0;
         readto = INBUFSIZE;
     }
@@ -277,16 +284,14 @@ static void tcpserver_socketreceiver_read(t_tcpserver_socketreceiver *x, int fd)
         }
         else if (ret == 0)
         {
-            post("%s: connection closed on socket %d", objName, fd);
+            if (y->x_verbosity > 0) post("%s: connection closed on socket %d", objName, fd);
             if (x->sr_notifier) (*x->sr_notifier)(x->sr_owner);
             sys_rmpollfn(fd);
             sys_closesocket(fd);
         }
         else
         {
-#ifdef DEBUG
-    post ("%s_socketreceiver_read: ret = %d", objName, ret);
-#endif
+            if (y->x_verbosity > 1) post ("%s_socketreceiver_read: ret = %d", objName, ret);
             x->sr_inhead += ret;
             if (x->sr_inhead >= INBUFSIZE) x->sr_inhead = 0;
             /* output client's IP and socket no. */
@@ -294,7 +299,6 @@ static void tcpserver_socketreceiver_read(t_tcpserver_socketreceiver *x, int fd)
             {
                 if(y->x_sr[i]->sr_fd == y->x_sock_fd)
                 {
-//                  outlet_symbol(x->x_connectionip, x->x_sr[i].sr_host);
                     /* find sender's ip address and output it */
                     y->x_addrbytes[0].a_w.w_float = (y->x_sr[i]->sr_addr & 0xFF000000)>>24;
                     y->x_addrbytes[1].a_w.w_float = (y->x_sr[i]->sr_addr & 0x0FF0000)>>16;
@@ -312,9 +316,17 @@ static void tcpserver_socketreceiver_read(t_tcpserver_socketreceiver *x, int fd)
 
 static void tcpserver_socketreceiver_free(t_tcpserver_socketreceiver *x)
 {
+    t_tcpserver *y = x->sr_owner;
+
+    if (y->x_verbosity > 1) post("tcpserver_socketreceiver_free x=%p", x);
     if (x != NULL)
     {
-        free(x->sr_inbuf);
+        if (NULL != x->sr_inbuf) 
+        {
+            if (y->x_verbosity > 1) post("tcpserver_socketreceiver_free freeing x->sr_inbuf %p", x->sr_inbuf);
+            free(x->sr_inbuf);
+            x->sr_inbuf = NULL;
+        }
         freebytes(x, sizeof(*x));
     }
 }
@@ -335,7 +347,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
     t_atom                  output_atom[3];
     t_tcpserver_send_params *ttsp;
     pthread_t               sender_thread;
-    pthread_attr_t          sender_attr;
+    pthread_attr_t          sender_attr = {{0}};
     int                     sender_thread_result;
 
     /* process & send data */
@@ -360,9 +372,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                 f = argv[i].a_w.w_float;
                 d = (int)f;
                 e = f - d;
-#ifdef DEBUG
-                post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
-#endif
+                if (x->x_verbosity > 2) post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
                 if (e != 0)
                 {
                     error("%s: item %d (%f) is not an integer", objName, i, f);
@@ -374,9 +384,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     goto failed;
                 }
                 c = (unsigned char)d; /* make sure it doesn't become negative; this only matters for post() */
-#ifdef DEBUG
-                post("%s: argv[%d]: %d", objName, i, c);
-#endif
+                if (x->x_verbosity > 2) post("%s: argv[%d]: %d", objName, i, c);
                 byte_buf[j++] = c;
                 if (j >= MAX_UDP_RECEIVE)
                 { /* if the argument list is longer than our buffer, send the buffer whenever it's full */
@@ -390,18 +398,23 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                     if (ttsp == NULL)
                     {
-                        error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                        error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                         goto failed;
                     }
                     ttsp->client = client;
                     ttsp->sockfd = sockfd;
                     ttsp->byte_buf = byte_buf;
                     ttsp->length = j;
+                    ttsp->verbosity = x->x_verbosity;
                     if (0 != (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
                     {
                         ++x->x_blocked;
                         error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
-                        freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                        if (NULL != ttsp)
+                        {
+                            freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                            ttsp = NULL;
+                        }
                         goto failed;
                     }
                     flen += j;
@@ -412,9 +425,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
             { /* symbols are interpreted to be file names; attempt to load the file and send it */
 
                 atom_string(&argv[i], fpath, FILENAME_MAX);
-#ifdef DEBUG
-                post ("%s: fname: %s", objName, fpath);
-#endif
+                if (x->x_verbosity > 2) post ("%s: fname: %s", objName, fpath);
                 fptr = sys_fopen(fpath, "rb");
                 if (fptr == NULL)
                 {
@@ -422,15 +433,11 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     goto failed;
                 }
                 rewind(fptr);
-#ifdef DEBUG
-                post("%s: d is %d", objName, d);
-#endif
                 while ((d = fgetc(fptr)) != EOF)
                 {
+                    if (x->x_verbosity > 2) post("%s: d is %d", objName, d);
                     byte_buf[j++] = (char)(d & 0x0FF);
-#ifdef DEBUG
-                    post("%s: byte_buf[%d] = %d", objName, j-1, byte_buf[j-1]);
-#endif
+                    if (x->x_verbosity > 2)  post("%s: byte_buf[%d] = %d", objName, j-1, byte_buf[j-1]);
                     if (j >= MAX_UDP_RECEIVE)
                     { /* if the file is longer than our buffer, send the buffer whenever it's full */
                         /* this might be better than allocating huge amounts of memory */
@@ -444,18 +451,23 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                         ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                         if (ttsp == NULL)
                         {
-                            error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                            error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                             goto failed;
                         }
                         ttsp->client = client;
                         ttsp->sockfd = sockfd;
                         ttsp->byte_buf = byte_buf;
                         ttsp->length = j;
+                        ttsp->verbosity = x->x_verbosity;
                         if ( 0!= (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
                         {
                             ++x->x_blocked;
                             error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
-                            freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                            if (NULL != ttsp)
+                            {
+                                freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                                ttsp = NULL;
+                            }
                             goto failed;
                         }
                         flen += j;
@@ -465,7 +477,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                 flen += j;
                 sys_fclose(fptr);
                 fptr = NULL;
-                post("%s: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
+                if (x->x_verbosity > 0) post("%s: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
             }
             else
             { /* arg was neither a float nor a valid file name */
@@ -486,18 +498,23 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
             ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
             if (ttsp == NULL)
             {
-                error("%s: unable to allocate %lu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                 goto failed;
             }
             ttsp->client = client;
             ttsp->sockfd = sockfd;
             ttsp->byte_buf = byte_buf;
             ttsp->length = length;
+            ttsp->verbosity = x->x_verbosity;
             if ( 0!= (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
             {
                 ++x->x_blocked;
                 error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
-                freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                if (NULL != ttsp) 
+                {
+                    freebytes (ttsp, sizeof (t_tcpserver_send_params));
+                    ttsp = NULL;
+                }
                 goto failed;
             }
             flen += length;
@@ -505,6 +522,11 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
     }
     else post("%s: not a valid socket number (%d)", objName, sockfd);
 failed:
+    if (0!= (sender_thread_result = pthread_attr_destroy(&sender_attr)))
+    {
+        error("%s_broadcast: pthread_attr_destroy failed: %d", objName, sender_thread_result);
+    }
+
     SETFLOAT(&output_atom[0], client+1);
     SETFLOAT(&output_atom[1], flen);
     SETFLOAT(&output_atom[2], sockfd);
@@ -534,9 +556,9 @@ static void *tcpserver_send_buf_thread(void *arg)
     if (result <= 0)
     {
         sys_sockerror("tcpserver: send");
-        post("%s_send_buf: could not send data to client %d", objName, ttsp->client+1);
+        if (ttsp->verbosity > 0) post("%s_send_buf: could not send data to client %d", objName, ttsp->client+1);
     }
-    freebytes (arg, sizeof (t_tcpserver_send_params));
+    if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_send_params));
     return NULL;
 }
 
@@ -548,7 +570,7 @@ static void tcpserver_send(t_tcpserver *x, t_symbol *s, int argc, t_atom *argv)
 
     if(x->x_nconnections <= 0)
     {
-        post("%s_send: no clients connected", objName);
+        if (x->x_verbosity > 0) post("%s_send: no clients connected", objName);
         return;
     }
     if(argc == 0) /* no socket specified: output state of all sockets */
@@ -570,13 +592,13 @@ static void tcpserver_send(t_tcpserver *x, t_symbol *s, int argc, t_atom *argv)
         }
         if(client == -1)
         {
-            post("%s_send: no connection on socket %d", objName, sockfd);
+            if (x->x_verbosity > 0) post("%s_send: no connection on socket %d", objName, sockfd);
             return;
         }
     }
     else
     {
-        post("%s_send: no socket specified", objName);
+        if (x->x_verbosity > 0) post("%s_send: no socket specified", objName);
         return;
     }
     if (argc < 2) /* nothing to send: output state of this socket */
@@ -610,7 +632,7 @@ static void tcpserver_disconnect(t_tcpserver *x)
             }
         }
     }
-    post("%s__disconnect: no connection on socket %d", objName, x->x_sock_fd);
+    if (x->x_verbosity > 0) post("%s__disconnect: no connection on socket %d", objName, x->x_sock_fd);
 }
 
 /* disconnect a client by socket */
@@ -620,7 +642,7 @@ static void tcpserver_socket_disconnect(t_tcpserver *x, t_floatarg fsocket)
 
     if(x->x_nconnections <= 0)
     {
-        post("%s_socket_disconnect: no clients connected", objName);
+        if (x->x_verbosity > 0) post("%s_socket_disconnect: no clients connected", objName);
         return;
     }
     x->x_sock_fd = sock;
@@ -634,12 +656,12 @@ static void tcpserver_client_disconnect(t_tcpserver *x, t_floatarg fclient)
 
     if(x->x_nconnections <= 0)
     {
-        post("%s_client_disconnect: no clients connected", objName);
+        if (x->x_verbosity > 0) post("%s_client_disconnect: no clients connected", objName);
         return;
     }
     if (!((client > 0) && (client < MAX_CONNECT)))
     {
-        post("%s: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
+        if (x->x_verbosity > 0) post("%s: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
         return;
     }
     --client;/* zero based index*/
@@ -657,7 +679,7 @@ static void tcpserver_client_send(t_tcpserver *x, t_symbol *s, int argc, t_atom 
 
     if(x->x_nconnections <= 0)
     {
-        post("%s_client_send: no clients connected", objName);
+        if (x->x_verbosity > 0) post("%s_client_send: no clients connected", objName);
         return;
     }
     if(argc > 0)
@@ -667,12 +689,12 @@ static void tcpserver_client_send(t_tcpserver *x, t_symbol *s, int argc, t_atom 
             client = atom_getfloatarg(0, argc, argv);
         else
         {
-            post("%s_client_send: specify client by number", objName);
+            if (x->x_verbosity > 0) post("%s_client_send: specify client by number", objName);
             return;
         }
         if (!((client > 0) && (client < MAX_CONNECT)))
         {
-            post("%s_client_send: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
+            if (x->x_verbosity > 0) post("%s_client_send: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
             return;
         }
     }
@@ -706,14 +728,19 @@ static void tcpserver_output_client_state(t_tcpserver *x, int client)
     else
     {
         client -= 1;/* zero-based client index conflicts with 1-based user index !!! */
-        /* output client parameters via status outlet */
-        x->x_sr[client]->sr_fdbuf = tcpserver_get_socket_send_buf_size(x->x_sr[client]->sr_fd);
-        SETFLOAT(&output_atom[0], client+1);/* user sees client 0 as 1 */
-        SETFLOAT(&output_atom[1], x->x_sr[client]->sr_fd);
-        output_atom[2].a_type = A_SYMBOL;
-        output_atom[2].a_w.w_symbol = x->x_sr[client]->sr_host;
-        SETFLOAT(&output_atom[3], x->x_sr[client]->sr_fdbuf);
-        outlet_anything( x->x_status_outlet, gensym("client"), 4, output_atom);
+
+        if (client < x->x_nconnections)
+        { // only if there is such a client
+            /* output client parameters via status outlet */
+            x->x_sr[client]->sr_fdbuf = tcpserver_get_socket_send_buf_size(x->x_sr[client]->sr_fd);
+            SETFLOAT(&output_atom[0], client+1);/* user sees client 0 as 1 */
+            SETFLOAT(&output_atom[1], x->x_sr[client]->sr_fd);
+            output_atom[2].a_type = A_SYMBOL;
+            output_atom[2].a_w.w_symbol = x->x_sr[client]->sr_host;
+            SETFLOAT(&output_atom[3], x->x_sr[client]->sr_fdbuf);
+            outlet_anything( x->x_status_outlet, gensym("client"), 4, output_atom);
+        }
+        else if (x->x_verbosity > 0) post("%s: no such client (%d)", objName, client+1);
     }
 }
 
@@ -760,7 +787,7 @@ static void tcpserver_buf_size(t_tcpserver *x, t_symbol *s, int argc, t_atom *ar
 
     if(x->x_nconnections <= 0)
     {
-        post("%s_buf_size: no clients connected", objName);
+        if (x->x_verbosity > 0)  post("%s_buf_size: no clients connected", objName);
         return;
     }
     /* get number of client (first element in list) */
@@ -770,12 +797,12 @@ static void tcpserver_buf_size(t_tcpserver *x, t_symbol *s, int argc, t_atom *ar
             client = atom_getfloatarg(0, argc, argv);
         else
         {
-            post("%s_buf_size: specify client by number", objName);
+            if (x->x_verbosity > 0) post("%s_buf_size: specify client by number", objName);
             return;
         }
         if (!((client > 0) && (client < MAX_CONNECT)))
         {
-            post("%s__buf_size: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
+            if (x->x_verbosity > 0) post("%s__buf_size: client %d out of range [1..%d]", objName, client, MAX_CONNECT);
             return;
         }
     }
@@ -783,16 +810,16 @@ static void tcpserver_buf_size(t_tcpserver *x, t_symbol *s, int argc, t_atom *ar
     {
         if (argv[1].a_type != A_FLOAT)
         {
-            post("%s_buf_size: specify buffer size with a float", objName);
+            if (x->x_verbosity > 0) post("%s_buf_size: specify buffer size with a float", objName);
             return;
         }
         buf_size = atom_getfloatarg(1, argc, argv);
         --client;/* zero based index*/
         x->x_sr[client]->sr_fdbuf = tcpserver_set_socket_send_buf_size(x->x_sr[client]->sr_fd, (int)buf_size);
-        post("%s_buf_size: client %d set to %d", objName, client+1, x->x_sr[client]->sr_fdbuf);
+        if (x->x_verbosity > 0) post("%s_buf_size: client %d set to %d", objName, client+1, x->x_sr[client]->sr_fdbuf);
         return;
     }
-    post("%s_buf_size: specify client and buffer size", objName);
+    if (x->x_verbosity > 0) post("%s_buf_size: specify client and buffer size", objName);
     return;
 }
 
@@ -825,25 +852,21 @@ static void *tcpserver_broadcast_thread(void *arg)
             f = ttbp->argv[i].a_w.w_float;
             d = (int)f;
             e = f - d;
-#ifdef DEBUG
-            post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
-#endif
+            if (ttbp->x->x_verbosity > 1) post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
             if (e != 0)
             {
                 error("%s_broadcast_thread: item %d (%f) is not an integer", objName, i, f);
-                freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
             if ((d < 0) || (d > 255))
             {
                 error("%s_broadcast_thread: item %d (%f) is not between 0 and 255", objName, i, f);
-                freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
             c = (unsigned char)d; /* make sure it doesn't become negative; this only matters for post() */
-#ifdef DEBUG
-            post("%s_broadcast_thread: argv[%d]: %d", objName, i, c);
-#endif
+            if (ttbp->x->x_verbosity > 1) post("%s_broadcast_thread: argv[%d]: %d", objName, i, c);
             byte_buf[j++] = c;
             if (j >= MAX_UDP_RECEIVE)
             { /* if the argument list is longer than our buffer, send the buffer whenever it's full */
@@ -855,7 +878,7 @@ static void *tcpserver_broadcast_thread(void *arg)
                     if (tcpserver_send_buffer_avaliable_for_client(ttbp->x, client) < j)
                     {
                         error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
-                        freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                        if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                         return NULL;
                     }
 #endif // SIOCOUTQ
@@ -866,8 +889,8 @@ static void *tcpserver_broadcast_thread(void *arg)
                         if (result <= 0)
                         {
                             sys_sockerror("tcpserver_broadcast_thread: send");
-                            post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
-                            freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                            if (ttbp->x->x_verbosity > 0) post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
+                            if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                             return NULL;
                         }
                     }
@@ -879,26 +902,20 @@ static void *tcpserver_broadcast_thread(void *arg)
         else if (ttbp->argv[i].a_type == A_SYMBOL)
         { /* symbols are interpreted to be file names; attempt to load the file and send it */
             atom_string(&ttbp->argv[i], fpath, FILENAME_MAX);
-#ifdef DEBUG
-            post ("%s_broadcast_thread: fname: %s", objName, fpath);
-#endif
+            if (ttbp->x->x_verbosity > 1) post ("%s_broadcast_thread: fname: %s", objName, fpath);
             fptr = sys_fopen(fpath, "rb");
             if (fptr == NULL)
             {
                 error("%s_broadcast_thread: unable to open \"%s\"", objName, fpath);
-                freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
             rewind(fptr);
-#ifdef DEBUG
-            post("%s_broadcast_thread: d is %d", objName, d);
-#endif
             while ((d = fgetc(fptr)) != EOF)
             {
+                if (ttbp->x->x_verbosity > 1) post("%s_broadcast_thread: d is %d", objName, d);
                 byte_buf[j++] = (char)(d & 0x0FF);
-#ifdef DEBUG
-                post("%s_broadcast_thread: byte_buf[%d] = %d", objName, j-1, byte_buf[j-1]);
-#endif
+                if (ttbp->x->x_verbosity > 1) post("%s_broadcast_thread: byte_buf[%d] = %d", objName, j-1, byte_buf[j-1]);
                 if (j >= MAX_UDP_RECEIVE)
                 { /* if the file is longer than our buffer, send the buffer whenever it's full */
 //LOOP
@@ -910,7 +927,7 @@ static void *tcpserver_broadcast_thread(void *arg)
                         if (tcpserver_send_buffer_avaliable_for_client(x, client) < j)
                         {
                             error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
-                            freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                            if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                             return NULL;
                         }
 #endif // SIOCOUTQ
@@ -921,8 +938,8 @@ static void *tcpserver_broadcast_thread(void *arg)
                             if (result <= 0)
                             {
                                 sys_sockerror("tcpserver_broadcast_thread: send");
-                                post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
-                                freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                                if (ttbp->x->x_verbosity > 1) post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
+                                if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                                 return NULL;
                             }
                         }
@@ -934,12 +951,12 @@ static void *tcpserver_broadcast_thread(void *arg)
             flen += j;
             sys_fclose(fptr);
             fptr = NULL;
-            post("%s_broadcast_thread: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
+            if (ttbp->x->x_verbosity > 1) post("%s_broadcast_thread: read \"%s\" length %d byte%s", objName, fpath, flen, ((d==1)?"":"s"));
         }
         else
         { /* arg was neither a float nor a valid file name */
             error("%s_broadcast_thread: item %d is not a float or a file name", objName, i);
-            freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+            if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
             return NULL;
         }
     }
@@ -953,7 +970,7 @@ static void *tcpserver_broadcast_thread(void *arg)
             if (tcpserver_send_buffer_avaliable_for_client(x, client) < length)
             {
                 error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
-                freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
 #endif // SIOCOUTQ
@@ -964,16 +981,16 @@ static void *tcpserver_broadcast_thread(void *arg)
                 if (result <= 0)
                 {
                     sys_sockerror("tcpserver_broadcast_thread: send");
-                    post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
-                    freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+                    if (ttbp->x->x_verbosity > 0) post("%s_broadcast_thread: could not send data to client %d", objName, client+1);
+                    if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                     return NULL;
                 }
             }
         }
         flen += length;
     }
-    else post("%s_broadcast_thread: not a valid socket number (%d)", objName, sockfd);
-    freebytes (arg, sizeof (t_tcpserver_broadcast_params));
+    else  if (ttbp->x->x_verbosity > 0) post("%s_broadcast_thread: not a valid socket number (%d)", objName, sockfd);
+    if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
     return NULL;
 }
 
@@ -984,7 +1001,7 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
     int                             i;
     t_tcpserver_broadcast_params    *ttbp;
     pthread_t                       broadcast_thread;
-    pthread_attr_t                  broadcast_attr;
+    pthread_attr_t                  broadcast_attr = {{0}};
     int                             broadcast_thread_result;
 
     if (x->x_nconnections != 0)
@@ -1005,7 +1022,7 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
                 ttbp = (t_tcpserver_broadcast_params *)getbytes(sizeof(t_tcpserver_broadcast_params));
                 if (ttbp == NULL)
                 {
-                    error("%s_broadcast: unable to allocate %lu bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
+                    error("%s_broadcast: unable to allocate %zu bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
                 }
                 else
                 {
@@ -1015,16 +1032,24 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
                     if (0 != (broadcast_thread_result = pthread_create(&broadcast_thread, &broadcast_attr, tcpserver_broadcast_thread, (void *)ttbp)))
                     {
                         error("%s_broadcast: couldn't create broadcast thread (%d)", objName, broadcast_thread_result);
-                        freebytes (ttbp, sizeof (t_tcpserver_broadcast_params));
+                        if (NULL != ttbp)
+                        {
+                            freebytes (ttbp, sizeof (t_tcpserver_broadcast_params));
+                            ttbp = NULL;
+                        }
                     }
                 }
+            }
+            if (0!= (broadcast_thread_result = pthread_attr_destroy(&broadcast_attr)))
+            {
+                error("%s_broadcast: pthread_attr_destroy failed: %d", objName, broadcast_thread_result);
             }
         }
     }
 }
 
 /* ---------------- main tcpserver (receive) stuff --------------------- */
-/* tcpserver_notify is called by */
+/* tcpserver_notify is called when socket has closed */
 static void tcpserver_notify(t_tcpserver *x)
 {
     int     i, k;
@@ -1044,7 +1069,7 @@ static void tcpserver_notify(t_tcpserver *x)
             outlet_float(x->x_sockout, x->x_sr[i]->sr_fd); /* the socket number */
             outlet_float(x->x_connectout, x->x_nconnections);
 /* /Ivica Ico Bukvic */
-            post("%s: \"%s\" removed from list of clients", objName, x->x_sr[i]->sr_host->s_name);
+            if (x->x_verbosity > 0) post("%s: \"%s\" removed from list of clients", objName, x->x_sr[i]->sr_host->s_name);
             tcpserver_socketreceiver_free(x->x_sr[i]);
             x->x_sr[i] = NULL;
 
@@ -1069,11 +1094,11 @@ static void tcpserver_connectpoll(t_tcpserver *x)
 
     if (MAX_CONNECT <= x->x_nconnections)
     { /* no more free space for t_tcpserver_socketreceiver pointers, maybe increase MAX_CONNECT? */
-        post("%s: too many connections (MAX_CONNECT is %d)", objName, x->x_nconnections);
+        if (x->x_verbosity > 0) post("%s: too many connections (MAX_CONNECT is %d)", objName, x->x_nconnections);
         return;
     }
     fd = accept(x->x_connectsocket, (struct sockaddr*)&incomer_address, &sockaddrl);
-    if (fd < 0) post("%s: accept failed", objName);
+    if ((fd < 0)&&(x->x_verbosity > 1)) post("%s: accept failed", objName);
     else
     {
         t_tcpserver_socketreceiver *y = tcpserver_socketreceiver_new((void *)x,
@@ -1093,7 +1118,7 @@ static void tcpserver_connectpoll(t_tcpserver *x)
         x->x_sr[i] = y;
         x->x_sr[i]->sr_host = gensym(inet_ntoa(incomer_address.sin_addr));
         x->x_sr[i]->sr_fd = fd;
-        post("%s: accepted connection from %s on socket %d",
+        if (x->x_verbosity > 0) post("%s: accepted connection from %s on socket %d",
             objName, x->x_sr[i]->sr_host->s_name, x->x_sr[i]->sr_fd);
 /* see how big the send buffer is on this socket */
         x->x_sr[i]->sr_fdbuf = 0;
@@ -1103,14 +1128,14 @@ static void tcpserver_connectpoll(t_tcpserver *x)
             /* post("%s_connectpoll: send buffer is %ld\n", objName, optVal); */
             x->x_sr[i]->sr_fdbuf = optVal;
         }
-        else post("%s_connectpoll: getsockopt returned %d\n", objName, WSAGetLastError());
+        else if (x->x_verbosity > 1) post("%s_connectpoll: getsockopt returned %d\n", objName, WSAGetLastError());
 #else
         if (getsockopt(x->x_sr[i]->sr_fd, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, &optLen) == 0)
         {
             /* post("%s_connectpoll: send buffer is %ld\n", objName, optVal); */
             x->x_sr[i]->sr_fdbuf = optVal;
         }
-        else post("%s_connectpoll: getsockopt returned %d\n", objName, errno);
+        else if (x->x_verbosity > 1) post("%s_connectpoll: getsockopt returned %d\n", objName, errno);
 #endif
         x->x_sr[i]->sr_addr = ntohl(incomer_address.sin_addr.s_addr);
         x->x_addrbytes[0].a_w.w_float = (x->x_sr[i]->sr_addr & 0xFF000000)>>24;
@@ -1159,7 +1184,7 @@ static void tcpserver_port(t_tcpserver*x, t_floatarg fportno)
 
     if(x->x_nconnections > 0)
     {
-        post ("%s: can't change port (connection count is %d)", objName, x->x_nconnections);
+        if (x->x_verbosity > 0) post ("%s: can't change port (connection count is %d)", objName, x->x_nconnections);
         return;
     }
 
@@ -1176,9 +1201,7 @@ static void tcpserver_port(t_tcpserver*x, t_floatarg fportno)
 
     /* create a whole new socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef DEBUG
-    post("%s: receive socket %d", objName, sockfd);
-#endif
+    if (x->x_verbosity > 1) post("%s: receive socket %d", objName, sockfd);
     if (sockfd < 0)
     {
         sys_sockerror("tcpserver: socket");
@@ -1245,9 +1268,6 @@ static void *tcpserver_new(t_floatarg fportno)
 
     /* create a socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef DEBUG
-    post("%s: receive socket %d", objName, sockfd);
-#endif
     if (sockfd < 0)
     {
         sys_sockerror("tcpserver: socket");
@@ -1308,7 +1328,8 @@ static void *tcpserver_new(t_floatarg fportno)
         x->x_addrbytes[i].a_w.w_float = 0;
     }
     x->x_port = portno;
-    post ("tcpserver listening on port %d", x->x_port);
+    post ("tcpserver listening on port %d, socket %d", x->x_port, sockfd);
+    x->x_verbosity = 0; // stop talking to console unless we're asked
     return (x);
 }
 
@@ -1317,25 +1338,29 @@ static void tcpserver_free(t_tcpserver *x)
 {
     int     i;
 
-    post("tcp_server_free...");
+    if (x->x_verbosity > 1)  post("tcp_server_free...");
     for(i = 0; i < MAX_CONNECT; i++)
     {
         if (x->x_sr[i] != NULL) 
         {
+            if (x->x_verbosity > 1)  post("tcp_server_free...freeing %d", i);
             if (x->x_sr[i]->sr_fd >= 0)
             {
-                sys_rmpollfn(x->x_sr[i]->sr_fd);
+                if (x->x_verbosity > 1)  post("tcp_server_free...freeing fd %d", x->x_sr[i]->sr_fd);
+                sys_rmpollfn(x->x_sr[i]->sr_fd); // sometimes is not found as poll function was already removed
                 sys_closesocket(x->x_sr[i]->sr_fd);
             }
             tcpserver_socketreceiver_free(x->x_sr[i]);
+            x->x_sr[i] = NULL;
         }
     }
     if (x->x_connectsocket >= 0)
     {
+        if (x->x_verbosity > 1)  post("tcp_server_free...freeing connectsocket %d", x->x_connectsocket);
         sys_rmpollfn(x->x_connectsocket);
         sys_closesocket(x->x_connectsocket);
     }
-    post("...tcp_server_free");
+    if (x->x_verbosity > 1)  post("tcp_server_free end");
 }
 
 void tcpserver_setup(void)
@@ -1352,6 +1377,7 @@ void tcpserver_setup(void)
     class_addmethod(tcpserver_class, (t_method)tcpserver_unblock, gensym("unblock"), 0);
     class_addmethod(tcpserver_class, (t_method)tcpserver_broadcast, gensym("broadcast"), A_GIMME, 0);
     class_addmethod(tcpserver_class, (t_method)tcpserver_port, gensym("port"), A_FLOAT, 0);
+    class_addmethod(tcpserver_class, (t_method)tcpserver_verbosity, gensym("verbosity"), A_DEFFLOAT, 0);
     class_addlist(tcpserver_class, (t_method)tcpserver_send);
 }
 
