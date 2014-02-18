@@ -70,7 +70,7 @@ static char objName[] = "tcpclient";
 typedef struct _tcpclient_sender_params
 {
     char                x_sendbuf[MAX_TCPCLIENT_SEND_BUF]; /* possibly allocate this dynamically for space over speed */
-    int                 x_buf_len;
+    size_t              x_buf_len;
     int                 x_sendresult;
     pthread_t           sendthreadid;
     int                 threadisvalid; /*  non-zero if sendthreadid is an active thread */
@@ -383,8 +383,11 @@ static void *tcpclient_child_send(void *w)
 {
     t_tcpclient_sender_params *tsp = (t_tcpclient_sender_params*) w;
 
-    tsp->x_sendresult = send(tsp->x_x->x_fd, tsp->x_sendbuf, tsp->x_buf_len, 0);
-    clock_delay(tsp->x_x->x_sendclock, 0); // calls tcpclient_sent when it's safe to do so
+    if (tsp->x_x->x_fd >= 0) 
+    {
+        tsp->x_sendresult = send(tsp->x_x->x_fd, tsp->x_sendbuf, tsp->x_buf_len, 0);
+        clock_delay(tsp->x_x->x_sendclock, 0); // calls tcpclient_sent when it's safe to do so
+    }
     tsp->threadisvalid = 0; /* this thread is over */
     return(tsp);
 }
