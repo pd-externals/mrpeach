@@ -1,4 +1,4 @@
-#N canvas 262 331 984 636 10;
+#N canvas 263 330 984 636 10;
 #X obj -4 -46 cnv 15 220 380 empty empty Get_Current_IO_Parameters
 20 12 0 14 -204800 -13330 0;
 #X text 2 457 remote AT command: 64-bit address \, 16-bit address \,
@@ -58,7 +58,7 @@ options \, command \, parameters;
 #X text 1089 584 status;
 #X msg 478 376 verbosity \$1;
 #X obj 478 357 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786
--1 0;
+-1 2;
 #X text 1052 692 Martin Peach 2013_02_20;
 #X obj 452 420 route Remote_Command_Response;
 #X floatatom 452 473 5 0 0 0 - - -;
@@ -158,7 +158,7 @@ get and set the I/O pins of a remote xbee;
 #X obj 211 289 +;
 #X text 281 292 Pull-up Resistor bitmap:;
 #X obj 230 134 vradio 15 1 0 6 P0Val empty P0 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 250 134 vradio 15 1 0 6 P1Val empty P1 0 -8 0 10 -4034 -260097
 -1 0;
 #X obj 270 134 vradio 15 1 0 6 P2Val empty P2 0 -8 0 10 -4034 -260097
@@ -172,9 +172,9 @@ get and set the I/O pins of a remote xbee;
 #X obj 370 134 vradio 15 1 0 6 D4Val empty D4 0 -8 0 10 -4034 -260097
 -1 0;
 #X obj 390 134 vradio 15 1 0 6 D5Val empty D5 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 290 134 vradio 15 1 0 6 empty D0Val D0 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 617 3 print other;
 #X obj 112 37 * 10;
 #X obj 112 59 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034
@@ -184,31 +184,31 @@ get and set the I/O pins of a remote xbee;
 #X obj 251 369 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
 -1 0;
 #X obj 271 369 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 291 369 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 311 369 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 331 369 vradio 15 1 0 2 empty empty D9 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 351 369 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 371 369 vradio 15 1 0 2 empty empty DI 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 391 369 vradio 15 1 0 2 empty empty D8 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 411 369 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 431 369 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 451 369 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 491 369 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 511 369 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 471 369 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 211 311 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ;
 #X obj 133 465 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
@@ -805,7 +805,7 @@ IS;
 #X restore 718 227 pd set_pin_functions XXXXXXXXXXXXXXXXXXXXXXXXXX
 ;
 #X obj 718 79 vradio 15 1 0 6 empty empty P0 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 752 79 vradio 15 1 0 6 empty empty P1 0 -8 0 10 -4034 -260097
 -1 0;
 #X obj 787 79 vradio 15 1 0 6 empty empty P2 0 -8 0 10 -4034 -260097
@@ -819,7 +819,7 @@ IS;
 #X obj 962 79 vradio 15 1 0 6 empty empty D4 0 -8 0 10 -4034 -260097
 -1 0;
 #X obj 997 79 vradio 15 1 0 6 empty empty D5 0 -8 0 10 -4034 -260097
--1 0;
+-1 1;
 #X obj 822 79 vradio 15 1 0 6 empty empty D0 0 -8 0 10 -4034 -260097
 -1 0;
 #X text 1009 77 -Disabled;
@@ -833,7 +833,7 @@ IS;
 #X msg 536 28 remote16 0x9A17;
 #X text 501 -24 set the 64-bit remote address;
 #X text 535 10 set the 16-bit remote address;
-#X obj 713 297 cnv 15 140 60 empty empty Sample 20 12 0 14 -257985
+#X obj 713 297 cnv 15 600 140 empty empty Sample 20 12 0 14 -257985
 -83269 0;
 #X msg 722 325 IS;
 #X text 749 324 force sample;

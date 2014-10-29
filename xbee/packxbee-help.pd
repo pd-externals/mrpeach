@@ -1,6 +1,6 @@
-#N canvas 591 103 622 746 10;
+#N canvas 468 125 626 764 10;
 #X declare -lib mrpeach;
-#X obj 400 56 cnv 15 150 200 empty empty empty 20 12 0 14 -232576 -66577
+#X obj 400 56 cnv 15 150 160 empty empty empty 20 12 0 14 -232576 -66577
 0;
 #X obj -15 8 cnv 15 400 280 empty empty empty 20 12 0 14 -232576 -66577
 0;
@@ -249,7 +249,7 @@
 #X obj 153 185 packxbee 2;
 #X obj 360 667 unpackxbee 2;
 #X obj 491 6 import mrpeach;
-#N canvas 171 450 595 216 META 0;
+#N canvas 24 396 595 216 META 0;
 #X text 22 55 LICENSE GPL v2 or later;
 #X text 22 153 AUTHOR Martin Peach;
 #X text 22 15 KEYWORDS control network wireless xbee;
@@ -262,7 +262,7 @@
 #X restore 534 26 pd META;
 #X msg 291 341 info;
 #X msg 271 321 open 4;
-#N canvas 503 288 758 479 IO_COMMANDS 0;
+#N canvas 501 298 758 479 IO_COMMANDS 0;
 #X obj 400 426 s topackxbee;
 #X msg 274 283 AT D7;
 #X msg 256 265 AT D6;
@@ -331,8 +331,8 @@
 #X connect 39 0 0 0;
 #X connect 41 0 45 0;
 #X connect 42 0 45 0;
-#X restore 408 168 pd IO_COMMANDS;
-#N canvas 5 77 1158 513 NETWORK_COMMANDS 0;
+#X restore 408 148 pd IO_COMMANDS;
+#N canvas 3 90 1158 513 NETWORK_COMMANDS 0;
 #X msg 80 53 AT DH 0x0013A200;
 #X text 193 52 set upper 32 bits of destination address;
 #X msg 103 76 AT DL 0x407694DB;
@@ -462,8 +462,8 @@
 #X connect 81 0 26 0;
 #X connect 83 0 26 0;
 #X connect 86 0 26 0;
-#X restore 408 187 pd NETWORK_COMMANDS;
-#N canvas 5 77 450 300 RADIO_COMMANDS 0;
+#X restore 408 167 pd NETWORK_COMMANDS;
+#N canvas 3 90 450 300 RADIO_COMMANDS 0;
 #X text 129 52 get power level;
 #X msg 91 53 AT PL;
 #X msg 111 73 AT PM;
@@ -477,8 +477,8 @@
 #X connect 2 0 8 0;
 #X connect 4 0 8 0;
 #X connect 5 0 8 0;
-#X restore 408 149 pd RADIO_COMMANDS;
-#N canvas 5 77 675 320 SERIAL_COMMANDS 0;
+#X restore 408 129 pd RADIO_COMMANDS;
+#N canvas 3 90 675 320 SERIAL_COMMANDS 0;
 #X obj 280 290 s topackxbee;
 #X text 83 37 get API mode;
 #X msg 45 38 AT AP;
@@ -523,8 +523,8 @@
 #X connect 24 0 0 0;
 #X connect 26 0 0 0;
 #X connect 28 0 23 0;
-#X restore 408 130 pd SERIAL_COMMANDS;
-#N canvas 5 77 450 233 DANGEROUS_COMMANDS 0;
+#X restore 408 110 pd SERIAL_COMMANDS;
+#N canvas 3 90 450 233 DANGEROUS_COMMANDS 0;
 #X obj 185 172 s topackxbee;
 #X msg 72 42 AT AC;
 #X text 112 40 apply changes;
@@ -545,14 +545,14 @@
 #X connect 7 0 0 0;
 #X connect 9 0 0 0;
 #X connect 11 0 0 0;
-#X restore 408 90 pd DANGEROUS_COMMANDS;
-#N canvas 370 154 744 407 TRANSMIT_COMMANDS 0;
+#X restore 408 187 pd DANGEROUS_COMMANDS;
+#N canvas 368 164 744 407 TRANSMIT_COMMANDS 0;
 #X obj 172 292 s topackxbee;
 #X msg 79 182 TX 0x0013A20040769444 0xFFFE 0 0 1 2 3 4;
 #X obj 60 107 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
 -1 -1 0 0;
 #X obj 57 126 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 1 256;
+-262144 -1 -1 0 256;
 #X obj 57 84 f;
 #X obj 100 84 + 1;
 #X obj 144 82 % 128;
@@ -587,7 +587,7 @@ broadcast_radius options data;
 #X restore 408 70 pd TRANSMIT_COMMANDS;
 #X msg 85 100 verbosity \$1;
 #X obj 83 79 hradio 15 1 0 3 empty empty verbosity 0 -8 0 10 -4034
--1 -1 2;
+-1 -1 0;
 #X obj 58 244 print packet;
 #X obj 457 444 print serial_info;
 #X text 148 375 set the interface baud rate;
@@ -607,7 +607,7 @@ passed to a [comport] object.;
 #X obj 360 427 comport 98 9600;
 #X text -10 626 The output of [comport] can be connected to an [unpackxbee]
 object to (at least partially) unpack the received packets.;
-#N canvas 197 123 741 379 REMOTE_COMMANDS 0;
+#N canvas 195 133 741 379 REMOTE_COMMANDS 0;
 #X obj 72 25 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
 ;
 #X msg 72 138 4;
@@ -649,7 +649,7 @@ high or low immediately;
 #X connect 16 0 13 0;
 #X connect 16 1 14 1;
 #X connect 17 0 16 0;
-#X restore 408 110 pd REMOTE_COMMANDS;
+#X restore 408 90 pd REMOTE_COMMANDS;
 #N canvas 235 602 596 319 sample_frame 0;
 #X obj 62 53 inlet;
 #X obj 62 106 route D0 D1 D2 D3 D4 D5 D10 D11 D12 A0 A1 A2 A3 A7;
@@ -730,6 +730,10 @@ high or low immediately;
 #X connect 27 0 26 0;
 #X connect 28 0 1 0;
 #X restore 394 714 pd sample_frame;
+#X obj 401 222 cnv 15 150 60 empty empty empty 20 12 0 14 -261234 -66577
+0;
+#X text 404 221 remote xbee pin control:;
+#X obj 426 251 xbeeio;
 #X connect 6 0 24 0;
 #X connect 7 0 51 0;
 #X connect 8 0 24 0;
