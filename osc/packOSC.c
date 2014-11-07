@@ -434,6 +434,8 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
                 for (; k < nArgs; ++k)
                 {
                     args[k] = packOSC_blob(&argv[k+2]);
+                    /* Make sure it was blobbable */
+                    if (args[k].type != BLOB_osc) goto cleanup;
                 }
             }
             else if (!(c == 'T' || c == 'F' || c == 'N' || c == 'I')) /* not no data */
