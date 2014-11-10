@@ -215,8 +215,8 @@ static t_class *packOSC_class;
 typedef struct _packOSC
 {
     t_object    x_obj;
-    t_int       x_typetags; /* typetag flag */
-    t_int       x_timeTagOffset;
+    int         x_typetags; /* typetag flag */
+    int         x_timeTagOffset;
     int         x_bundle; /* bundle open flag */
     OSCbuf      x_oscbuf[1]; /* OSCbuffer */
     t_outlet    *x_bdpthout; /* bundle-depth floatoutlet */
@@ -342,7 +342,7 @@ static void packOSC_setbufsize(t_packOSC *x, t_floatarg f)
 
 static void packOSC_setTimeTagOffset(t_packOSC *x, t_floatarg f)
 {
-    x->x_timeTagOffset = (t_int)f;
+    x->x_timeTagOffset = (int)f;
 }
 /* this is the real and only sending routine now, for both typed and */
 /* undtyped mode. */
@@ -566,7 +566,7 @@ static typedArg packOSC_parseatom(t_atom *a)
 {
     typedArg returnVal;
     t_float  f;
-    t_int    i;
+    int      i;
     t_symbol s;
     char     buf[MAXPDSTRING];
   
@@ -609,9 +609,7 @@ static typedArg packOSC_blob(t_atom *a)
 { /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
-    t_int       i;
-    t_symbol    s;
-    static char buf[MAXPDSTRING];
+    int         i;
   
     returnVal.type = NOTYPE_osc;
     returnVal.datum.s = NULL;
@@ -645,7 +643,7 @@ static typedArg packOSC_forceatom(t_atom *a, char ctype)
 { /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
-    t_int       i;
+    int         i;
     t_symbol    s;
     static char buf[MAXPDSTRING];
 
@@ -1237,7 +1235,7 @@ static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
     {
         if (arg[i].type != BLOB_osc)
         {
-            error("packOSC: blob element %i not blob type", i);
+            error("packOSC: blob element %u not blob type", i);
             return 9;
         }
         b = (unsigned char)((arg[i].datum.i)&0x0FF);/* force int to 8-bit byte */
@@ -1383,8 +1381,8 @@ static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint4 offset)
 { /* offset is in microseconds */
     OSCTimeTag tt;
     static unsigned int onemillion = 1000000;
-    static unsigned int onethousand = 1000;
 #ifdef _WIN32
+    static unsigned int onethousand = 1000;
     struct _timeb tb;
 
     _ftime(&tb);
