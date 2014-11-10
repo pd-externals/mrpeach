@@ -88,11 +88,8 @@ The OpenSound Control WWW page is
 typedef struct _routeOSC
 {
     t_object    x_obj; /* required header */
-    t_int       x_num; /* Number of prefixes we store */
-    t_int       x_verbosity; /* level of debug output required */
-//    char        *x_prefixes[MAX_NUM]; /* the OSC addresses to be matched */
-//    int         x_prefix_depth[MAX_NUM]; /* the number of slashes in each prefix */
-//    void        *x_outlets[MAX_NUM+1]; /* one for each prefix plus one for everything else */
+    int         x_num; /* Number of prefixes we store */
+    int         x_verbosity; /* level of debug output required */
     char        **x_prefixes; /* the OSC addresses to be matched */
     int         *x_prefix_depth; /* the number of slashes in each prefix */
     void        **x_outlets; /* one for each prefix plus one for everything else */
