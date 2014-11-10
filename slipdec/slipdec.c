@@ -21,11 +21,11 @@ typedef struct _slipdec
     t_outlet    *x_slipdec_out;
     t_outlet    *x_status_out;
     t_atom      *x_slip_buf;
-    t_int       x_slip_length;
-    t_int       x_slip_max_length;
-    t_int       x_valid_SLIP;
-    t_int       x_esced;
-    t_int       x_verbose;
+    int         x_slip_length;
+    int         x_slip_max_length;
+    int         x_valid_SLIP;
+    int         x_esced;
+    int         x_verbose;
 } t_slipdec;
 
 static void *slipdec_new(t_symbol *s, int argc, t_atom *argv);
