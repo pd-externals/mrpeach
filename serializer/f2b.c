@@ -29,7 +29,7 @@ static void f2b_float(t_f2b *x, t_float f)
     t_atom outs[4];
 
 
-    post("f2b_float: f is %f", f);
+    //post("f2b_float: f is %f", f);
     buf.f = f;
     for (i = 0; i < 4; ++i) SETFLOAT(&outs[i], buf.b[i]);
 

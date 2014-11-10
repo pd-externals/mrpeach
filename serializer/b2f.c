@@ -27,7 +27,7 @@ static void b2f_list(t_b2f *x, t_symbol *s, int argc, t_atom *argv)
     int i, d;
     union fbuf  buf;
 
-    post("b2f_list: s is %s, argc is %d", s->s_name, argc);
+    //post("b2f_list: s is %s, argc is %d", s->s_name, argc);
     if (0 != strncmp("list", s->s_name, 4))
     {
         post("b2f_list: not a list of floats");
