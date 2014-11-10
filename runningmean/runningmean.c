@@ -11,16 +11,16 @@
 typedef struct _runningmean
 {
     t_object        x_obj;
-    t_int           x_in1;
-    t_int           x_in2;
-    t_int           x_in3;
+    int             x_in1;
+    int             x_in2;
+    int             x_in3;
     t_outlet        *x_out;
     t_inlet         *x_inlet2;
-    t_int           x_n;
-    t_int           x_originalsize;
+    int             x_n;
+    int             x_originalsize;
     t_float         *x_data;
     t_float         x_mean;
-    t_int           x_pointer;
+    int             x_pointer;
 } t_runningmean;
 
 static t_class *runningmean_class;
