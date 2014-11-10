@@ -78,8 +78,8 @@ typedef void (*t_tcpserver_socketreceivefn)(void *x, t_binbuf *b);
 typedef struct _tcpserver_socketreceiver
 {
     t_symbol                    *sr_host;
-    t_int                       sr_fd;
-    t_int                       sr_fdbuf;
+    int                         sr_fd;
+    int                         sr_fdbuf;
     u_long                      sr_addr;
     unsigned char               *sr_inbuf;
     int                         sr_inhead;
@@ -106,17 +106,17 @@ typedef struct _tcpserver
     t_outlet                    *x_sockout;
     t_outlet                    *x_addrout;
     t_outlet                    *x_status_outlet;
-    t_int                       x_dump; // 1 = hexdump received bytes
+    int                         x_dump; // 1 = hexdump received bytes
 
     t_tcpserver_socketreceiver  *x_sr[MAX_CONNECT];
 
     t_atom                      x_addrbytes[4];
-    t_int                       x_sock_fd;
-    t_int                       x_connectsocket;
-    t_int                       x_port;
-    t_int                       x_nconnections;
-    t_int                       x_blocked;
-    t_int                       x_verbosity;
+    int                         x_sock_fd;
+    int                         x_connectsocket;
+    int                         x_port;
+    int                         x_nconnections;
+    int                         x_blocked;
+    int                         x_verbosity;
     t_atom                      x_msgoutbuf[MAX_UDP_RECEIVE];
     char                        x_msginbuf[MAX_UDP_RECEIVE];
 } t_tcpserver;
@@ -124,7 +124,7 @@ typedef struct _tcpserver
 typedef struct _tcpserver_broadcast_params
 {
     t_tcpserver *x;
-    t_int       argc;
+    int         argc;
     t_atom      argv[MAX_UDP_RECEIVE];
 } t_tcpserver_broadcast_params;
 
@@ -291,7 +291,7 @@ static void tcpserver_socketreceiver_read(t_tcpserver_socketreceiver *x, int fd)
         }
         else
         {
-            if (y->x_verbosity > 1) post ("%s_socketreceiver_read: ret = %d", objName, ret);
+            if (y->x_verbosity > 1) post ("%s_socketreceiver_read: received %d byte%s", objName, ret, (ret==1)?"":"s");
             x->sr_inhead += ret;
             if (x->sr_inhead >= INBUFSIZE) x->sr_inhead = 0;
             /* output client's IP and socket no. */
@@ -1118,8 +1118,8 @@ static void tcpserver_connectpoll(t_tcpserver *x)
         x->x_sr[i] = y;
         x->x_sr[i]->sr_host = gensym(inet_ntoa(incomer_address.sin_addr));
         x->x_sr[i]->sr_fd = fd;
-        if (x->x_verbosity > 0) post("%s: accepted connection from %s on socket %d",
-            objName, x->x_sr[i]->sr_host->s_name, x->x_sr[i]->sr_fd);
+        if (x->x_verbosity > 0) post("%s: accepted connection from %s on socket %d (client %d)",
+            objName, x->x_sr[i]->sr_host->s_name, x->x_sr[i]->sr_fd, i+1);
 /* see how big the send buffer is on this socket */
         x->x_sr[i]->sr_fdbuf = 0;
 #ifdef _WIN32
@@ -1343,7 +1343,7 @@ static void tcpserver_free(t_tcpserver *x)
     {
         if (x->x_sr[i] != NULL) 
         {
-            if (x->x_verbosity > 1)  post("tcp_server_free...freeing %d", i);
+            if (x->x_verbosity > 1)  post("tcp_server_free...freeing client %d", i+1);
             if (x->x_sr[i]->sr_fd >= 0)
             {
                 if (x->x_verbosity > 1)  post("tcp_server_free...freeing fd %d", x->x_sr[i]->sr_fd);
