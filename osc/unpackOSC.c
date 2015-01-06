@@ -64,7 +64,7 @@ The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
         on OSX anyway.
 
 */
-
+//#define DEBUG
 #include "packingOSC.h"
 
 
@@ -188,12 +188,12 @@ static void unpackOSC_list(t_unpackOSC *x, t_symbol *s, int argc, t_atom *argv)
 
         /* Print the time tag */
 #ifdef DEBUG
-        printf("unpackOSC: [ %lx%08lx\n", ntohl(*((unsigned long *)(buf+8))),
-            ntohl(*((unsigned long *)(buf+12))));
+        printf("unpackOSC: [ %x.%0x\n", ntohl(*((uint32_t *)(buf+8))),
+            ntohl(*((uint32_t *)(buf+12))));
 #endif
 /* convert the timetag into a millisecond delay from now */
-        tt.seconds = ntohl(*((unsigned long *)(buf+8)));
-        tt.fraction = ntohl(*((unsigned long *)(buf+12)));
+        tt.seconds = ntohl(*((uint32_t *)(buf+8)));
+        tt.fraction = ntohl(*((uint32_t *)(buf+12)));
         /* pd can use a delay in milliseconds */
         outlet_float(x->x_delay_out, unpackOSC_DeltaTime(tt));
         /* Note: if we wanted to actually use the time tag as a little-endian
@@ -347,7 +347,7 @@ static void unpackOSC_PrintTypeTaggedArgs(t_unpackOSC *x, void *v, int n)
     }
 
     p = unpackOSC_DataAfterAlignedString(typeTags, typeTags+n);
-
+    if (p == NULL) return; /* malformed message */
     for (thisType = typeTags + 1; *thisType != 0; ++thisType)
     {
         switch (*thisType)
