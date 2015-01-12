@@ -84,11 +84,8 @@ The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 static OSCTimeTag OSCTT_Immediately(void);
 static OSCTimeTag OSCTT_Infinite(void);
 
-static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint4 offset);
+static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint32_t offset);
 
-/* The int4byte type has to be a 4-byte integer.  You may have to
-   change this to long or something else on your system.  */
-typedef int int4byte;
 
 /* Don't ever manipulate the data in the OSCbuf struct directly.  (It's
    declared here in the header file only so your program will be able to
@@ -101,9 +98,9 @@ typedef struct OSCbuf_struct
     size_t      size; /* Size of the buffer */
     char        *bufptr; /* Current position as we fill the buffer */
     int         state; /* State of partially-constructed message */
-    int4byte    *thisMsgSize; /* Pointer to count field before */
+    uint32_t    *thisMsgSize; /* Pointer to count field before */
                 /* currently-being-written message */
-    int4byte    *prevCounts[MAX_BUNDLE_NESTING]; /* Pointers to count */
+    uint32_t    *prevCounts[MAX_BUNDLE_NESTING]; /* Pointers to count */
                 /* field before each currently open bundle */
     int         bundleDepth; /* How many sub-sub-bundles are we in now? */
     char        *typeStringPtr; /* This pointer advances through the type */
@@ -200,7 +197,7 @@ static int OSC_closeBundle(OSCbuf *buf);
 static int OSC_writeAddress(OSCbuf *buf, char *name);
 static int OSC_writeAddressAndTypes(OSCbuf *buf, char *name, char *types);
 static int OSC_writeFloatArg(OSCbuf *buf, float arg);
-static int OSC_writeIntArg(OSCbuf *buf, int4byte arg);
+static int OSC_writeIntArg(OSCbuf *buf, uint32_t arg);
 static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs);
 static int OSC_writeStringArg(OSCbuf *buf, char *arg);
 static int OSC_writeNullArg(OSCbuf *buf, char type);
@@ -289,7 +286,7 @@ static void packOSC_openbundle(t_packOSC *x)
     if (x->x_timeTagOffset == -1)
         result = OSC_openBundle(x->x_oscbuf, OSCTT_Immediately());
     else
-        result = OSC_openBundle(x->x_oscbuf, OSCTT_CurrentTimePlusOffset((uint4)x->x_timeTagOffset));
+        result = OSC_openBundle(x->x_oscbuf, OSCTT_CurrentTimePlusOffset((uint32_t)x->x_timeTagOffset));
     if (result != 0)
     { /* reset the buffer */
         OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
@@ -350,7 +347,7 @@ static void packOSC_setTimeTagOffset(t_packOSC *x, t_floatarg f)
 static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
 {
     char            messageName[MAXPDSTRING];
-    unsigned int	nTypeTags = 0, typeStrTotalSize = 0;
+    unsigned int	  nTypeTags = 0, typeStrTotalSize = 0;
     unsigned int    argsSize = sizeof(typedArg)*argc;
     char*           typeStr = NULL; /* might not be used */
     typedArg*       args = (typedArg*)getbytes(argsSize);
@@ -433,6 +430,9 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
                 /* Pack all the remaining arguments as a blob */
                 for (; k < nArgs; ++k)
                 {
+#ifdef DEBUG
+                    post("packOSC_blob %d:", nArgs);
+#endif
                     args[k] = packOSC_blob(&argv[k+2]);
                     /* Make sure it was blobbable */
                     if (args[k].type != BLOB_osc) goto cleanup;
@@ -613,9 +613,6 @@ static typedArg packOSC_blob(t_atom *a)
   
     returnVal.type = NOTYPE_osc;
     returnVal.datum.s = NULL;
-#ifdef DEBUG
-    post("packOSC_blob %d:", nArgs);
-#endif
     /* the atoms must all be bytesl */
     if(a->a_type != A_FLOAT)
     {
@@ -970,7 +967,7 @@ static int OSC_CheckOverflow(OSCbuf *buf, size_t bytesNeeded)
 
 static void PatchMessageSize(OSCbuf *buf)
 {
-    int4byte size = buf->bufptr - ((char *) buf->thisMsgSize) - 4;
+    uint32_t size = buf->bufptr - ((char *) buf->thisMsgSize) - 4;
     *(buf->thisMsgSize) = htonl(size);
 }
 
@@ -1011,8 +1008,8 @@ static int OSC_openBundle(OSCbuf *buf, OSCTimeTag tt)
         /* This bundle is inside another bundle, so we need to leave
           a blank size count for the size of this current bundle. */
         if(OSC_CheckOverflow(buf, 20))return 1;
-        *((int4byte *)buf->bufptr) = 0xaaaaaaaa;
-        buf->prevCounts[buf->bundleDepth] = (int4byte *)buf->bufptr;
+        *((uint32_t *)buf->bufptr) = 0xaaaaaaaa;
+        buf->prevCounts[buf->bundleDepth] = (uint32_t *)buf->bufptr;
 
         buf->bufptr += 4;
     }
@@ -1025,7 +1022,7 @@ static int OSC_openBundle(OSCbuf *buf, OSCTimeTag tt)
     if (htonl(1) != 1)
     {
         /* Byte swap the 8-byte integer time tag */
-        int4byte *intp = (int4byte *)buf->bufptr;
+        uint32_t *intp = (uint32_t *)buf->bufptr;
         intp[0] = htonl(intp[0]);
         intp[1] = htonl(intp[1]);
 
@@ -1081,7 +1078,7 @@ static int OSC_closeBundle(OSCbuf *buf)
 
 static int OSC_writeAddress(OSCbuf *buf, char *name)
 {
-    int4byte paddedLength;
+    uint32_t paddedLength;
 
     if (buf->state == ONE_MSG_ARGS)
     {
@@ -1114,7 +1111,7 @@ static int OSC_writeAddress(OSCbuf *buf, char *name)
             /* Close the old message */
             PatchMessageSize(buf);
         }
-        buf->thisMsgSize = (int4byte *)buf->bufptr;
+        buf->thisMsgSize = (uint32_t *)buf->bufptr;
         *(buf->thisMsgSize) = 0xbbbbbbbb;
         buf->bufptr += 4;
         buf->state = GET_ARGS;
@@ -1131,7 +1128,7 @@ static int OSC_writeAddress(OSCbuf *buf, char *name)
 static int OSC_writeAddressAndTypes(OSCbuf *buf, char *name, char *types)
 {
     int      result;
-    int4byte paddedLength;
+    uint32_t paddedLength;
 
     if (buf == NULL) return 10;
     if (CheckTypeTag(buf, '\0')) return 9;
@@ -1196,7 +1193,7 @@ static int OSC_writeFloatArg(OSCbuf *buf, float arg)
     /* Pretend arg is a long int so we can use htonl() */
     if32.f = arg;
 
-    *((int4byte *) buf->bufptr) = htonl(if32.i);
+    *((uint32_t *) buf->bufptr) = htonl(if32.i);
 
     buf->bufptr += 4;
 
@@ -1204,12 +1201,12 @@ static int OSC_writeFloatArg(OSCbuf *buf, float arg)
     return 0;
 }
 
-static int OSC_writeIntArg(OSCbuf *buf, int4byte arg)
+static int OSC_writeIntArg(OSCbuf *buf, uint32_t arg)
 {
     if(OSC_CheckOverflow(buf, 4))return 1;
     if (CheckTypeTag(buf, 'i')) return 9;
 
-    *((int4byte *) buf->bufptr) = htonl(arg);
+    *((uint32_t *) buf->bufptr) = htonl(arg);
     buf->bufptr += 4;
 
     buf->gettingFirstUntypedArg = 0;
@@ -1225,7 +1222,7 @@ static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
     if(OSC_CheckOverflow(buf, nArgs+4))return 1;
     if (CheckTypeTag(buf, 'b')) return 9;
 
-    *((int4byte *) buf->bufptr) = htonl(nArgs);
+    *((uint32_t *) buf->bufptr) = htonl(nArgs);
 #ifdef DEBUG
     post ("OSC_writeBlobArg length : %lu", nArgs);
 #endif
@@ -1377,7 +1374,7 @@ static OSCTimeTag OSCTT_Infinite(void)
 #define SECONDS_FROM_1900_to_1970 2208988800LL /* 17 leap years */
 #define TWO_TO_THE_32_OVER_ONE_MILLION 4295LL
 
-static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint4 offset)
+static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint32_t offset)
 { /* offset is in microseconds */
     OSCTimeTag tt;
     static unsigned int onemillion = 1000000;
