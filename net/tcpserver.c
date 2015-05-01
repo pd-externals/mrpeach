@@ -50,6 +50,7 @@
 #define SOCKET_ERROR -1
 #else
 #include <winsock2.h>
+#include <ws2tcpip.h> /* for socklen_t */
 #endif
 
 /* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
