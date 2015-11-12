@@ -1,0 +1,8 @@
+#N canvas 18 240 200 200 10;
+#N canvas 604 86 420 300 META 0;
+#X text 7 60 VERSION 0.2;
+#X text 6 86 AUTHOR Martin Peach;
+#X text 8 14 NAME binfile;
+#X text 7 112 LICENSE GNU GPL v2+;
+#X text 6 37 DESCRIPTION read and write binary files;
+#X restore 10 10 pd META;
