@@ -231,7 +231,7 @@ static void binfile_read(t_binfile *x, t_symbol *path, t_float max_bytes)
     sys_fclose (x->x_fP);
     x->x_fP = NULL;
     if (bytes_read != file_length) post("binfile length %ld not equal to bytes read (%ld)", file_length, bytes_read);
-    else post("binfle: read %ld bytes from %s", bytes_read, path->s_name);
+    else post("binfile: read %ld bytes from %s", bytes_read, path->s_name);
 }
 
 static void binfile_bang(t_binfile *x)
