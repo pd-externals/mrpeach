@@ -1,0 +1,8 @@
+#N canvas 15 105 200 200 10;
+#N canvas 49 61 304 152 META 0;
+#X text 11 67 AUTHOR Martin Peach;
+#X text 13 49 VERSION 0.1;
+#X text 13 11 NAME slip;
+#X text 12 29 DESCRIPTION encoder and decoder for SLIP;
+#X text 15 89 LICENSE GNU GPL v2+;
+#X restore 10 10 pd META;
