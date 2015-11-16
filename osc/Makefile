@@ -13,4 +13,4 @@ datafiles = packOSC-help.pd pipelist-help.pd routeOSC-help.pd unpackOSC-help.pd 
 # Katja Vetter. You can get it from:
 # https://github.com/pure-data/pd-lib-builder
 
-include ../../../pd-lib-builder/Makefile.pdlibbuilder
+include ../../pd-lib-builder/Makefile.pdlibbuilder
