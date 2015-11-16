@@ -222,6 +222,7 @@ typedef struct _packOSC
     char        *x_bufferForOSCbuf; /*[SC_BUFFER_SIZE];*/
     t_atom      *x_bufferForOSClist; /*[SC_BUFFER_SIZE];*/
     char        *x_prefix;
+    int         x_reentry_count;
 } t_packOSC;
 
 static void *packOSC_new(void);
@@ -252,16 +253,27 @@ static void *packOSC_new(void)
     x->x_buflength = SC_BUFFER_SIZE;
     x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
     if(x->x_bufferForOSCbuf == NULL)
-        error("packOSC: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
+    {
+        pd_error(x, "packOSC: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
+        goto fail;
+    }
     x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
     if(x->x_bufferForOSClist == NULL)
-        error("packOSC: unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
+    {
+        pd_error(x, "packOSC: unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
+        goto fail;
+    }
     if (x->x_oscbuf != NULL)
         OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
     x->x_listout = outlet_new(&x->x_obj, &s_list);
     x->x_bdpthout = outlet_new(&x->x_obj, &s_float);
     x->x_timeTagOffset = -1; /* immediately */
+    x->x_reentry_count = 0;
     return (x);
+fail:
+    if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
+    if(x->x_bufferForOSClist != NULL) freebytes(x->x_bufferForOSClist, (long)(sizeof(char)*x->x_buflength));
+    return NULL;
 }
 
 static void packOSC_path(t_packOSC *x, t_symbol*s)
@@ -300,7 +312,7 @@ static void packOSC_closebundle(t_packOSC *x)
 {
     if (OSC_closeBundle(x->x_oscbuf))
     {
-        error("packOSC: Problem closing bundle.");
+        pd_error(x, "packOSC: Problem closing bundle.");
         return;
     }
     outlet_float(x->x_bdpthout, (float)x->x_oscbuf->bundleDepth);
@@ -328,10 +340,10 @@ static void packOSC_setbufsize(t_packOSC *x, t_floatarg f)
     x->x_buflength = (long)f;
     x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
     if(x->x_bufferForOSCbuf == NULL)
-        error("packOSC unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
+        pd_error(x, "packOSC unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
     x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
     if(x->x_bufferForOSClist == NULL)
-        error("packOSC unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
+        pd_error(x, "packOSC unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
     OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
     post("packOSC: bufsize is now %d",x->x_buflength);
 }
@@ -355,9 +367,15 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
     unsigned int    m, j, k;
     char            c;
 
+    if (x->x_reentry_count)
+    {
+        pd_error(x, "packOSC: Use bundle to send multiple messages");
+        return;
+    }
+    x->x_reentry_count++;
     if (args == NULL)
     {
-        error("packOSC: unable to allocate %lu bytes for args", (long)argsSize);
+        pd_error(x, "packOSC: unable to allocate %lu bytes for args", (long)argsSize);
         return;
     }
     messageName[0] = '\0'; /* empty */
@@ -381,7 +399,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
         typeStr = (char*)getzbytes(typeStrTotalSize);
         if (typeStr == NULL)
         {
-            error("packOSC: unable to allocate %u bytes for typeStr", nTypeTags);
+            pd_error(x, "packOSC: unable to allocate %u bytes for typeStr", nTypeTags);
             return;
         }
         typeStr[0] = ',';
@@ -409,12 +427,12 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
         }
         if (((blobCount == 0)&&(nTagsWithData != nArgs)) || ((blobCount != 0)&&(nTagsWithData > nArgs)))
         {
-            error("packOSC: Tags count %d doesn't match argument count %d", nTagsWithData, nArgs);
+            pd_error(x, "packOSC: Tags count %d doesn't match argument count %d", nTagsWithData, nArgs);
             goto cleanup;
         }
         if (blobCount > 1)
         {
-            error("packOSC: Only one blob per packet at the moment...");
+            pd_error(x, "packOSC: Only one blob per packet at the moment...");
             goto cleanup;
         }
         for (j = k = 0; j < m; ++j) /* m is the number of tags */
@@ -424,7 +442,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
             { /* A blob has to be the last item, until we get more elaborate. */
                 if (j != m-1)
                 {
-                    error("packOSC: Since I don't know how big the blob is, Blob must be the last item in the list");
+                    pd_error(x, "packOSC: Since I don't know how big the blob is, Blob must be the last item in the list");
                     goto cleanup;
                 }
                 /* Pack all the remaining arguments as a blob */
@@ -446,7 +464,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
         }
         if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, nArgs, args, typeStr))
         {
-            error("packOSC: usage error, write-msg failed.");
+            pd_error(x, "packOSC: usage error, packOSC_writetypedmessage failed.");
             goto cleanup;
         }
     }
@@ -476,7 +494,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
         }
         if(packOSC_writemessage(x, x->x_oscbuf, messageName, i, args))
         {
-            error("packOSC: usage error, write-msg failed.");
+            pd_error(x, "packOSC: usage error, packOSC_writemessage failed.");
             goto cleanup;
         }
     }
@@ -490,6 +508,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
 cleanup:
     if (typeStr != NULL) freebytes(typeStr, typeStrTotalSize);
     if (args != NULL) freebytes(args, argsSize);
+    x->x_reentry_count--;
 }
 
 static void packOSC_send_type_forced(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
@@ -503,7 +522,7 @@ static void packOSC_send(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
 {
     if(!argc)
     {
-        post("packOSC: not sending empty message.");
+        pd_error(x, "packOSC: not sending empty message.");
         return;
     }
     packOSC_sendtyped(x, s, argc, argv);
@@ -1232,7 +1251,7 @@ static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
     {
         if (arg[i].type != BLOB_osc)
         {
-            error("packOSC: blob element %u not blob type", i);
+            error("packOSC: blob element %lu not blob type", i);
             return 9;
         }
         b = (unsigned char)((arg[i].datum.i)&0x0FF);/* force int to 8-bit byte */
