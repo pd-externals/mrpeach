@@ -208,18 +208,18 @@ static int OSC_writeNullArg(OSCbuf *buf, char type);
 static int OSC_effectiveStringLength(char *string);
 
 static t_class *packOSC_class;
-#define NUM_OSC_BUFS 2
+
 typedef struct _packOSC
 {
     t_object    x_obj;
     int         x_typetags; /* typetag flag */
     int         x_timeTagOffset;
     int         x_bundle; /* bundle open flag */
-    OSCbuf      x_oscbuf[NUM_OSC_BUFS]; /* OSCbuffer */
+    OSCbuf      x_oscbuf[1]; /* OSCbuffer */
     t_outlet    *x_bdpthout; /* bundle-depth floatoutlet */
     t_outlet    *x_listout; /* OSC packet list ouput */
     size_t      x_buflength; /* number of elements in x_bufferForOSCbuf and x_bufferForOSClist */
-    char        *x_bufferForOSCbuf[NUM_OSC_BUFS]; /*[SC_BUFFER_SIZE];*/
+    char        *x_bufferForOSCbuf; /*[SC_BUFFER_SIZE];*/
     t_atom      *x_bufferForOSClist; /*[SC_BUFFER_SIZE];*/
     char        *x_prefix;
     int         x_reentry_count;
@@ -247,20 +247,15 @@ static void packOSC_sendbuffer(t_packOSC *x);
 
 static void *packOSC_new(void)
 {
-    int i;
-
     t_packOSC *x = (t_packOSC *)pd_new(packOSC_class);
     x->x_typetags = 1; /* set typetags to 1 by default */
     x->x_bundle = 0; /* bundle is closed */
     x->x_buflength = SC_BUFFER_SIZE;
-    for (i = 0; i < NUM_OSC_BUFS; ++i)
+    x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
+    if(x->x_bufferForOSCbuf == NULL)
     {
-        x->x_bufferForOSCbuf[i] = (char *)getbytes(sizeof(char)*x->x_buflength);
-        if(x->x_bufferForOSCbuf[i] == NULL)
-        {
-            pd_error(x, "packOSC: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
-            goto fail;
-        }
+        pd_error(x, "packOSC: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
+        goto fail;
     }
     x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
     if(x->x_bufferForOSClist == NULL)
@@ -268,16 +263,15 @@ static void *packOSC_new(void)
         pd_error(x, "packOSC: unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
         goto fail;
     }
-    for (i = 0; i < NUM_OSC_BUFS; ++i)
-        OSC_initBuffer(&x->x_oscbuf[i], x->x_buflength, x->x_bufferForOSCbuf[i]);
+    if (x->x_oscbuf != NULL)
+        OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
     x->x_listout = outlet_new(&x->x_obj, &s_list);
     x->x_bdpthout = outlet_new(&x->x_obj, &s_float);
     x->x_timeTagOffset = -1; /* immediately */
     x->x_reentry_count = 0;
     return (x);
 fail:
-    for (i = 0; i < NUM_OSC_BUFS; ++i)
-        if(x->x_bufferForOSCbuf[i] != NULL) freebytes(x->x_bufferForOSCbuf[i], (long)(sizeof(char)*x->x_buflength));
+    if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
     if(x->x_bufferForOSClist != NULL) freebytes(x->x_bufferForOSClist, (long)(sizeof(char)*x->x_buflength));
     return NULL;
 }
@@ -301,34 +295,34 @@ static void packOSC_path(t_packOSC *x, t_symbol*s)
 static void packOSC_openbundle(t_packOSC *x)
 {
     int result;
-
+    t_float bundledepth=(t_float)x->x_oscbuf->bundleDepth;
     if (x->x_timeTagOffset == -1)
-        result = OSC_openBundle(&x->x_oscbuf[x->x_reentry_count], OSCTT_Immediately());
+        result = OSC_openBundle(x->x_oscbuf, OSCTT_Immediately());
     else
-        result = OSC_openBundle(&x->x_oscbuf[x->x_reentry_count], OSCTT_CurrentTimePlusOffset((uint32_t)x->x_timeTagOffset));
+        result = OSC_openBundle(x->x_oscbuf, OSCTT_CurrentTimePlusOffset((uint32_t)x->x_timeTagOffset));
     if (result != 0)
     { /* reset the buffer */
-        OSC_initBuffer(&x->x_oscbuf[x->x_reentry_count], x->x_buflength, x->x_bufferForOSCbuf[x->x_reentry_count]);
+        OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
         x->x_bundle = 0;
     }
     else x->x_bundle = 1;
-    outlet_float(x->x_bdpthout, (float)x->x_oscbuf[x->x_reentry_count].bundleDepth);
+    outlet_float(x->x_bdpthout, bundledepth);
 }
 
 static void packOSC_closebundle(t_packOSC *x)
 {
-    if (OSC_closeBundle(&x->x_oscbuf[x->x_reentry_count]))
+    t_float bundledepth=(t_float)x->x_oscbuf->bundleDepth;
+    if (OSC_closeBundle(x->x_oscbuf))
     {
         pd_error(x, "packOSC: Problem closing bundle.");
         return;
     }
-    outlet_float(x->x_bdpthout, (float)x->x_oscbuf[x->x_reentry_count].bundleDepth);
+    outlet_float(x->x_bdpthout, bundledepth);
     /* in bundle mode we send when bundle is closed */
-    if(!OSC_isBufferEmpty(&x->x_oscbuf[x->x_reentry_count]) > 0 && OSC_isBufferDone(&x->x_oscbuf[x->x_reentry_count]))
+    if(!OSC_isBufferEmpty(x->x_oscbuf) > 0 && OSC_isBufferDone(x->x_oscbuf))
     {
+        x->x_bundle = 0; /* call this before _sendbuffer() to be ready for recursive calls */
         packOSC_sendbuffer(x);
-        OSC_initBuffer(&x->x_oscbuf[x->x_reentry_count], x->x_buflength, x->x_bufferForOSCbuf[x->x_reentry_count]);
-        x->x_bundle = 0;
         return;
     }
 }
@@ -341,18 +335,17 @@ static void packOSC_settypetags(t_packOSC *x, t_floatarg f)
 
 static void packOSC_setbufsize(t_packOSC *x, t_floatarg f)
 {
-    if (x->x_bufferForOSCbuf[x->x_reentry_count] != NULL)
-        freebytes((void *)x->x_bufferForOSCbuf[x->x_reentry_count], sizeof(char)*x->x_buflength);
+    if (x->x_bufferForOSCbuf != NULL) freebytes((void *)x->x_bufferForOSCbuf, sizeof(char)*x->x_buflength);
     if (x->x_bufferForOSClist != NULL) freebytes((void *)x->x_bufferForOSClist, sizeof(t_atom)*x->x_buflength);
     post("packOSC: bufsize arg is %f (%lu)", f, (long)f);
     x->x_buflength = (long)f;
-    x->x_bufferForOSCbuf[x->x_reentry_count] = (char *)getbytes(sizeof(char)*x->x_buflength);
-    if(x->x_bufferForOSCbuf[x->x_reentry_count] == NULL)
+    x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
+    if(x->x_bufferForOSCbuf == NULL)
         pd_error(x, "packOSC unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
     x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
     if(x->x_bufferForOSClist == NULL)
         pd_error(x, "packOSC unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
-    OSC_initBuffer(&x->x_oscbuf[x->x_reentry_count], x->x_buflength, x->x_bufferForOSCbuf[x->x_reentry_count]);
+    OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
     post("packOSC: bufsize is now %d",x->x_buflength);
 }
 
@@ -375,11 +368,6 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
     unsigned int    m, j, k;
     char            c;
 
-    if (x->x_reentry_count > NUM_OSC_BUFS)
-    {
-        pd_error(x, "packOSC: reentry count %d exceeds limit.", x->x_reentry_count);
-        return;
-    }
     x->x_reentry_count++;
     if (args == NULL)
     {
@@ -470,7 +458,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
                 ++k;
             }
         }
-        if(packOSC_writetypedmessage(x, &x->x_oscbuf[x->x_reentry_count-1], messageName, nArgs, args, typeStr))
+        if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, nArgs, args, typeStr))
         {
             pd_error(x, "packOSC: usage error, packOSC_writetypedmessage failed.");
             goto cleanup;
@@ -500,7 +488,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
             post("packOSC:   type-id: %d\n", args[i].type);
 #endif
         }
-        if(packOSC_writemessage(x, &x->x_oscbuf[x->x_reentry_count-1], messageName, i, args))
+        if(packOSC_writemessage(x, x->x_oscbuf, messageName, i, args))
         {
             pd_error(x, "packOSC: usage error, packOSC_writemessage failed.");
             goto cleanup;
@@ -510,7 +498,6 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
     if(!x->x_bundle)
     {
         packOSC_sendbuffer(x);
-        OSC_initBuffer(&x->x_oscbuf[x->x_reentry_count-1], x->x_buflength, x->x_bufferForOSCbuf[x->x_reentry_count-1]);
     }
 
 cleanup:
@@ -559,9 +546,7 @@ static void packOSC_anything(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
 
 static void packOSC_free(t_packOSC *x)
 {
-    int i;
-    for (i = 0; i < NUM_OSC_BUFS; ++i)
-        if (x->x_bufferForOSCbuf[i] != NULL) freebytes((void *)x->x_bufferForOSCbuf[i], sizeof(char)*x->x_buflength);
+    if (x->x_bufferForOSCbuf != NULL) freebytes((void *)x->x_bufferForOSCbuf, sizeof(char)*x->x_buflength);
     if (x->x_bufferForOSClist != NULL) freebytes((void *)x->x_bufferForOSClist, sizeof(t_atom)*x->x_buflength);
 }
 
@@ -897,30 +882,49 @@ static void packOSC_sendbuffer(t_packOSC *x)
     int             i;
     int             length;
     unsigned char   *buf;
-    int             buf_index = (x->x_reentry_count == 0)?0:x->x_reentry_count-1; // bundles have reentry_count == 0
+    int             reentry_count=x->x_reentry_count;      /* must be on stack for recursion */
+    size_t          bufsize=sizeof(t_atom)*x->x_buflength; /* must be on stack for recursion */
+    t_atom          *atombuffer=x->x_bufferForOSClist;     /* must be on stack in the case of recursion */
+
+    if(reentry_count>0) /* if we are recurse, let's move atombuffer to the stack */
+        atombuffer=(t_atom *)getbytes(bufsize);
+
+    if(!atombuffer) {
+        pd_error(x, "packOSC: unable to allocate %lu bytes for atombuffer", (long)bufsize);
+        return 0;
+    }
 
 #ifdef DEBUG
     post("packOSC_sendbuffer: Sending buffer...\n");
 #endif
-    if (OSC_isBufferEmpty(&x->x_oscbuf[buf_index]))
+    if (OSC_isBufferEmpty(x->x_oscbuf))
     {
         post("packOSC_sendbuffer() called but buffer empty");
         return;
     }
-    if (!OSC_isBufferDone(&x->x_oscbuf[buf_index]))
+    if (!OSC_isBufferDone(x->x_oscbuf))
     {
         post("packOSC_sendbuffer() called but buffer not ready!, not exiting");
         return;
     }
-    length = OSC_packetSize(&x->x_oscbuf[buf_index]);
-    buf = (unsigned char *)OSC_getPacket(&x->x_oscbuf[buf_index]);
+    length = OSC_packetSize(x->x_oscbuf);
+    buf = (unsigned char *)OSC_getPacket(x->x_oscbuf);
 #ifdef DEBUG
     post ("packOSC_sendbuffer: length: %lu", length);
 #endif
+
     /* convert the bytes in the buffer to floats in a list */
-    for (i = 0; i < length; ++i) SETFLOAT(&x->x_bufferForOSClist[i], buf[i]);
+    for (i = 0; i < length; ++i) SETFLOAT(&atombuffer[i], buf[i]);
+
+    /* cleanup the OSCbuffer structure (so we are ready for recursion) */
+    OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
+
     /* send the list out the outlet */
-    outlet_list(x->x_listout, &s_list, length, x->x_bufferForOSClist);
+    outlet_list(x->x_listout, &s_list, length, atombuffer);
+
+    /* cleanup our 'stack'-allocated atombuffer in the case of reentrancy */
+    if(reentry_count>0)
+        freebytes(atombuffer, bufsize);
 }
 
 /* The next part is copied and morphed from OSC-client.c. */
