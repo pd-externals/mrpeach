@@ -5,7 +5,7 @@ lib.name = midifile
 class.sources = midifile.c
 
 datafiles = \
-	midifile-help.pd #\
+	midifile-help.pd \
 	midifile-meta.pd \
 	README.txt \
 	LICENSE.txt \
