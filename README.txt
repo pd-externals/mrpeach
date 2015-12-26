@@ -1,29 +1,25 @@
-mrpeach - bag of tricks
+mrpeach - bag of tricks by Martin Peach
 ===
 
-## serial communication
-slipenc, slipdec: SLIP encoder/decoder
-f2b, b2f        : float32<->bytes converter
+This is a fork of the original mrpeach repository hosted at:
 
-## xbee
-communication with the XBee
+  http://git.puredata.info/cgit/svn2git/libraries/mrpeach.git
+
+The fork was made to make it easy for the fork maintainer
+to provide stable builds for deken. The original sources as
+provided by upstream are in the upstream branch, all modifications
+are done in the master branch. 
+
+Currently supported deken builds from these sources include:
 
 ## binfile
-read raw files (as bytes)
+read and write raw files (as bytes)
 
 ## midifile
-play and record MIDI-files
+read and write midi files
 
-## general purpose objects
-[life2x] game of life
-[op~] signal comparision
-[rc~] resistor-capacitor circuit
-[rcosc~] resistor-capacitor oscillator
-[rojo~] red noise generator
-[runningmean] moving average filter
-[sqosc~] bandlimited pulse generator
-[str] strings
-[tabfind] find a number in a table
-[flist2tab] write lists of floats into a table
-[tab2flist] extract lists of floats from a table
-[which] output path to a Pd-object
+## osc
+classes for creating and parsing OSC messages
+
+## slip
+encoding and decoding SLIP (Serial Line Internet Protocol)
