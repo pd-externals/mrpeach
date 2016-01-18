@@ -620,13 +620,13 @@ static int unpackOSC_IsNiceString(char *string, char *boundary)
         return 0;
     }
 
-    /* anything less than space (0x20) is no good, UTF-8 sequences will be accepted -- not strictly OSC v1.0 */
+    /* any non-zero byte will be accepted, so UTF-8 sequences will also be accepted -- not strictly OSC v1.0 */
     for (i = 0; string[i] != '\0'; i++)
         /* if ((!isprint(string[i])) || (string + i >= boundary)) return 0; */ /* only ASCII printable chars */
-        /*if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;*/
-        if (string + i >= boundary) return 0;
-    /* If we made it this far, it's a null-terminated sequence of printing characters
-       in the given boundary.  Now we just make sure it's null padded... */
+        /*if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;*/ /* onl;y ASCII space (0x20) and above */
+        if (string + i >= boundary) return 0; /* anything non-zero */
+    /* If we made it this far, it's a null-terminated sequence of characters
+       within the given boundary.  Now we just make sure it's null padded... */
 
     /* Now string[i] is the first null character */
     i++;
