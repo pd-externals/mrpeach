@@ -606,8 +606,10 @@ static char *unpackOSC_DataAfterAlignedString(char *string, char *boundary)
 static int unpackOSC_IsNiceString(char *string, char *boundary) 
 {
     /* Arguments same as DataAfterAlignedString().  Is the given "string"
-       really a string?  I.e., is it a sequence of isprint() characters
-       terminated with 1-4 null characters to align on a 4-byte boundary?
+       really an OSC-string?  I.e., is it 
+        "A sequence of non-null ASCII characters followed by a null, followed 
+        by 0-3 additional null characters to make the total number of bits a 
+        multiple of 32"? (OSC 1.0)
         Returns 1 if true, else 0. */
 
     int i;
@@ -621,7 +623,8 @@ static int unpackOSC_IsNiceString(char *string, char *boundary)
     /* anything less than space (0x20) is no good, UTF-8 sequences will be accepted -- not strictly OSC v1.0 */
     for (i = 0; string[i] != '\0'; i++)
         /* if ((!isprint(string[i])) || (string + i >= boundary)) return 0; */ /* only ASCII printable chars */
-        if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;
+        /*if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;*/
+        if (string + i >= boundary) return 0;
     /* If we made it this far, it's a null-terminated sequence of printing characters
        in the given boundary.  Now we just make sure it's null padded... */
 
