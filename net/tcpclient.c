@@ -615,12 +615,15 @@ static void tcpclient_free(t_tcpclient *x)
     if (x->x_verbosity) post("...tcpclient_free");
 }
 
+#ifndef BUILD_DATE
+# define BUILD_DATE __DATE__ " " __TIME__
+#endif
 void tcpclient_setup(void)
 {
     char    aboutStr[MAXPDSTRING];
 
-    snprintf(aboutStr, MAXPDSTRING, "%s: (GPL) 20111103 Martin Peach, compiled for pd-%d.%d on %s %s",
-             objName, PD_MAJOR_VERSION, PD_MINOR_VERSION, __DATE__, __TIME__);
+    snprintf(aboutStr, MAXPDSTRING, "%s: (GPL) 20111103 Martin Peach, compiled for pd-%d.%d on %s",
+             objName, PD_MAJOR_VERSION, PD_MINOR_VERSION, BUILD_DATE );
 
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aboutStr);
