@@ -64,7 +64,7 @@ The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
         on OSX anyway.
 
 */
-//#define DEBUG
+//define DEBUG
 #include "packingOSC.h"
 
 
@@ -392,7 +392,17 @@ static void unpackOSC_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *
                 }
                 break;
             }
-            case 'i': case 'r': case 'm': case 'c':
+            case 'm': /* MIDI message is the next four bytes*/
+            {
+                int i;
+#ifdef DEBUG
+                printf("MIDI: 0x%08X\n", ntohl(*((int *) p)));
+#endif
+                for (i = 0; i < 4; ++i, ++p, ++myargc)
+                    SETFLOAT(mya+myargc, (*(unsigned char *)p));
+                break;
+            }
+            case 'i': case 'r': case 'c':
 #ifdef DEBUG
                 printf("integer: %d\n", ntohl(*((int *) p)));
 #endif

@@ -3,6 +3,7 @@
 /* Started by Martin Peach 20060403 */
 /* 20060425 version independent of libOSC */
 /* 20070620 added packOSC_path and packOSC_anything methods by zmoelnig */
+/* 20160713 added 'm'  typetag for MIDI messages */
 /* packOSC.c makes extensive use of code from OSC-client.c and sendOSC.c */
 /* as well as some from OSC-timetag.c. These files have the following header: */
 /*
@@ -31,7 +32,7 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 */
 
-//#define DEBUG
+//define DEBUG
 
 #define SC_BUFFER_SIZE 64000
 
@@ -241,6 +242,7 @@ static void packOSC_anything(t_packOSC *x, t_symbol *s, int argc, t_atom *argv);
 static void packOSC_free(t_packOSC *x);
 void packOSC_setup(void);
 static typedArg packOSC_parseatom(t_atom *a);
+static typedArg packOSC_packMIDI(t_atom *a);
 static typedArg packOSC_forceatom(t_atom *a, char ctype);
 static typedArg packOSC_blob(t_atom *a);
 static int packOSC_writetypedmessage(t_packOSC *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args, char *typeStr);
@@ -367,7 +369,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
     char*           typeStr = NULL; /* might not be used */
     typedArg*       args = (typedArg*)getbytes(argsSize);
     unsigned int    i, nTagsWithData, nArgs, blobCount;
-    unsigned int    m, j, k;
+    unsigned int    m, tagIndex, typedArgIndex, argvIndex;
     char            c;
 
 #ifdef DEBUG
@@ -418,6 +420,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
             if (!(c == 'T' || c == 'F' || c == 'N' || c == 'I'))
             {
                 ++nTagsWithData; /* anything other than these tags have at least one data byte */
+                if (c == 'm') nTagsWithData += 3; // MIDI tag should have four data bytes
 /*
     OSC-blob
     An int32 size count, followed by that many 8-bit bytes of arbitrary binary data, 
@@ -436,34 +439,39 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
             pd_error(x, "packOSC: Only one blob per packet at the moment...");
             goto cleanup;
         }
-        for (j = k = 0; j < m; ++j) /* m is the number of tags */
+        for (tagIndex = typedArgIndex = 0, argvIndex = 2; tagIndex < m; ++tagIndex) /* m is the number of tags */
         {
-            c = typeStr[j+1];
+            c = typeStr[tagIndex+1];
             if (c == 'b')
             { /* A blob has to be the last item, until we get more elaborate. */
-                if (j != m-1)
+                if (tagIndex != m-1)
                 {
                     pd_error(x, "packOSC: Since I don't know how big the blob is, Blob must be the last item in the list");
                     goto cleanup;
                 }
                 /* Pack all the remaining arguments as a blob */
-                for (; k < nArgs; ++k)
+                for (; typedArgIndex < nArgs; ++typedArgIndex, ++argvIndex)
                 {
 #ifdef DEBUG
                     printf("packOSC_blob %d:\n", nArgs);
 #endif
-                    args[k] = packOSC_blob(&argv[k+2]);
+                    args[typedArgIndex] = packOSC_blob(&argv[argvIndex]);
                     /* Make sure it was blobbable */
-                    if (args[k].type != BLOB_osc) goto cleanup;
+                    if (args[typedArgIndex].type != BLOB_osc) goto cleanup;
                 }
             }
             else if (!(c == 'T' || c == 'F' || c == 'N' || c == 'I')) /* not no data */
             {
-                args[k] = packOSC_forceatom(&argv[k+2], c);
-                ++k;
+                if (c == 'm')
+                { // pack the next four arguments into one int
+                  args[typedArgIndex++] = packOSC_packMIDI(&argv[argvIndex]);
+                  argvIndex += 4;  
+                }
+                else args[typedArgIndex++] = packOSC_forceatom(&argv[argvIndex++], c);
             }
         }
-        if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, nArgs, args, typeStr))
+        //if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, nArgs, args, typeStr))
+        if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, typedArgIndex, args, typeStr))
         {
             pd_error(x, "packOSC: usage error, packOSC_writetypedmessage failed.");
             goto cleanup;
@@ -657,6 +665,50 @@ static typedArg packOSC_blob(t_atom *a)
     returnVal.type = BLOB_osc;
     returnVal.datum.i = i;
     return returnVal;
+}
+
+static typedArg packOSC_packMIDI(t_atom *a)
+{ /* pack four bytes at a into one int32 */
+  int         i;
+  typedArg    returnVal;
+  int         m[4];
+  static char buf[MAXPDSTRING];
+
+  for (i = 0; i < 4; ++i, ++a)
+  {
+#ifdef DEBUG
+    atom_string(a, buf, MAXPDSTRING);
+    printf("packOSC: atom type %d (%s)\n", a->a_type, buf);
+#endif
+    if ((a->a_type != A_FLOAT))
+    {
+      error("packOSC: MIDI parameters must be floats");
+      returnVal.type = NOTYPE_osc;
+      returnVal.datum.s = NULL;
+      return returnVal;
+    }
+    m[i] = atom_getint(a);
+#ifdef DEBUG
+    printf("packOSC_packMIDI: float to integer %d\n", m[i]);
+#endif
+    if ((i < 2) && (m[i] != (m[i] & 0x0FF)))
+    {
+      error("packOSC: MIDI parameters must be less than 256");
+      returnVal.type = NOTYPE_osc;
+      returnVal.datum.s = NULL;
+      return returnVal;
+    }
+    else if ((i > 1) && (m[i] != (m[i] & 0x07F)))
+    {
+      error("packOSC: MIDI parameters must be less than 128");
+      returnVal.type = NOTYPE_osc;
+      returnVal.datum.s = NULL;
+      return returnVal;
+    }
+  }
+  returnVal.type = INT_osc;
+  returnVal.datum.i = (m[0]<<24) + (m[1]<<16) + (m[2]<<8) + m[3];
+  return returnVal;
 }
 
 static typedArg packOSC_forceatom(t_atom *a, char ctype)
