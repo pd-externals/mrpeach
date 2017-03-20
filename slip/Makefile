@@ -15,5 +15,5 @@ datafiles = \
 # Katja Vetter. You can get it from:
 # https://github.com/pure-data/pd-lib-builder
 
-PDLIBBUILDER_DIR=pd-lib-builder/
+PDLIBBUILDER_DIR=../pd-lib-builder/
 include $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder
