@@ -175,7 +175,7 @@ void midifile_setup(void)
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aStr);
 #else
-    logpost(NULL, 3, aStr);
+    logpost(NULL, 3, "%s", aStr);
 #endif
 }
 
@@ -202,7 +202,7 @@ static void *midifile_new(t_symbol *s, int argc, t_atom *argv)
 //#if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
 //    post(x->our_directory->s_name);
 //#else
-//    logpost(NULL, 3, x->our_directory->s_name);
+//    logpost(NULL, 3, "%s", x->our_directory->s_name);
 //#endif
     x->track = ALL_TRACKS; /* startup playing anything */
     x->midi_data[0].a_type = x->midi_data[1].a_type = x->midi_data[2].a_type = A_FLOAT;

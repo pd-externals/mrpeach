@@ -628,7 +628,7 @@ void tcpclient_setup(void)
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aboutStr);
 #else
-    logpost(NULL, 3, aboutStr);
+    logpost(NULL, 3, "%s", aboutStr);
 #endif
     tcpclient_class = class_new(gensym(objName), (t_newmethod)tcpclient_new,
         (t_method)tcpclient_free, sizeof(t_tcpclient), 0, 0);
