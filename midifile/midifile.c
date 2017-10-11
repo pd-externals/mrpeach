@@ -32,6 +32,13 @@
 #define sys_fclose fclose
 #endif
 
+/* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
+#ifdef _MSC_VER
+#define sys_open open
+#define sys_fopen fopen
+#define sys_fclose fclose
+#endif
+
 #define NO_MORE_ELEMENTS 0xFFFFFFFF
 
 static t_class *midifile_class;
@@ -172,6 +179,7 @@ void midifile_setup(void)
     class_addmethod(midifile_class, (t_method)midifile_rewind, gensym("rewind"), 0);
     class_addmethod(midifile_class, (t_method)midifile_verbosity, gensym("verbose"), A_DEFFLOAT, 0);
     class_sethelpsymbol(midifile_class, gensym("midifile-help"));
+    post("Hello?");
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aStr);
 #else
@@ -304,12 +312,15 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
     FILE    *fP = NULL;
     char    tryPath[PATH_BUF_SIZE];
     char    slash[] = "/";
-
     /* If the first character of the path is a slash then the path is absolute */
     /* On MSW if the second character of the path is a colon then the path is absolute */
     if ((path[0] == '/') || (path[0] == '\\') || (path[1] == ':'))
     {
+#ifdef _MSC_VER
+        strncpy_s(tryPath, PATH_BUF_SIZE - 1, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
+#else
         strncpy(tryPath, path, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
+#endif
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (absolute): %s\n", tryPath);
@@ -317,19 +328,29 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
     }
     if (fP == NULL)
     {
-        /* Then try to open the path from the current directory */
-        strncpy(tryPath, x->our_directory->s_name, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
+		/* Then try to open the path from the current directory */
+#ifdef _MSC_VER
+        strncpy_s(tryPath, PATH_BUF_SIZE - 1, x->our_directory->s_name, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
+        strncat_s(tryPath, PATH_BUF_SIZE - 1, slash, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
+        strncat_s(tryPath, PATH_BUF_SIZE - 1, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
+#else
+        strncpy(tryPath, x->our_directory->s_name, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
         strncat(tryPath, slash, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
-        strncat(tryPath, path, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
+        strncat(tryPath, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
+#endif
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (relative): %s\n", tryPath);
         fP = sys_fopen(tryPath, mode);
     }
-    if (fP == NULL) return 0;
+	if (fP == NULL) return 0;
     x->fP = fP;
+#ifdef _MSC_VER
+    strncpy_s(x->fPath, PATH_BUF_SIZE, tryPath, PATH_BUF_SIZE);
+#else
     strncpy(x->fPath, tryPath, PATH_BUF_SIZE);
-    return 1;
+#endif
+	return 1;
 }
 
 /** midifile_flush writes the header to x->fP, copies the contents of x->tmpFP[] into it, and closes both files.
@@ -462,19 +483,30 @@ static void midifile_write(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
     }
     post("midifile_write: path = %s, fps = %d, tpf = %d", path, frames_per_second, ticks_per_frame);
     midifile_free_file(x);
-    if (midifile_open_path(x, path, "wb"))
+	if (midifile_open_path(x, path, "wb"))
     {
         if (x->verbosity) post("midifile: opened %s", x->fPath);
-        x->state = mfWriting;
+		x->state = mfWriting;
         x->track = 0; /* write to first track */
-        x->tmpFP[0] = tmpfile (); /* a temporary file for the MIDI data while we don't know how long it is */
-        strncpy (x->header_chunk.chunk_type, "MThd", 4L);/* track header chunk */
-        x->header_chunk.chunk_length = 6L; /* 3 ints to follow */
+#ifdef _MSC_VER
+        tmpfile_s(&x->tmpFP[0]); /* a temporary file for the MIDI data while we don't know how long it is */
+#else
+        x->tmpFP[0] = tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
+#endif
+		x->header_chunk.chunk_type[0] = 'M';
+		x->header_chunk.chunk_type[1] = 'T';
+		x->header_chunk.chunk_type[2] = 'h';
+		x->header_chunk.chunk_type[3] = 'd';
+		x->header_chunk.chunk_length = 6L; /* 3 ints to follow */
         x->header_chunk.chunk_format = 0; /* single-track file so far */
         x->header_chunk.chunk_ntrks = 1; /* one track for type 0 file */
         x->header_chunk.chunk_division = (((-frames_per_second)<<8)|ticks_per_frame);
-        strncpy (x->track_chunk[0].chunk_type, "MTrk", 4L);
-        x->track_chunk[0].chunk_length = 0L; /* for now */
+
+		x->track_chunk[0].chunk_type[0] = 'M';
+		x->track_chunk[0].chunk_type[0] = 'T';
+		x->track_chunk[0].chunk_type[0] = 'r';
+		x->track_chunk[0].chunk_type[0] = 'k';
+		x->track_chunk[0].chunk_length = 0L; /* for now */
         midifile_rewind_tracks(x);
     }
     else pd_error(x, "midifile_write: Unable to open %s", path);
@@ -723,9 +755,8 @@ static void midifile_float(t_midifile *x, t_float ticks)
 static int midifile_read_chunks(t_midifile *x)
 {
     int     j, result;
-
     result = midifile_read_header_chunk(x);
-    midifile_rewind_tracks(x);
+	midifile_rewind_tracks(x);
     for (j = 0; ((j < x->header_chunk.chunk_ntrks)&&(result != 0)); ++j)
         midifile_read_track_chunk(x, j);
     return result;
@@ -752,8 +783,8 @@ static int midifile_read_header_chunk(t_midifile *x)
         error("midifile: no open file");
         return 0;/* no open file */
     }
-    rewind(x->fP);
-    x->offset = 0L;
+	rewind(x->fP);
+	x->offset = 0L;
     n = fread(cP, 1L, 4L, x->fP);
     x->offset += n;
     if (n != 4L)
@@ -1055,8 +1086,13 @@ static void midifile_set_track(t_midifile *x, t_floatarg track)
         if (x->track_chunk[x->track].track_data == NULL)
         {
             /* this track is being used for the first time */
-            x->tmpFP[x->track] = tmpfile (); /* a temporary file for the MIDI data while we don't know how long it is */
+#ifdef _MSC_VER
+            tmpfile_s(&x->tmpFP[x->track]); /* a temporary file for the MIDI data while we don't know how long it is */
+            strncpy_s(x->track_chunk[x->track].chunk_type, 4L, "MTrk", 4L);
+#else
+            x->tmpFP[x->track] = tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
             strncpy (x->track_chunk[x->track].chunk_type, "MTrk", 4L);
+#endif
             x->track_chunk[x->track].chunk_length = 0L; /* for now */
         }
       }
@@ -1177,7 +1213,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
         cP = midifile_read_var_len(cP, &delta_time);
         status = *cP++;
         total_time += delta_time;
+#ifdef _MSC_VER
+        msgPtr += sprintf_s(msgPtr, 50, "tick %zu delta %zu status %02X ", total_time, delta_time, status);
+#else
         msgPtr += sprintf (msgPtr, "tick %zu delta %zu status %02X ", total_time, delta_time, status);
+#endif
         if ((status & 0xF0) == 0xF0)
         {
             switch (status)
@@ -1185,46 +1225,94 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                 case 0xF0:
                 case 0xF7:
                     cP = midifile_read_var_len(cP, &len);/* not a time but the same variable length format */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "Sysex: %02X length %zu ", status, len);
+#else
                     msgPtr += sprintf(msgPtr, "Sysex: %02X length %zu ", status, len);
+#endif
                     cP += len;
                     break;
                 case 0xF3: /* song select */
                     c = *cP++;
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "Song Select: %d ", c);
+#else
                     msgPtr += sprintf(msgPtr, "Song Select: %d ", c);
+#endif
                     break;
                 case 0xF2: /* song position */
                     c = *cP++;
                     d = *cP++;
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "Song Position %d ", midifile_combine_bytes(c, d));
+#else
                     msgPtr += sprintf(msgPtr, "Song Position %d ", midifile_combine_bytes(c, d));
+#endif
                     break;
                 case 0xF1: /* quarter frame */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Quarter Frame");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Quarter Frame");
+#endif
                     break;
                 case 0xF6: /* tune request */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Tune Request");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Tune Request");
+#endif
                     break;
                 case 0xF8: /* MIDI clock */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Clock");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Clock");
+#endif
                     break;
                 case 0xF9: /* MIDI tick */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Tick");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Tick");
+#endif
                     break;
                 case 0xFA: /* MIDI start */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Start");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Start");
+#endif
                     break;
                 case 0xFB: /* MIDI continue */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Continue");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Continue");
+#endif
                     break;
                 case 0xFC: /* MIDI stop */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Stop");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Stop");
+#endif
                     break;
                 case 0xFE: /* active sense */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Active Sense");
+#else
                     msgPtr += sprintf(msgPtr, "MIDI Active Sense");
+#endif
                     break;
                 case 0xFF:
                     c = *cP++;
                     cP = midifile_read_var_len(cP, &len);/* not a time but the same variable length format */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 30, "Meta 0x%02X length %zu \n", c, len);
+#else
                     msgPtr += sprintf(msgPtr, "Meta 0x%02X length %zu \n", c, len);
+#endif
                     switch (c)
                     {
                         case 0x58:
@@ -1233,41 +1321,73 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             dd = 1<<(dd);
                             cc = *cP++;
                             bb = *cP++;
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(
+                                msgPtr, 50, "Time Signature %d/%d %d clocks per tick, %d 32nd notes per quarter note",
+                                nn, dd, cc, bb);
+#else
                             msgPtr += sprintf(
                                 msgPtr, "Time Signature %d/%d %d clocks per tick, %d 32nd notes per quarter note",
                                 nn, dd, cc, bb);
+#endif
                             break;
                         case 0x59:
                             sf = *(signed char*)cP++;
                             mi = *cP++;
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(
+                                msgPtr, 50, "Key Signature: %d %s, %s",
+                                sf, (sf<0) ? "flats" : "sharps", (mi) ? "minor" : "major");
+#else
                             msgPtr += sprintf(
                                 msgPtr, "Key Signature: %d %s, %s",
                                 sf, (sf<0)?"flats":"sharps", (mi)?"minor":"major");
+#endif
                             break;
                         case 0x51:
                             tt[0] = *cP++;
                             tt[1] = *cP++;
                             tt[2] = *cP++;
                             time_sig = midifile_get_multibyte_3(tt);
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 30, "%lu microseconds per MIDI quarter-note", time_sig);
+#else
                             msgPtr += sprintf(msgPtr, "%lu microseconds per MIDI quarter-note", time_sig);
+#endif
                             break;
                         case 0x2F:
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 30, "========End of Track %d==========", mfindex);
+#else
                             msgPtr += sprintf(msgPtr, "========End of Track %d==========", mfindex);
+#endif
                             cP += len;
                             break;
                         case 0x21:
                             tt[0] = *cP++;
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 30, "MIDI port or cable number (unofficial): %d", tt[0]);
+#else
                             msgPtr += sprintf(msgPtr, "MIDI port or cable number (unofficial): %d", tt[0]);
+#endif
                             break;
                         case 0x20:
                             mcp = *cP++;
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 20, "MIDI Channel Prefix: %d", mcp);
+#else
                             msgPtr += sprintf(msgPtr, "MIDI Channel Prefix: %d", mcp);
+#endif
                             break;
                         case 0x06:
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Marker %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Marker %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1275,7 +1395,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Lyric %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Lyric %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1283,7 +1407,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Instrument Name %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Instrument Name %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1291,7 +1419,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Sequence/Track Name %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Sequence/Track Name %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1299,7 +1431,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Copyright Notice %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Copyright Notice %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1307,7 +1443,11 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 100, "Text %s", str);
+#else
                             msgPtr += sprintf(msgPtr, "Text %s", str);
+#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1315,16 +1455,28 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
                             tt[0] = *cP++;
                             tt[1] = *cP++;
                             sn = midifile_get_multibyte_2(tt);
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 30, "Sequence Number %d", sn);
+#else
                             msgPtr += sprintf(msgPtr, "Sequence Number %d", sn);
+#endif
                             break;
                         default:
+#ifdef _MSC_VER
+                            msgPtr += sprintf_s(msgPtr, 30, "Unknown: 0x%02X", c);
+#else
                             msgPtr += sprintf(msgPtr, "Unknown: 0x%02X", c);
+#endif
                             cP += len;
                             break;
                     }
                     break;
                 default: /* 0xF4, 0xF5, 0xF9, 0xFD are not defined */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 30, "Undefined: 0x%02X", status);
+#else
                     msgPtr += sprintf(msgPtr, "Undefined: 0x%02X", status);
+#endif
                     break;
             }
         }
@@ -1345,39 +1497,78 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfindex)
             {
                 case 0x80:
                     d = *cP++; /* 2 data bytes */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50,
+                        "MIDI 0x%02X %02X %02X : channel %d Note %d Off velocity %d",
+                        status, c, d, ch, c, d);
+#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI 0x%02X %02X %02X : channel %d Note %d Off velocity %d",
                         status, c, d, ch, c, d);
+#endif
                     break;
                 case 0x90:
                     d = *cP++; /* 2 data bytes */
                     if (d == 0)
+#ifdef _MSC_VER
+                        msgPtr += sprintf_s(msgPtr, 50, "MIDI 0x%02X %02X %02X : channel %d Note %d Off", status, c, d, ch, c);
+#else
                         msgPtr += sprintf(msgPtr,"MIDI 0x%02X %02X %02X : channel %d Note %d Off", status, c, d, ch, c);
+#endif
                     else
+#ifdef _MSC_VER
+                        msgPtr += sprintf_s(msgPtr, 50,
+                            "MIDI 0x%02X %02X %02X : channel %d Note %d On velocity %d", status, c, d, ch, c, d);
+#else
                         msgPtr += sprintf(msgPtr,
                             "MIDI 0x%02X %02X %02X : channel %d Note %d On velocity %d", status, c, d, ch, c, d);
+#endif
                     break;
                 case 0xA0:
                     d = *cP++; /* 2 data bytes */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50,
+                        "MIDI: 0x%02X %02X %02X : channel %d Note %d Aftertouch %d", status, c, d, ch, c, d);
+#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Note %d Aftertouch %d", status, c, d, ch, c, d);
+#endif
                     break;
                 case 0xB0:
                     d = *cP++; /* 2 data bytes */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50,
+                        "MIDI: 0x%02X %02X %02X : channel %d Controller %d: %d", status, c, d, ch, c, d);
+#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Controller %d: %d", status, c, d, ch, c, d);
+#endif
                     break;
                 case 0xC0:	/* 1 data byte */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50, "MIDI: 0x%02X %02X: channel %d Program Change: %d", status, c, ch, c);
+#else
                     msgPtr += sprintf(msgPtr,"MIDI: 0x%02X %02X: channel %d Program Change: %d", status, c, ch, c);
+#endif
                     break;
                 case 0xD0: /* 1 data byte */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50, "MIDI: 0x%02X %02X: channel %d Channel Pressure: %d", status, c, ch, c);
+#else
                     msgPtr += sprintf(msgPtr,"MIDI: 0x%02X %02X: channel %d Channel Pressure: %d", status, c, ch, c);
+#endif
                     break;
                 case 0xE0: /* 2 data bytes */
                     d = *cP++; /* 2 data bytes */
+#ifdef _MSC_VER
+                    msgPtr += sprintf_s(msgPtr, 50,
+                        "MIDI: 0x%02X %02X %02X : channel %d Pitch Wheel %d",
+                        status, c, d, ch, midifile_combine_bytes(c, d));
+#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Pitch Wheel %d",
                         status, c, d, ch, midifile_combine_bytes(c, d));
+#endif
                     break;
             }
         }
@@ -1788,13 +1979,23 @@ static t_symbol *midifile_key_name(int sf, int mi)
     {
         if (mi == 1)
         {
+#ifdef _MSC_VER
+            i = sprintf_s(buf, 3, "%s", min_key[sf + 7]);
+            sprintf_s(buf + i, 6, "%s", "Minor");
+#else
             i = sprintf(buf, "%s", min_key[sf+7]);
             sprintf(buf+i, "%s", "Minor");
+#endif
         }
         else if (mi == 0)
         {
+#ifdef _MSC_VER
+            i = sprintf_s(buf, 3, "%s", maj_key[sf + 7]);
+            sprintf_s(buf + i, 6, "%s", "Major");
+#else
             i = sprintf(buf, "%s", maj_key[sf+7]);
             sprintf(buf+i, "%s", "Major");
+#endif
         }
     }
     return gensym(buf);
