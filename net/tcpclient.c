@@ -36,6 +36,9 @@
 #include <pthread.h>
 #ifndef _WIN32
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <sys/errno.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -97,7 +100,9 @@ typedef struct _tcpclient
     int                         x_connectstate; // 0 = not connected, 1 = connected
     int                         x_port; // port we're connected to
     uint32_t                    x_addr; // address we're connected to as 32bit int
-    t_atom                      x_addrbytes[4]; // address we're connected to as 4 bytes
+    uint32_t                    x_ourAddr; // address of our interface
+    int                         x_ourPort; // port nunber of our interface
+    t_atom                      x_addrbytes[5]; // address we're connected to as 4 bytes and one int
     t_atom                      x_msgoutbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as float atoms
     unsigned char               x_msginbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as bytes
     char                        *x_sendbuf; // pointer to data to send
@@ -174,16 +179,23 @@ static void tcp_client_hexdump(t_tcpclient *x, long len)
 
 static void tcpclient_tick(t_tcpclient *x)
 {
+    t_atom output_atom[5];
+    SETFLOAT(&output_atom[0], (x->x_ourAddr & 0xFF000000)>>24); // address of our interface in bytes
+    SETFLOAT(&output_atom[1], (x->x_ourAddr & 0x0FF0000)>>16);
+    SETFLOAT(&output_atom[2], (x->x_ourAddr & 0x0FF00)>>8);
+    SETFLOAT(&output_atom[3], (x->x_ourAddr & 0x0FF));
+    SETFLOAT(&output_atom[4], x->x_ourPort); // port nunber of our interface
+    outlet_anything( x->x_statusout, gensym("ourIP"), 5, output_atom);
     outlet_float(x->x_connectout, 1);
 }
 
 static void *tcpclient_child_connect(void *w)
 {
     t_tcpclient         *x = (t_tcpclient*) w;
-    struct sockaddr_in  server;
+    struct sockaddr_in  server, addr;
     struct hostent      *hp;
     int                 sockfd;
-
+    socklen_t           addrlen = sizeof (addr);
     if (x->x_fd >= 0)
     {
         error("%s_child_connect: already connected", objName);
@@ -227,6 +239,17 @@ static void *tcpclient_child_connect(void *w)
     // outlet_float(x->x_obj.ob_outlet, 1);
     x->x_connectstate = 1;
     x->x_blocked = 0;
+    /* Find our address */
+    if (getsockname(sockfd, (struct sockaddr *)&addr, (socklen_t *)&addrlen))
+        sys_sockerror("tcpclient: getting socket name");
+    else
+    { /* output the address this socket is bound to */
+        //printf("addrlen %u\n", addrlen);
+        //printf("port %u\n", addr.sin_port);
+        //printf("IP address %s\n", inet_ntoa(addr.sin_addr));
+        x->x_ourAddr = ntohl(addr.sin_addr.s_addr);
+        x->x_ourPort = ntohs(addr.sin_port);
+    }
     /* use callback instead to set outlet */
     clock_delay(x->x_clock, 0);
     return (x);
@@ -262,6 +285,8 @@ static void tcpclient_disconnect(t_tcpclient *x)
         sys_closesocket(x->x_fd);
         x->x_fd = -1;
         x->x_connectstate = 0;
+        x->x_ourAddr = 0L;
+        x->x_ourPort = 0;
         outlet_float(x->x_connectout, 0);
         if (x->x_verbosity) post("%s: disconnected", objName);
     }
@@ -529,7 +554,8 @@ static void tcpclient_rcv(t_tcpclient *x)
                 x->x_addrbytes[1].a_w.w_float = (x->x_addr & 0x0FF0000)>>16;
                 x->x_addrbytes[2].a_w.w_float = (x->x_addr & 0x0FF00)>>8;
                 x->x_addrbytes[3].a_w.w_float = (x->x_addr & 0x0FF);
-                outlet_list(x->x_addrout, &s_list, 4L, x->x_addrbytes);
+                x->x_addrbytes[4].a_w.w_float = (x->x_port);
+                outlet_list(x->x_addrout, &s_list, 5L, x->x_addrbytes);
                 /* send the list out the outlet */
                 if (ret > 1) outlet_list(x->x_msgout, &s_list, ret, x->x_msgoutbuf);
                 else outlet_float(x->x_msgout, x->x_msgoutbuf[0].a_w.w_float);
@@ -584,13 +610,15 @@ static void *tcpclient_new(void)
         x->x_msgoutbuf[i].a_type = A_FLOAT;
         x->x_msgoutbuf[i].a_w.w_float = 0;
     }
-    for (i = 0; i < 4; ++i)
+    for (i = 0; i < 5; ++i)
     {
         x->x_addrbytes[i].a_type = A_FLOAT;
         x->x_addrbytes[i].a_w.w_float = 0;
     }
     x->x_addr = 0L;
     x->x_blocked = 1;
+    x->x_ourAddr = 0L;
+    x->x_ourPort = 0;
     x->x_connectstate = 0;
     x->x_nextthread = 0;
     /* prepare child threads */
