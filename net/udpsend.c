@@ -44,6 +44,8 @@ typedef struct _udpsend
     int             x_fd; /* the socket */
     unsigned int    x_multicast_loop_state;
     unsigned int    x_multicast_ttl; /* time to live for multicast */
+    t_outlet        *x_connectout;
+    t_outlet        *x_statusout;
 } t_udpsend;
 
 void udpsend_setup(void);
@@ -60,7 +62,8 @@ static void *udpsend_new(void);
 static void *udpsend_new(void)
 {
     t_udpsend *x = (t_udpsend *)pd_new(udpsend_class);
-    outlet_new(&x->x_obj, &s_float);
+    x->x_connectout = outlet_new(&x->x_obj, &s_float);	/* connection state */
+    x->x_statusout = outlet_new(&x->x_obj, &s_anything);/* last outlet for everything else */
     x->x_fd = -1;
     return (x);
 }
@@ -68,7 +71,8 @@ static void *udpsend_new(void)
 static void udpsend_connect(t_udpsend *x, t_symbol *hostname,
     t_floatarg fportno)
 {
-    struct sockaddr_in  server;
+    struct sockaddr_in  server, addr;
+    socklen_t           addrlen = sizeof (addr);
     struct hostent      *hp;
     int                 sockfd;
     int                 portno = fportno;
@@ -76,6 +80,9 @@ static void udpsend_connect(t_udpsend *x, t_symbol *hostname,
     unsigned char       multicast_loop_state;
     unsigned char       multicast_ttl;
     unsigned int        size;
+    uint32_t            ourAddr; // address of our interface
+    int                 ourPort; // port nunber of our interface
+    t_atom              output_atom[5];
 
     if (x->x_fd >= 0)
     {
@@ -136,7 +143,24 @@ Enable sending of broadcast messages (if hostname is a broadcast address)*/
         return;
     }
     x->x_fd = sockfd;
-    outlet_float(x->x_obj.ob_outlet, 1);
+    /* Find our address */
+    if (getsockname(sockfd, (struct sockaddr *)&addr, (socklen_t *)&addrlen))
+        udpsend_sock_err(x, "problem getting our socket address and port");
+    else
+    { /* output the address this socket is bound to */
+        //printf("addrlen %u\n", addrlen);
+        //printf("port %u\n", addr.sin_port);
+        //printf("IP address %s\n", inet_ntoa(addr.sin_addr));
+        ourAddr = ntohl(addr.sin_addr.s_addr);
+        ourPort = ntohs(addr.sin_port);
+        SETFLOAT(&output_atom[0], (ourAddr & 0xFF000000)>>24); // address of our interface in bytes
+        SETFLOAT(&output_atom[1], (ourAddr & 0x0FF0000)>>16);
+        SETFLOAT(&output_atom[2], (ourAddr & 0x0FF00)>>8);
+        SETFLOAT(&output_atom[3], (ourAddr & 0x0FF));
+        SETFLOAT(&output_atom[4], ourPort); // port nunber of our interface
+        outlet_anything( x->x_statusout, gensym("ourIP"), 5, output_atom);
+    }
+    outlet_float(x->x_connectout, 1);
 }
 
 static void udpsend_set_multicast_loopback(t_udpsend *x, t_floatarg loop_state)
@@ -432,7 +456,7 @@ static void udpsend_disconnect(t_udpsend *x)
         close(x->x_fd);
 #endif
         x->x_fd = -1;
-        outlet_float(x->x_obj.ob_outlet, 0);
+        outlet_float(x->x_connectout, 0);
     }
 }
 

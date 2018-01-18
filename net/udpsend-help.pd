@@ -1,60 +1,70 @@
-#N canvas 1 53 898 550 12;
-#X msg 198 118 disconnect;
-#X msg 17 -63 connect 127.0.0.1 9997;
-#X obj 455 418 tgl 15 0 empty empty connected 20 7 0 8 -24198 -241291
--1 0 1;
-#X msg 39 -41 send 0 1 2 3;
-#X text 150 395 udpsend sends bytes over a udp connection.;
-#X text 227 445 Used in conjunction with packOSC will send OSC over
+#N canvas 220 66 1014 638 12;
+#X msg 198 182 disconnect;
+#X msg 17 1 connect 127.0.0.1 9997;
+#X obj 455 482 tgl 15 0 empty empty connected 20 7 0 12 -24198 -258113
+-13381 1 1;
+#X msg 39 23 send 0 1 2 3;
+#X text 115 459 udpsend sends bytes over a udp connection.;
+#X text 518 460 Used in conjunction with packOSC will send OSC over
 udp;
-#X obj 455 395 udpsend;
-#X msg 61 -19 send examples/test.txt;
-#X obj 131 27 openpanel;
-#X msg 131 51 send \$1;
-#X obj 131 8 bng 15 250 50 0 empty empty empty 17 7 0 10 -24198 -241291
+#X obj 455 459 udpsend;
+#X msg 61 45 send examples/test.txt;
+#X obj 131 91 openpanel;
+#X msg 131 115 send \$1;
+#X obj 131 72 bng 15 250 50 0 empty empty empty 17 7 0 10 -24198 -241291
 -1;
-#X text -28 -18 send a file;
-#X text 137 -42 send raw data;
-#X text 151 7 ...any file;
-#X msg 164 84 99 98 97;
-#X text 229 84 'send' prefix is optional;
-#X msg 301 221 multicast_interface 192.168.0.88;
-#X msg 276 196 multicast_interface eth1;
-#X msg 228 148 connect 239.200.200.200 9977;
-#X text 181 -64 <--first connect to a host and port;
-#X text 279 117 <--disconnect before connecting to another address
+#X text 248 46 send a file;
+#X text 142 22 send raw data;
+#X text 151 71 ...any file;
+#X msg 164 148 99 98 97;
+#X text 229 148 'send' prefix is optional;
+#X msg 301 285 multicast_interface 192.168.0.88;
+#X msg 276 260 multicast_interface eth1;
+#X msg 228 212 connect 239.200.200.200 9977;
+#X text 202 0 <--first connect to a host and port;
+#X text 284 181 <--disconnect before connecting to another address
 ;
-#X text 439 147 send to a multicast address;
-#X text 411 172 specify an interface to use with multicast;
-#X msg 253 173 multicast_interface 1;
-#X text 461 195 by index \, name or address;
-#X floatatom 393 246 5 0 256 0 - - -;
-#X obj 375 269 f 1;
-#X obj 375 249 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -1
+#X text 460 211 send to a multicast address;
+#X text 427 236 specify an interface to use with multicast;
+#X msg 253 237 multicast_interface 1;
+#X text 477 259 by index \, name or address;
+#X floatatom 393 310 5 0 256 0 - - -, f 5;
+#X obj 375 333 f 1;
+#X obj 375 313 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -1
 -1;
-#X text 240 270 set multicast ttl:;
-#X msg 375 295 multicast_ttl \$1;
-#X text 645 408 Martin Peach 2010/08/02;
-#X msg 425 345 multicast_loopback \$1;
-#X obj 425 323 tgl 15 0 empty empty empty 20 7 0 8 -24198 -241291 -1
+#X text 227 334 set multicast ttl:;
+#X msg 375 359 multicast_ttl \$1;
+#X msg 425 409 multicast_loopback \$1;
+#X obj 425 387 tgl 15 0 empty empty empty 20 7 0 8 -24198 -241291 -1
 0 1;
-#X text 236 321 enable multicast loopback:;
-#N canvas 529 111 494 344 META 0;
-#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
+#X text 213 385 enable multicast loopback:;
+#N canvas 529 111 515 225 META 0;
+#X text 12 173 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
 Wilkes for Pd version 0.42.;
 #X text 12 25 LICENSE GPL v2 or later;
-#X text 12 135 AUTHOR Martin Peach;
+#X text 12 153 AUTHOR Martin Peach;
 #X text 12 5 KEYWORDS control network;
-#X text 12 115 OUTLET_0 float;
-#X text 12 45 DESCRIPTION used in conjunction with packOSC - will send
-OSC over udp;
-#X text 12 75 INLET_0 connect send list disconnect multicast_interface
+#X text 12 117 OUTLET_0 float;
+#X text 12 81 INLET_0 connect send list disconnect multicast_interface
 multicast_ttl multicast_loopback;
-#X restore 798 452 pd META;
+#X text 12 135 OUTLET_1 list;
+#X text 12 45 DESCRIPTION sends bytes via UDP \; used in conjunction
+with packOSC to send OSC over UDP;
+#X restore 798 516 pd META;
+#X floatatom 508 554 3 0 0 0 - - -, f 3;
+#X floatatom 542 554 3 0 0 0 - - -, f 3;
+#X floatatom 578 554 3 0 0 0 - - -, f 3;
+#X floatatom 614 554 3 0 0 0 - - -, f 3;
+#X text 448 553 our IP;
+#X obj 508 526 unpack 0 0 0 0 0;
+#X floatatom 654 554 6 0 0 0 - - -, f 6;
+#X obj 508 500 route ourIP;
+#X text 704 593 Martin Peach 2018/01/18;
 #X connect 0 0 6 0;
 #X connect 1 0 6 0;
 #X connect 3 0 6 0;
 #X connect 6 0 2 0;
+#X connect 6 1 41 0;
 #X connect 7 0 6 0;
 #X connect 8 0 9 0;
 #X connect 9 0 6 0;
@@ -68,5 +78,11 @@ multicast_ttl multicast_loopback;
 #X connect 26 0 29 0;
 #X connect 27 0 26 0;
 #X connect 29 0 6 0;
-#X connect 31 0 6 0;
-#X connect 32 0 31 0;
+#X connect 30 0 6 0;
+#X connect 31 0 30 0;
+#X connect 39 0 34 0;
+#X connect 39 1 35 0;
+#X connect 39 2 36 0;
+#X connect 39 3 37 0;
+#X connect 39 4 40 0;
+#X connect 41 0 39 0;
