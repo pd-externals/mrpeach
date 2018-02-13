@@ -1,5 +1,5 @@
 #N canvas 583 98 399 237 12;
-#N canvas 54 74 1136 819 midifile_write 0;
+#N canvas 24 112 1136 834 midifile_write 0;
 #X obj 324 -2 bng 45 250 50 0 empty empty choose 5 23 0 8 -62784 -260818
 -258699;
 #X obj 67 65 tgl 45 0 empty empty record 2 23 0 8 -258699 -241291 -24198
@@ -9,10 +9,10 @@
 #X floatatom 120 125 15 0 0 0 - - -, f 15;
 #X msg 120 99 2.005;
 #X msg 506 590 verbose \$1;
-#X text 494 545 verbosity defaults to 1;
+#X text 525 544 verbosity defaults to 1;
 #X obj 324 54 savepanel;
 #X msg 409 493 240 1 2 3 4 247;
-#X text 523 492 a sysex message;
+#X text 536 492 a sysex message;
 #X obj 553 750 float;
 #X floatatom 506 564 5 0 0 0 - - -, f 5;
 #X msg 324 408 write \$1 \$2 \$3;
@@ -34,16 +34,16 @@
 #X msg 374 458 write filename.mid 77;
 #X text 555 457 77 ticks per quarter note;
 #X msg 442 526 flush;
-#X obj 629 96 cnv 15 200 20 empty empty empty 20 12 0 14 -257985 -66577
+#X obj 268 146 cnv 15 200 20 empty empty empty 20 12 0 14 -257985 -66577
 0;
-#X floatatom 515 95 5 0 0 0 note - -, f 5;
-#X floatatom 515 125 5 0 0 0 velocity - -, f 5;
-#X obj 559 283 pack 144 0 0;
-#X obj 578 129 sel 0;
-#X obj 559 156 t b f;
-#X obj 559 257 f;
+#X floatatom 514 145 5 0 0 0 note - -, f 5;
+#X floatatom 514 175 5 0 0 0 velocity - -, f 5;
+#X obj 558 333 pack 144 0 0;
+#X obj 577 179 sel 0;
+#X obj 558 206 t b f;
+#X obj 558 307 f;
 #X text 553 565 set to 3 to debug input;
-#X obj 559 75 notein;
+#X obj 558 125 notein;
 #X obj 102 8 cnv 15 220 20 empty empty empty 20 12 0 14 -257985 -66577
 0;
 #X text 104 10 1: open a file for writing:;
@@ -53,22 +53,96 @@
 #X obj 142 524 cnv 15 300 20 empty empty empty 20 12 0 14 -257985 -66577
 0;
 #X text 150 526 4: stop recording and save the file:;
-#X floatatom 513 180 5 0 0 0 channel - -, f 5;
-#X obj 610 237 +;
-#X msg 578 185 127;
-#X msg 610 157 143;
+#X floatatom 512 230 5 0 0 0 channel - -, f 5;
+#X obj 609 287 +;
+#X msg 577 235 127;
+#X msg 609 207 143;
 #X floatatom 919 103 5 0 0 0 value - -, f 5;
 #X floatatom 919 134 5 0 0 0 controller - -, f 5;
 #X floatatom 917 183 5 0 0 0 channel - -, f 5;
 #X obj 965 83 ctlin;
 #X obj 965 237 pack 176 0 0;
 #X obj 965 269 print ctl>;
-#X obj 580 324 print note>;
+#X obj 579 374 print note>;
 #X obj 965 119 t b f;
 #X obj 965 183 f;
 #X obj 1020 126 + 175;
-#X text 646 93 3: input MIDI as lists;
-#X text 160 658 Martin Peach \, 2010 - 2017/02/01;
+#X text 285 143 3: input MIDI as lists;
+#X msg 778 551 track \$1;
+#X msg 971 519 144 60 0;
+#X msg 882 518 144 60 64;
+#X msg 863 549 144 67 64;
+#X msg 953 549 144 67 0;
+#X obj 778 500 hradio 15 1 0 8 empty empty empty 0 -8 0 10 -262144
+-1 -1 0;
+#X obj 708 633 r midiwrite;
+#N canvas 141 452 1100 497 meta_messages 0;
+#X text 71 6 FF 51 3 tttttt Set Tempo (in microseconds per MIDI quarter-note)
+;
+#X obj 539 526 s midiwrite;
+#X text 407 196 Instrument Name;
+#X text 399 220 Lyric;
+#X text 385 126 Text Event (should be at start of track);
+#X text 224 102 Sequence Number (must be at start of track);
+#X text 419 150 Copyright Notice;
+#X text 398 173 Sequence/Track Name;
+#X msg 372 339 meta 81 500000;
+#X text 495 338 Set Tempo (microseconds per MIDI quarter-note);
+#X msg 136 103 meta 0 678;
+#X text 439 244 Marker;
+#X text 463 268 Cue Point;
+#X msg 326 293 meta 32 5;
+#X text 405 292 MIDI Channel Prefix;
+#X msg 349 316 meta 47;
+#X text 414 315 End of Track;
+#X text 6 42 raw mode;
+#X text 44 104 meta method;
+#X msg 74 41 255 81 3 500000;
+#X text 544 361 SMPTE Offset (hr mi se fr ff);
+#X msg 395 362 meta 84 0 1 30 4 5;
+#X text 555 384 Time Signature;
+#X msg 418 385 meta 88 6 3 36 8;
+#X msg 441 408 meta 89 0 0;
+#X text 538 407 Key Signature (number of sharps(+) / flats(-) 0 or
+1 for major or minor;
+#X msg 481 448 meta 127 0 1 22 33 44 55;
+#X text 683 449 Sequencer-Specific Meta-Event;
+#X msg 509 476 meta 52;
+#X text 574 475 unknown;
+#X msg 230 197 meta 4 twisted_guitar;
+#X msg 278 245 meta 6 another_part;
+#X msg 302 269 meta 7 "drops_ball";
+#X msg 160 127 meta 1 Some_text_goes_here.;
+#X msg 184 151 meta 2 (C)2018_Nobody_At_All;
+#X msg 207 174 meta 3 amazing_sequence;
+#X msg 254 221 meta 5 "what_the";
+#X text 575 143 Underscore will be replaced by space in text metas
+;
+#X connect 8 0 1 0;
+#X connect 10 0 1 0;
+#X connect 13 0 1 0;
+#X connect 15 0 1 0;
+#X connect 19 0 1 0;
+#X connect 21 0 1 0;
+#X connect 23 0 1 0;
+#X connect 24 0 1 0;
+#X connect 26 0 1 0;
+#X connect 28 0 1 0;
+#X connect 30 0 1 0;
+#X connect 31 0 1 0;
+#X connect 32 0 1 0;
+#X connect 33 0 1 0;
+#X connect 34 0 1 0;
+#X connect 35 0 1 0;
+#X connect 36 0 1 0;
+#X restore 561 87 pd meta_messages;
+#X obj 506 532 hradio 15 1 0 5 empty empty verbosity 0 -6 0 12 -62784
+-241291 -1 4;
+#X obj 174 86 cnv 15 380 20 empty empty empty 20 12 0 14 -257985 -66577
+0;
+#X text 180 86 Maybe add some meta messages before we start:;
+#X text 780 478 choose track to write;
+#X text 753 744 Martin Peach \, 2010 - 2018;
 #X connect 0 0 8 0;
 #X connect 1 0 3 0;
 #X connect 3 0 23 0;
@@ -121,57 +195,64 @@
 #X connect 56 1 53 2;
 #X connect 57 0 53 0;
 #X connect 58 0 57 1;
+#X connect 60 0 23 0;
+#X connect 61 0 23 0;
+#X connect 62 0 23 0;
+#X connect 63 0 23 0;
+#X connect 64 0 23 0;
+#X connect 65 0 60 0;
+#X connect 66 0 23 0;
+#X connect 68 0 12 0;
 #X restore 76 116 pd midifile_write;
-#N canvas 147 268 1087 702 midifile_read 0;
-#X obj 384 140 bng 15 250 50 0 empty empty step_one_tick 18 7 0 12
+#N canvas 73 183 1087 702 midifile_read 0;
+#X obj 544 149 bng 15 250 50 0 empty empty step_one_tick 18 7 0 12
 -4160 -257985 -1;
-#X obj -148 60 openpanel;
-#X obj -148 7 bng 45 250 50 0 empty empty choose 3 23 0 12 -62784 -260818
+#X obj 12 69 openpanel;
+#X obj 12 16 bng 45 250 50 0 empty empty choose 3 23 0 12 -62784 -260818
 -258699;
-#X obj -44 142 tgl 45 0 empty empty play -45 23 0 12 -24198 -1 -258699
+#X obj 116 151 tgl 45 0 empty empty play -45 23 0 12 -24198 -1 -258699
 0 1;
-#X msg 231 469 rewind;
-#X text 75 468 go to start of file;
-#X floatatom 341 572 15 0 0 0 current_tick - -, f 15;
-#X obj 75 292 hradio 15 1 0 16 empty empty dump_track_number 0 -6 0
-12 -62784 -241291 -1 0;
-#X msg 75 313 dump \$1;
-#X msg 194 432 68050;
-#X msg 19 257 track \$1;
-#X obj 19 217 hradio 15 1 0 16 empty empty play_track_number 0 -6 0
-12 -62784 -241291 -1 0;
-#X obj -44 194 metro 2;
-#X text -2 533 creation arguments: midi_file_name;
-#X text 138 312 parse this track to main window;
-#X floatatom 431 643 15 0 0 0 last_tick - -, f 15;
-#X msg 151 389 verbose \$1;
-#X text -37 389 verbosity defaults to 1;
-#X text -97 2 1: choose a MIDI file to play;
-#X text 9 136 2: start playing it;
-#X obj 275 415 spigot;
-#X obj 320 381 tgl 25 0 empty empty loop -45 12 0 12 -4160 -257985
+#X msg 391 478 rewind;
+#X text 235 477 go to start of file;
+#X floatatom 501 581 15 0 0 0 current_tick - -, f 15;
+#X obj 235 301 hradio 15 1 0 16 empty empty dump_track_number 0 -6
+0 12 -62784 -241291 -1 0;
+#X msg 235 322 dump \$1;
+#X msg 354 441 68050;
+#X msg 179 266 track \$1;
+#X obj 179 226 hradio 15 1 0 16 empty empty play_track_number 0 -6
+0 12 -62784 -241291 -1 4;
+#X obj 116 203 metro 2;
+#X text 158 542 creation arguments: midi_file_name;
+#X text 298 321 parse this track to main window;
+#X floatatom 591 652 15 0 0 0 last_tick - -, f 15;
+#X msg 311 398 verbose \$1;
+#X text 123 398 verbosity defaults to 1;
+#X text 63 11 1: choose a MIDI file to play;
+#X text 169 145 2: start playing it;
+#X obj 435 424 spigot;
+#X obj 480 390 tgl 25 0 empty empty loop -45 12 0 12 -4160 -257985
 -258113 0 1;
-#X msg -148 90 read \$1;
-#X floatatom 151 365 5 0 0 0 - - -, f 5;
-#X obj 151 346 hradio 15 1 0 4 empty empty verbosity 0 -6 0 12 -62784
--241291 -1 0;
-#X obj 19 234 - 1;
-#X obj 275 533 midifile wowo.mid;
-#X obj -95 496 ctlout 123;
-#X msg -95 466 123;
-#X msg -121 117 read I_Wanna_Be_Sedated.mid;
-#X obj -95 438 bng 15 250 50 0 empty empty all_notes_off 17 7 0 10
--258113 -257985 -1;
-#X obj 594 601 t b b;
-#X floatatom -26 254 5 0 0 0 - - -, f 5;
-#X obj 631 628 bng 15 250 50 0 empty empty end 17 7 0 10 -258113 -257985
+#X msg 12 99 read \$1;
+#X floatatom 311 374 5 0 0 0 - - -, f 5;
+#X obj 311 355 hradio 15 1 0 5 empty empty verbosity 0 -6 0 12 -62784
+-241291 -1 4;
+#X obj 179 243 - 1;
+#X obj 435 542 midifile wowo.mid;
+#X obj 65 505 ctlout 123;
+#X msg 65 475 123;
+#X msg 39 126 read I_Wanna_Be_Sedated.mid;
+#X obj 65 447 bng 15 250 50 0 empty empty all_notes_off 17 7 0 10 -258113
+-257985 -1;
+#X obj 754 610 t b b;
+#X floatatom 134 263 5 0 0 0 - - -, f 5;
+#X obj 791 637 bng 15 250 50 0 empty empty end 17 7 0 10 -258113 -257985
 -1;
-#X floatatom 472 424 9 0 0 0 loop_start_tick: - -, f 9;
-#X text 54 234 -1 = play all tracks;
-#X obj 431 621 f;
-#X obj 275 441 f 0;
-#X text 632 656 Martin Peach \, 2011-2017;
-#N canvas 12 66 1058 414 route_events 0;
+#X floatatom 632 433 9 0 0 0 loop_start_tick: - -, f 9;
+#X text 214 243 -1 = play all tracks;
+#X obj 591 630 f;
+#X obj 435 450 f 0;
+#N canvas 15 196 1058 571 route_events 0;
 #X obj 20 29 inlet;
 #X floatatom 172 125 5 0 0 0 note - -, f 5;
 #X floatatom 249 125 5 0 0 1 velocity - -, f 5;
@@ -197,6 +278,8 @@
 #X text 235 162 route note off events by channel:;
 #X text 225 265 route controller events by channel:;
 #X text 699 249 send events to MIDI devices:;
+#X obj 473 438 route 240;
+#X obj 572 501 print sysex;
 #X connect 0 0 3 0;
 #X connect 3 0 4 0;
 #X connect 3 0 6 0;
@@ -216,9 +299,11 @@
 #X connect 12 0 15 0;
 #X connect 12 0 16 0;
 #X connect 12 0 17 0;
+#X connect 12 17 22 0;
 #X connect 15 0 13 0;
 #X connect 15 1 14 0;
-#X restore 275 595 pd route_events;
+#X connect 22 0 23 0;
+#X restore 435 604 pd route_events;
 #N canvas 114 197 1088 523 route_info 0;
 #X obj 34 13 inlet;
 #X floatatom 34 73 3 0 0 1 format - -, f 3;
@@ -289,17 +374,17 @@
 #X connect 30 2 3 0;
 #X connect 30 2 17 1;
 #X connect 30 3 22 0;
-#X restore 671 590 pd route_info;
-#X obj 594 553 route bang;
-#X text 62 432 goto tick 68050:;
-#X obj 226 138 r msec_per_tick;
-#X floatatom 226 177 9 0 0 0 - - -, f 9;
-#X text 424 532 metadata are output on third outlet;
-#X text -129 595 MIDI messages are output on first outlet as lists:
-;
-#X text 430 553 bang at end of file:;
-#X text 226 99 milliseconds per tick is calculated from metadata at
+#X restore 831 599 pd route_info;
+#X obj 754 562 route bang;
+#X text 222 441 goto tick 68050:;
+#X obj 386 147 r msec_per_tick;
+#X floatatom 386 186 9 0 0 0 - - -, f 9;
+#X text 584 541 metadata are output on third outlet;
+#X text 31 604 MIDI messages are output on first outlet as lists:;
+#X text 590 562 bang at end of file:;
+#X text 386 108 milliseconds per tick is calculated from metadata at
 start of file. Step one tick to get the initial value.;
+#X text 793 665 Martin Peach \, 2011-2018;
 #X connect 0 0 26 0;
 #X connect 1 0 22 0;
 #X connect 2 0 1 0;
@@ -319,10 +404,10 @@ start of file. Step one tick to get the initial value.;
 #X connect 24 0 23 0;
 #X connect 25 0 10 0;
 #X connect 25 0 32 0;
-#X connect 26 0 39 0;
+#X connect 26 0 38 0;
 #X connect 26 1 6 0;
 #X connect 26 1 36 1;
-#X connect 26 2 41 0;
+#X connect 26 2 40 0;
 #X connect 28 0 27 0;
 #X connect 29 0 26 0;
 #X connect 30 0 28 0;
@@ -332,10 +417,10 @@ start of file. Step one tick to get the initial value.;
 #X connect 34 0 37 1;
 #X connect 36 0 15 0;
 #X connect 37 0 26 0;
-#X connect 41 0 31 0;
-#X connect 41 1 40 0;
-#X connect 43 0 44 0;
-#X connect 44 0 12 1;
+#X connect 40 0 31 0;
+#X connect 40 1 39 0;
+#X connect 42 0 43 0;
+#X connect 43 0 12 1;
 #X restore 76 83 pd midifile_read;
 #X text 15 10 midifile reads and writes MIDI files.;
 #N canvas 403 187 587 265 META 0;
@@ -345,10 +430,10 @@ Wilkes for Pd version 0.42.;
 #X text 12 165 AUTHOR Martin Peach;
 #X text 12 5 KEYWORDS control MIDI;
 #X text 12 45 DESCRIPTION read and write MIDI files;
-#X text 12 65 INLET_0 bang float list rewind read track dump verbose
-write flush;
 #X text 12 105 OUTLET_0 list;
 #X text 12 125 OUTLET_1 float;
 #X text 12 145 OUTLET_2 bang;
+#X text 12 65 INLET_0 bang float list rewind read track dump verbose
+write meta flush;
 #X restore 335 202 pd META;
-#X text 152 170 2017/03/20 Martin Peach;
+#X text 148 203 2018/02/13 Martin Peach;
