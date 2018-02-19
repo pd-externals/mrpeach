@@ -1,6 +1,6 @@
 /** \mainpage midifile.c An external for Pure Data that reads and writes MIDI files
 *
-*	Copyright (C) 2005-2017  Martin Peach
+*	Copyright (C) 2005-2018  Martin Peach
 * \section license
 *	This program is free software; you can redistribute it and/or modify
 *	it under the terms of the GNU General Public License as published by
@@ -24,16 +24,11 @@
 #include "m_pd.h"
 #include <stdio.h>
 #include <string.h>
-
+#include <stdint.h> // for uint32_t
+#include <errno.h>
 /* support older Pd versions without sys_open(), sys_fopen(), sys_fclose() */
 #if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 44
 #define sys_open open
-#define sys_fopen fopen
-#define sys_fclose fclose
-#endif
-
-/* MSVC c runtime versions do not support passing FILE * across dll boundaries */
-#ifdef _MSC_VER
 #define sys_fopen fopen
 #define sys_fclose fclose
 #endif
@@ -56,7 +51,7 @@ typedef enum {mfReset, mfReading, mfWriting} mfstate;
 typedef struct mf_header_chunk
 {
     char            chunk_type[4]; /* each chunk begins with a 4-character ASCII type.*/
-    size_t          chunk_length ; /* followed by a 32-bit length */
+    uint32_t        chunk_length ; /* followed by a 32-bit length */
     int             chunk_format;
     int             chunk_ntrks;
     int             chunk_division;
@@ -65,10 +60,10 @@ typedef struct mf_header_chunk
 typedef struct mf_track_chunk
 {
     char            chunk_type[4]; /* each chunk begins with a 4-character ASCII type. */
-    size_t          chunk_length; /* followed by a 32-bit length */
-    size_t          delta_time; /* current delta_time of latest track_data element */
-    size_t          total_time; /* sum of delta_times so far */
-    size_t          track_index; /* current byte offset to next track_data element */
+    uint32_t        chunk_length; /* followed by a 32-bit length */
+    uint32_t        delta_time; /* current delta_time of latest track_data element */
+    uint32_t        total_time; /* sum of delta_times so far */
+    uint32_t        track_index; /* current byte offset to next track_data element */
     int             track_ended; /* non-zero if track has finished */
     unsigned char   running_status;
     unsigned char   *track_data;
@@ -78,7 +73,7 @@ typedef struct t_midifile
 {
     t_object            x_obj;
  /** current time for this MIDI file in delta_time units */
-    size_t              total_time;
+    uint32_t            total_time;
  /** one MIDI packet as a list */
     t_atom              midi_data[3];
     t_outlet            *midi_list_outlet;
@@ -93,7 +88,7 @@ typedef struct t_midifile
  /** absolute path to file at fP */
     char                fPath[PATH_BUF_SIZE];
  /** character offset into the file fP */
-    size_t              offset;
+    uint32_t            offset;
  /** play this track, or all tracks if negative. Write to this track */
     int                 track;
  /** nonzero for text output to console */
@@ -110,11 +105,11 @@ typedef struct t_midifile
 
 static void midifile_skip_next_track_chunk_data(t_midifile *x, int mfTrack);
 static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack);
-static size_t midifile_get_next_track_chunk_delta_time(t_midifile *x, int mfTrack);
-static void midifile_output_long_list (t_outlet *outlet, unsigned char *cP, size_t len, unsigned char first_byte);
+static uint32_t midifile_get_next_track_chunk_delta_time(t_midifile *x, int mfTrack);
+static void midifile_output_long_list (t_outlet *outlet, unsigned char *cP, uint32_t len, unsigned char first_byte);
 static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack);
-static unsigned char *midifile_read_var_len (unsigned char *cP, size_t *delta);
-static int midifile_write_variable_length_value (FILE *fP, size_t value);
+static unsigned char *midifile_read_var_len (unsigned char *cP, uint32_t *delta);
+static int midifile_write_variable_length_value (FILE *fP, uint32_t value);
 static unsigned short midifile_combine_bytes(unsigned char data1, unsigned char data2);
 static unsigned short midifile_get_multibyte_2(unsigned char*n);
 static unsigned long midifile_get_multibyte_3(unsigned char*n);
@@ -129,13 +124,15 @@ static void midifile_free_file(t_midifile *x);
 static void midifile_free(t_midifile *x);
 static int midifile_open_path(t_midifile *x, char *path, char *mode);
 static void midifile_flush(t_midifile *x);
-static size_t midifile_write_header(t_midifile *x, int nTracks);
+static uint32_t midifile_write_header(t_midifile *x, int nTracks);
 static void midifile_read(t_midifile *x, t_symbol *path);
 static void midifile_write(t_midifile *x, t_symbol *s, int argc, t_atom *argv);
 static int midifile_write_delta_time(t_midifile *x);
 static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv);
 static void midifile_bang(t_midifile *x);
-static size_t midifile_write_end_of_track(t_midifile *x, size_t end_time, int trackNr);
+static FILE *midifile_open_track_file(t_midifile *x, int trackNr);
+static int midifile_delete_track_file(t_midifile *x, int trackNr);
+static uint32_t midifile_write_end_of_track(t_midifile *x, uint32_t end_time, int trackNr);
 static void midifile_float(t_midifile *x, t_float ticks);
 static void midifile_list(t_midifile *x, t_symbol *s, int argc, t_atom *argv);
 static void *midifile_new(t_symbol *s, int argc, t_atom *argv);
@@ -210,11 +207,6 @@ static void *midifile_new(t_symbol *s, int argc, t_atom *argv)
     x->fP = NULL;
     x->fPath[0] = '\0';
     x->our_directory = canvas_getcurrentdir();/* get the current directory to use as the base for relative file paths */
-//#if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
-//    post(x->our_directory->s_name);
-//#else
-//    logpost(NULL, 3, "%s", x->our_directory->s_name);
-//#endif
     x->track = ALL_TRACKS; /* startup playing anything */
     x->midi_data[0].a_type = x->midi_data[1].a_type = x->midi_data[2].a_type = A_FLOAT;
     x->state = mfReset;
@@ -250,7 +242,7 @@ static void *midifile_new(t_symbol *s, int argc, t_atom *argv)
 }
 
 /** midifile_close closes the file and its associated temp files.
-- calls sys_fclose and sets x->fP and all x->tmpFp[]s to NULL
+- calls sys_fclose, midifile_delete_track_file, and sets x->fP and all x->tmpFp[]s to NULL
 - clears x->fPath[0]
 - sets x->state to mfReset
 - resets x->totalTime and x->offset
@@ -269,6 +261,7 @@ static void midifile_close(t_midifile *x)
         if (x->tmpFP[i] != NULL)
         {
           sys_fclose(x->tmpFP[i]);
+          midifile_delete_track_file(x, i);
           x->tmpFP[i] = NULL;
         }
     }
@@ -321,11 +314,7 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
     /* On MSW if the second character of the path is a colon then the path is absolute */
     if ((path[0] == '/') || (path[0] == '\\') || (path[1] == ':'))
     {
-#ifdef _MSC_VER
-        strncpy_s(tryPath, PATH_BUF_SIZE - 1, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
-#else
         strncpy(tryPath, path, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
-#endif
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (absolute): %s\n", tryPath);
@@ -334,15 +323,9 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
     if (fP == NULL)
     {
 		/* Then try to open the path from the current directory */
-#ifdef _MSC_VER
-        strncpy_s(tryPath, PATH_BUF_SIZE - 1, x->our_directory->s_name, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
-        strncat_s(tryPath, PATH_BUF_SIZE - 1, slash, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
-        strncat_s(tryPath, PATH_BUF_SIZE - 1, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
-#else
         strncpy(tryPath, x->our_directory->s_name, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
         strncat(tryPath, slash, PATH_BUF_SIZE-1); /* copy path into a length-limited buffer */
         strncat(tryPath, path, PATH_BUF_SIZE - 1); /* copy path into a length-limited buffer */
-#endif
         /* ...if it doesn't work we won't mess up x->fPath */
         tryPath[PATH_BUF_SIZE-1] = '\0'; /* just make sure there is a null termination */
         if (x->verbosity > 1)post("midifile_open_path (relative): %s\n", tryPath);
@@ -350,11 +333,7 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
     }
 	if (fP == NULL) return 0;
     x->fP = fP;
-#ifdef _MSC_VER
-    strncpy_s(x->fPath, PATH_BUF_SIZE, tryPath, PATH_BUF_SIZE);
-#else
     strncpy(x->fPath, tryPath, PATH_BUF_SIZE);
-#endif
 	return 1;
 }
 
@@ -368,9 +347,9 @@ static int midifile_open_path(t_midifile *x, char *path, char *mode)
 */
 static void midifile_flush(t_midifile *x)
 {
-    size_t  written = 0L;
-    size_t  end_time = x->total_time;
-    size_t  len;
+    uint32_t  written = 0L;
+    uint32_t  end_time = x->total_time;
+    uint32_t  len;
     int     c, i, k, nTracks = 0;
 
     if(x->state != mfWriting) return; /* only if we're writing */
@@ -397,7 +376,7 @@ static void midifile_flush(t_midifile *x)
                 putc(c, x->fP);
                 len <<= 8;
             }
-            while ((c = getc(x->tmpFP[i])) != EOF)
+            while ((c = fgetc(x->tmpFP[i])) != EOF)
             {
                 putc(c, x->fP);
                 ++written;
@@ -411,9 +390,9 @@ static void midifile_flush(t_midifile *x)
 /** midifile_write_header writes the MThd and MTrk headers to x->fP.
 - returns the number of bytes written to x->fP.
 */
-static size_t midifile_write_header(t_midifile *x, int nTracks)
+static uint32_t midifile_write_header(t_midifile *x, int nTracks)
 {
-    size_t  j, written = 0L;
+    uint32_t  j, written = 0L;
     int     i;
     char    c;
 
@@ -444,16 +423,53 @@ static size_t midifile_write_header(t_midifile *x, int nTracks)
     putc(c, x->fP);
     c = (char)(j & 0x0FF);
     putc(c, x->fP);
-//    fprintf (x->fP, "MTrk"); // TODO this is in the wrong place
-//    j = x->track_chunk[0].chunk_length; /* length of MIDI data */
-//    for (i = 0; i < 4; ++i)
-//    { /* msb first */
-//        c = (char)((j & 0xFF000000)>>24);
-//        putc(c, x->fP);
-//        j <<= 8;
-//    }
     written = 18L;//22L;
     return written;
+}
+
+/** midifile_open_track_file opens a temporary file for one track's data
+*
+- opens a file for reading and writing in the same directory as the main file.
+- filename is built from the main filename, trackNr and ".trk"
+*/
+static FILE *midifile_open_track_file(t_midifile *x, int trackNr)
+{
+    int     i;
+    char    trackPath[PATH_BUF_SIZE];
+    FILE    *fP;
+
+    strncpy(trackPath, x->fPath, PATH_BUF_SIZE);
+    if (x->verbosity > 2) post("midifile_open_track_file: main file path is %s", trackPath);
+    i = strlen(trackPath);
+    sprintf(&trackPath[i], "%d.trk", trackNr);
+    if (x->verbosity > 2) post("midifile_open_track_file: track path is %s", trackPath);
+    fP = sys_fopen(trackPath, "w+b");
+    if (NULL == fP) pd_error(x, "Unable to open track file");
+    return fP;
+}
+
+/** midifile_delete_track_file erases the temporary file for one track's data
+*
+- filename is built from the main filename, trackNr and ".trk"
+*/
+static int midifile_delete_track_file(t_midifile *x, int trackNr)
+{
+    int     i;
+    char    trackPath[PATH_BUF_SIZE];
+    int     result;
+
+    strncpy(trackPath, x->fPath, PATH_BUF_SIZE);
+    if (x->verbosity > 2) post("midifile_delete_track_file: main file path is %s", trackPath);
+    i = strlen(trackPath);
+    sprintf(&trackPath[i], "%d.trk", trackNr);
+    if (x->verbosity > 2) post("midifile_delete_track_file: \"%s\"", trackPath);
+    result = remove(trackPath);
+    if (0 != result)
+    {
+        result = errno;
+        pd_error(x, "Unable to delete track file \"%s\": %s", trackPath, strerror(result));
+    }
+    return result;
 }
 
 /** midifile_write implements the write message.
@@ -494,11 +510,7 @@ static void midifile_write(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
         if (x->verbosity) post("midifile: opened %s", x->fPath);
 		x->state = mfWriting;
         x->track = 0; /* write to first track */
-#ifdef _MSC_VER
-        tmpfile_s(&x->tmpFP[0]); /* a temporary file for the MIDI data while we don't know how long it is */
-#else
-        x->tmpFP[0] = tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
-#endif
+        x->tmpFP[x->track] = midifile_open_track_file(x, x->track);//tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
 		x->header_chunk.chunk_type[0] = 'M';
 		x->header_chunk.chunk_type[1] = 'T';
 		x->header_chunk.chunk_type[2] = 'h';
@@ -540,11 +552,11 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
 {
     int     i, j, metaType;
     long    jj;
-    size_t  nbWritten = 0L;
+    uint32_t  nbWritten = 0L;
     int     paramBuf[5];
     char    *sPtr;
     char    c;
-    size_t  len;
+    uint32_t  len;
 
     if ((x->state != mfWriting) || (x->tmpFP[x->track] == NULL))
     { /* list only works for writing */
@@ -870,7 +882,7 @@ static void midifile_read(t_midifile *x, t_symbol *path)
 static void midifile_bang(t_midifile *x)
 {
     int     j, result = 1, ended = 0;
-    size_t  total_time;
+    uint32_t  total_time;
 
     switch (x->state)
     {
@@ -928,7 +940,7 @@ static void midifile_bang(t_midifile *x)
 static void midifile_list(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
 {
     int         i, j, k, m = 0, dt_written = 0;
-    size_t      len, written = 0L;
+    uint32_t      len, written = 0L;
     static int  warnings = 0;
 
     if (x->state != mfWriting) return;/* list only works for writing */
@@ -1014,9 +1026,9 @@ static void midifile_list(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
 - adds number of bytes written to x->track_chunk[trackNr].chunk_length.
 - returns number of bytes written.
 */
-static size_t midifile_write_end_of_track(t_midifile *x, size_t end_time, int trackNr)
+static uint32_t midifile_write_end_of_track(t_midifile *x, uint32_t end_time, int trackNr)
 {
-    size_t written = 0;
+    uint32_t written = 0;
 
     x->track_chunk[trackNr].delta_time = end_time - x->track_chunk[trackNr].total_time;
     x->track_chunk[trackNr].total_time = x->total_time;
@@ -1043,8 +1055,8 @@ If mfReading or mfWriting, outputs new total_time
 */
 static void midifile_float(t_midifile *x, t_float ticks)
 {
-    size_t  cTime = (size_t)ticks;
-    size_t  total_time;
+    uint32_t  cTime = (uint32_t)ticks;
+    uint32_t  total_time;
     int     j, result = 1, ended = 0;
 
     switch (x->state)
@@ -1112,7 +1124,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     unsigned char   *cP = (unsigned char *)x->header_chunk.chunk_type;
     char            *sP;
     char            buf[4];
-    size_t          n;
+    uint32_t          n;
     int             div, smpte, ticks;
     t_atom          output_atom;
 
@@ -1127,7 +1139,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     x->offset += n;
     if (n != 4L)
     {
-        error("midifile: read %zu instead of 4", n);
+        error("midifile: read %d instead of 4", n);
         return 0;
     }
     if (x->verbosity) post("midifile: Header chunk type: %c%c%c%c", cP[0], cP[1], cP[2], cP[3]);
@@ -1141,7 +1153,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     x->offset += n;
     if (n != 4L)
     {
-        error("midifile: read %zu instead of 4", n);
+        error("midifile: read %d instead of 4", n);
         return 0;
     }
     x->header_chunk.chunk_length = midifile_get_multibyte_4(cP);
@@ -1155,7 +1167,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     x->offset += n;
     if (n != 2L)
     {
-        error("midifile: read %zu instead of 2", n);
+        error("midifile: read %d instead of 2", n);
         return 0;
     }
     x->header_chunk.chunk_format = midifile_get_multibyte_2(cP);
@@ -1181,7 +1193,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     x->offset += n;
     if (n != 2L)
     {
-        error("midifile: read %zu instead of 2", n);
+        error("midifile: read %d instead of 2", n);
         return 0;
     }
     x->header_chunk.chunk_ntrks = midifile_get_multibyte_2(cP);
@@ -1198,7 +1210,7 @@ static int midifile_read_header_chunk(t_midifile *x)
     x->offset += n;
     if (n != 2L)
     {
-        error("midifile: read %zu instead of 2", n);
+        error("midifile: read %d instead of 2", n);
         return 0;
     }
     x->header_chunk.chunk_division = midifile_get_multibyte_2(cP);
@@ -1235,7 +1247,7 @@ static int midifile_read_track_chunk(t_midifile *x, int mfTrack)
     unsigned char   *cP = (unsigned char *)x->track_chunk[mfTrack].chunk_type;
     char            buf[4];
     char            type[5];
-    size_t          n, len;
+    uint32_t          n, len;
 
     if (x->fP == NULL)
     {
@@ -1246,7 +1258,7 @@ static int midifile_read_track_chunk(t_midifile *x, int mfTrack)
     x->offset += n;
     if (n != 4L)
     {
-        error("midifile: read %zu instead of 4", n);
+        error("midifile: read %d instead of 4", n);
         return 0;
     }
     if (!(cP[0] == 'M' && cP[1] == 'T' && cP[2] == 'r' && cP[3] == 'k'))
@@ -1264,15 +1276,15 @@ static int midifile_read_track_chunk(t_midifile *x, int mfTrack)
     x->offset += n;
     if (n != 4L)
     {
-        error("midifile: read %zu instead of 4", n);
+        error("midifile: read %d instead of 4", n);
         return 0;
     }
     len = midifile_get_multibyte_4(cP);
     x->track_chunk[mfTrack].chunk_length = len;
-    if (x->verbosity) post("midifile: Track chunk %d type: %s, length %zu", mfTrack, type, len);
+    if (x->verbosity) post("midifile: Track chunk %d type: %s, length %d", mfTrack, type, len);
     if ((cP = getbytes(len)) == NULL)
     {
-        error ("midifile: Unable to allocate %zu bytes for track data", len);
+        error ("midifile: Unable to allocate %d bytes for track data", len);
         return 0;
     }
     x->track_chunk[mfTrack].track_data = (unsigned char*)cP;	
@@ -1334,9 +1346,9 @@ static unsigned short midifile_get_multibyte_2(unsigned char*n)
 /** midifile_write_variable_length_value writes an integer to the file in variable-length format
 - returns number of characters written to fP
 */
-static int midifile_write_variable_length_value (FILE *fP, size_t value)
+static int midifile_write_variable_length_value (FILE *fP, uint32_t value)
 {
-    size_t  buffer;
+    uint32_t  buffer;
     int     i;
     char    c;
 
@@ -1364,7 +1376,7 @@ static int midifile_write_variable_length_value (FILE *fP, size_t value)
 - sets delta to deltatime.
 - returns pointer to following data.
 */
-static unsigned char *midifile_read_var_len (unsigned char *cP, size_t *delta)
+static unsigned char *midifile_read_var_len (unsigned char *cP, uint32_t *delta)
 {
     unsigned long   value;
     char            c;
@@ -1431,13 +1443,9 @@ static void midifile_set_track(t_midifile *x, t_floatarg track)
         if (x->track_chunk[x->track].track_data == NULL)
         {
             /* this track is being used for the first time */
-#ifdef _MSC_VER
-            tmpfile_s(&x->tmpFP[x->track]); /* a temporary file for the MIDI data while we don't know how long it is */
-            strncpy_s(x->track_chunk[x->track].chunk_type, 4L, "MTrk", 4L);
-#else
-            x->tmpFP[x->track] = tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
+post("this track (%d) is being used for the first time", x->track);
+            x->tmpFP[x->track] = midifile_open_track_file(x, x->track);//tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
             strncpy (x->track_chunk[x->track].chunk_type, "MTrk", 4L);
-#endif
             x->track_chunk[x->track].chunk_length = 0L; /* for now */
             x->track_chunk[x->track].track_ended = 0;
         }
@@ -1491,12 +1499,12 @@ static void midifile_rewind_tracks(t_midifile *x)
     outlet_float(x->total_time_outlet, x->total_time);
 }
 
-static size_t midifile_get_next_track_chunk_delta_time(t_midifile *x, int mfTrack)
+static uint32_t midifile_get_next_track_chunk_delta_time(t_midifile *x, int mfTrack)
 /** return the delta_time of the next event in track[mfTrack]
 */
 {
     unsigned char   *cP, *last_cP;
-    size_t          delta_time;
+    uint32_t          delta_time;
 
     cP = x->track_chunk[mfTrack].track_data + x->track_chunk[mfTrack].track_index;
     last_cP = x->track_chunk[mfTrack].track_data + x->track_chunk[mfTrack].chunk_length;
@@ -1510,9 +1518,9 @@ static size_t midifile_get_next_track_chunk_delta_time(t_midifile *x, int mfTrac
 /** output a long MIDI message as a list of floats
 * first_byte is followed by len bytes at cP
 */
-static void midifile_output_long_list (t_outlet *outlet, unsigned char *cP, size_t len, unsigned char first_byte)
+static void midifile_output_long_list (t_outlet *outlet, unsigned char *cP, uint32_t len, unsigned char first_byte)
 { 
-    size_t          slen;
+    uint32_t          slen;
     unsigned int    si;
     t_atom          *slist;
 
@@ -1539,7 +1547,7 @@ static void midifile_output_long_list (t_outlet *outlet, unsigned char *cP, size
 static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
 {
     unsigned char   *cP, *last_cP, *str;
-    size_t          total_time, delta_time, len;
+    uint32_t          total_time, delta_time, len;
     unsigned long   time_sig;
     unsigned char   status, running_status = 0, c, d, nn, dd, cc, bb, mi, mcp, ch, hr, mn, se, fr, ff;
     char            sf;
@@ -1559,11 +1567,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
         cP = midifile_read_var_len(cP, &delta_time);
         status = *cP++;
         total_time += delta_time;
-#ifdef _MSC_VER
-        msgPtr += sprintf_s(msgPtr, 50, "tick %zu delta %zu status %02X ", total_time, delta_time, status);
-#else
-        msgPtr += sprintf (msgPtr, "tick %zu delta %zu status %02X ", total_time, delta_time, status);
-#endif
+        msgPtr += sprintf (msgPtr, "tick %d delta %d status %02X ", total_time, delta_time, status);
         if ((status & 0xF0) == 0xF0)
         {
             switch (status)
@@ -1571,94 +1575,46 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                 case 0xF0:
                 case 0xF7:
                     cP = midifile_read_var_len(cP, &len);/* not a time but the same variable length format */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "Sysex: %02X length %zu ", status, len);
-#else
-                    msgPtr += sprintf(msgPtr, "Sysex: %02X length %zu ", status, len);
-#endif
+                    msgPtr += sprintf(msgPtr, "Sysex: %02X length %d ", status, len);
                     cP += len;
                     break;
                 case 0xF3: /* song select */
                     c = *cP++;
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "Song Select: %d ", c);
-#else
                     msgPtr += sprintf(msgPtr, "Song Select: %d ", c);
-#endif
                     break;
                 case 0xF2: /* song position */
                     c = *cP++;
                     d = *cP++;
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "Song Position %d ", midifile_combine_bytes(c, d));
-#else
                     msgPtr += sprintf(msgPtr, "Song Position %d ", midifile_combine_bytes(c, d));
-#endif
                     break;
                 case 0xF1: /* quarter frame */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Quarter Frame");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Quarter Frame");
-#endif
                     break;
                 case 0xF6: /* tune request */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Tune Request");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Tune Request");
-#endif
                     break;
                 case 0xF8: /* MIDI clock */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Clock");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Clock");
-#endif
                     break;
                 case 0xF9: /* MIDI tick */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Tick");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Tick");
-#endif
                     break;
                 case 0xFA: /* MIDI start */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Start");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Start");
-#endif
                     break;
                 case 0xFB: /* MIDI continue */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Continue");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Continue");
-#endif
                     break;
                 case 0xFC: /* MIDI stop */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Stop");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Stop");
-#endif
                     break;
                 case 0xFE: /* active sense */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 20, "MIDI Active Sense");
-#else
                     msgPtr += sprintf(msgPtr, "MIDI Active Sense");
-#endif
                     break;
                 case 0xFF:
                     c = *cP++;
                     cP = midifile_read_var_len(cP, &len);/* not a time but the same variable length format */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 30, "Meta 0x%02X length %zu \n", c, len);
-#else
-                    msgPtr += sprintf(msgPtr, "Meta 0x%02X length %zu \n", c, len);
-#endif
+                    msgPtr += sprintf(msgPtr, "Meta 0x%02X length %d \n", c, len);
                     switch (c)
                     {
                         case 0x58:
@@ -1667,28 +1623,16 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             dd = 1<<(dd);
                             cc = *cP++;
                             bb = *cP++;
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(
-                                msgPtr, 80, "Time Signature: %d/%d %d clocks per tick, %d 32nd notes per quarter note",
-                                nn, dd, cc, bb);
-#else
                             msgPtr += sprintf(
                                 msgPtr, "Time Signature: %d/%d %d clocks per tick, %d 32nd notes per quarter note",
                                 nn, dd, cc, bb);
-#endif
                             break;
                         case 0x59:
                             sf = *(signed char*)cP++;
                             mi = *cP++;
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(
-                                msgPtr, 50, "Key Signature: %d %s, %s",
-                                (sf < 0)?-sf:sf, (sf<0)?"flats":"sharps", (mi)?"minor":"major");
-#else
                             msgPtr += sprintf(
                                 msgPtr, "Key Signature: %d %s, %s",
                                 (sf < 0)?-sf:sf, (sf<0)?"flats":"sharps", (mi)?"minor":"major");
-#endif
                             break;
                         case 0x54:
                             hr = *cP++;
@@ -1696,60 +1640,34 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             se = *cP++;
                             fr = *cP++;
                             ff = *cP++;
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(
-                                msgPtr, 28, "SMPTE Offset: %02d:%02d:%02d:%02d.%02d",
-                                hr&0x1F, mn, se, fr, ff);
-#else
                             msgPtr += sprintf(
                                 msgPtr, "SMPTE Offset: %02d:%02d:%02d:%02d.%02d",
                                 hr&0x1F, mn, se, fr, ff);
-#endif
                             break;
                         case 0x51:
                             tt[0] = *cP++;
                             tt[1] = *cP++;
                             tt[2] = *cP++;
                             time_sig = midifile_get_multibyte_3(tt);
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 30, "%lu microseconds per MIDI quarter-note", time_sig);
-#else
                             msgPtr += sprintf(msgPtr, "%lu microseconds per MIDI quarter-note", time_sig);
-#endif
                             break;
                         case 0x2F:
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 30, "========End of Track %d==========", mfTrack);
-#else
                             msgPtr += sprintf(msgPtr, "========End of Track %d==========", mfTrack);
-#endif
                             cP += len;
                             break;
                         case 0x21:
                             tt[0] = *cP++;
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 30, "MIDI port or cable number (unofficial): %d", tt[0]);
-#else
                             msgPtr += sprintf(msgPtr, "MIDI port or cable number (unofficial): %d", tt[0]);
-#endif
                             break;
                         case 0x20:
                             mcp = *cP++;
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 20, "MIDI Channel Prefix: %d", mcp);
-#else
                             msgPtr += sprintf(msgPtr, "MIDI Channel Prefix: %d", mcp);
-#endif
                             break;
                         case 0x07:
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Cue Point: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Cue Point: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1757,11 +1675,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Marker: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Marker: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1769,11 +1683,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Lyric: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Lyric: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1781,11 +1691,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Instrument Name: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Instrument Name: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1793,11 +1699,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Sequence/Track Name: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Sequence/Track Name: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1805,11 +1707,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Copyright Notice: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Copyright Notice: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1817,11 +1715,7 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             str = cP;
                             c = cP[len];
                             cP[len] = '\0'; /* null terminate temporarily */
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 100, "Text: %s", str);
-#else
                             msgPtr += sprintf(msgPtr, "Text: %s", str);
-#endif
                             cP[len] = c;
                             cP += len;
                             break;
@@ -1829,28 +1723,16 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
                             tt[0] = *cP++;
                             tt[1] = *cP++;
                             sn = midifile_get_multibyte_2(tt);
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 30, "Sequence Number: %d", sn);
-#else
                             msgPtr += sprintf(msgPtr, "Sequence Number: %d", sn);
-#endif
                             break;
                         default:
-#ifdef _MSC_VER
-                            msgPtr += sprintf_s(msgPtr, 30, "Unknown: 0x%02X", c);
-#else
                             msgPtr += sprintf(msgPtr, "Unknown: 0x%02X", c);
-#endif
                             cP += len;
                             break;
                     }
                     break;
                 default: /* 0xF4, 0xF5, 0xF9, 0xFD are not defined */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 30, "Undefined: 0x%02X", status);
-#else
                     msgPtr += sprintf(msgPtr, "Undefined: 0x%02X", status);
-#endif
                     break;
             }
         }
@@ -1871,78 +1753,39 @@ static void midifile_dump_track_chunk_data(t_midifile *x, int mfTrack)
             {
                 case 0x80:
                     d = *cP++; /* 2 data bytes */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50,
-                        "MIDI 0x%02X %02X %02X : channel %d Note %d Off velocity %d",
-                        status, c, d, ch, c, d);
-#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI 0x%02X %02X %02X : channel %d Note %d Off velocity %d",
                         status, c, d, ch, c, d);
-#endif
                     break;
                 case 0x90:
                     d = *cP++; /* 2 data bytes */
                     if (d == 0)
-#ifdef _MSC_VER
-                        msgPtr += sprintf_s(msgPtr, 50, "MIDI 0x%02X %02X %02X : channel %d Note %d Off", status, c, d, ch, c);
-#else
                         msgPtr += sprintf(msgPtr,"MIDI 0x%02X %02X %02X : channel %d Note %d Off", status, c, d, ch, c);
-#endif
                     else
-#ifdef _MSC_VER
-                        msgPtr += sprintf_s(msgPtr, 50,
-                            "MIDI 0x%02X %02X %02X : channel %d Note %d On velocity %d", status, c, d, ch, c, d);
-#else
                         msgPtr += sprintf(msgPtr,
                             "MIDI 0x%02X %02X %02X : channel %d Note %d On velocity %d", status, c, d, ch, c, d);
-#endif
                     break;
                 case 0xA0:
                     d = *cP++; /* 2 data bytes */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50,
-                        "MIDI: 0x%02X %02X %02X : channel %d Note %d Aftertouch %d", status, c, d, ch, c, d);
-#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Note %d Aftertouch %d", status, c, d, ch, c, d);
-#endif
                     break;
                 case 0xB0:
                     d = *cP++; /* 2 data bytes */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50,
-                        "MIDI: 0x%02X %02X %02X : channel %d Controller %d: %d", status, c, d, ch, c, d);
-#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Controller %d: %d", status, c, d, ch, c, d);
-#endif
                     break;
                 case 0xC0:	/* 1 data byte */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50, "MIDI: 0x%02X %02X: channel %d Program Change: %d", status, c, ch, c);
-#else
                     msgPtr += sprintf(msgPtr,"MIDI: 0x%02X %02X: channel %d Program Change: %d", status, c, ch, c);
-#endif
                     break;
                 case 0xD0: /* 1 data byte */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50, "MIDI: 0x%02X %02X: channel %d Channel Pressure: %d", status, c, ch, c);
-#else
                     msgPtr += sprintf(msgPtr,"MIDI: 0x%02X %02X: channel %d Channel Pressure: %d", status, c, ch, c);
-#endif
                     break;
                 case 0xE0: /* 2 data bytes */
                     d = *cP++; /* 2 data bytes */
-#ifdef _MSC_VER
-                    msgPtr += sprintf_s(msgPtr, 50,
-                        "MIDI: 0x%02X %02X %02X : channel %d Pitch Wheel %d",
-                        status, c, d, ch, midifile_combine_bytes(c, d));
-#else
                     msgPtr += sprintf(msgPtr,
                         "MIDI: 0x%02X %02X %02X : channel %d Pitch Wheel %d",
                         status, c, d, ch, midifile_combine_bytes(c, d));
-#endif
                     break;
             }
         }
@@ -1956,7 +1799,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
 */
 {
     unsigned char   *cP, *last_cP, *str;
-    size_t          delta_time, time_sig, len;
+    uint32_t          delta_time, time_sig, len;
     unsigned char   status, c, d=0, nn, dd, cc, bb, mi, mcp, n=0;
     char            sf;
     char            fps, hour, min, sec, frame, subframe;
@@ -1980,7 +1823,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
                 case 0xF0:
                 case 0xF7:
                     cP = midifile_read_var_len(cP, &len); /* packet length */
-                    if (x->verbosity) post("midifile: Sysex: %02X length %zu", status, len);
+                    if (x->verbosity) post("midifile: Sysex: %02X length %d", status, len);
                     midifile_output_long_list(x->midi_list_outlet, cP, len, 0xF0);
                     cP += len;
                     x->track_chunk[mfTrack].running_status = 0;
@@ -2023,7 +1866,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
                 case 0xFF: /* meta event */
                     c = *cP++;
                     cP = midifile_read_var_len(cP, &len);/* meta length */
-                    if (x->verbosity) post("midifile: Track %d Meta: %02X length %zu", mfTrack, c, len);
+                    if (x->verbosity) post("midifile: Track %d Meta: %02X length %d", mfTrack, c, len);
                     switch (c)
                     {
                         case 0x59: /* key signature */
@@ -2233,7 +2076,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
             x->midi_data[2].a_w.w_float	= (n == 3)?d:0;
             if (x->midi_data[0].a_w.w_float != 0) outlet_list(x->midi_list_outlet, &s_list, n, x->midi_data);
             if (x->track_chunk[mfTrack].running_status == 0)
-                error ("midifile: No running status on track %d at %zu",
+                error ("midifile: No running status on track %d at %d",
                     mfTrack, x->track_chunk[mfTrack].total_time + delta_time);
         }
     }
@@ -2249,7 +2092,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
 static void midifile_skip_next_track_chunk_data(t_midifile *x, int mfTrack)
 {
     unsigned char   *cP, *last_cP;
-    size_t          delta_time, len;
+    uint32_t          delta_time, len;
     unsigned char   status, c, n;
 
     cP = x->track_chunk[mfTrack].track_data + x->track_chunk[mfTrack].track_index;
@@ -2353,23 +2196,13 @@ static t_symbol *midifile_key_name(int sf, int mi)
     {
         if (mi == 1)
         {
-#ifdef _MSC_VER
-            i = sprintf_s(buf, 3, "%s", min_key[sf + 7]);
-            sprintf_s(buf + i, 6, "%s", "Minor");
-#else
             i = sprintf(buf, "%s", min_key[sf+7]);
             sprintf(buf+i, "%s", "Minor");
-#endif
         }
         else if (mi == 0)
         {
-#ifdef _MSC_VER
-            i = sprintf_s(buf, 3, "%s", maj_key[sf + 7]);
-            sprintf_s(buf + i, 6, "%s", "Major");
-#else
             i = sprintf(buf, "%s", maj_key[sf+7]);
             sprintf(buf+i, "%s", "Major");
-#endif
         }
     }
     return gensym(buf);
