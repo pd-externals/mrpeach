@@ -1,0 +1,32 @@
+#N canvas 148 283 903 374 12;
+#X obj 203 269 print serialized;
+#X msg 115 112 hello;
+#X floatatom 179 176 5 0 0 0 - - -;
+#X msg 26 23 1023;
+#X msg 94 91 one two three;
+#X msg 158 154 11 222 33333;
+#X msg 71 68 1 two 3;
+#X msg 49 46 one 2 three;
+#X text 257 92 [sprint] works like [print] but 'prints' to its outlet.
+This can be useful for sending to character devices like [comport].
+;
+#X text 207 308 Martin Peach 2019/12/05;
+#X msg 136 133 3e+12;
+#X obj 203 198 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X text 219 195 bang resends the previous message;
+#X text 260 150 The 'list' selector is ignored but other selectors
+are considered part of the input.;
+#X text 279 218 argument is ASCII code or literal character of optional
+separator (32 is space);
+#X obj 203 219 sprint 32;
+#X connect 1 0 15 0;
+#X connect 2 0 15 0;
+#X connect 3 0 15 0;
+#X connect 4 0 15 0;
+#X connect 5 0 15 0;
+#X connect 6 0 15 0;
+#X connect 7 0 15 0;
+#X connect 10 0 15 0;
+#X connect 11 0 15 0;
+#X connect 15 0 0 0;
