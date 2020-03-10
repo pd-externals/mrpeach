@@ -1910,6 +1910,7 @@ static void midifile_get_next_track_chunk_data(t_midifile *x, int mfTrack)
                                     break;
                                 case 3:
                                     fps = 30;
+                                    break;
                                 default:
                                     fps = 0; /* error */
                             }
