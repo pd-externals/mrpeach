@@ -1,6 +1,6 @@
 /** \mainpage midifile.c An external for Pure Data that reads and writes MIDI files
 *
-*	Copyright (C) 2005-2018  Martin Peach
+*	Copyright (C) 2005-2020  Martin Peach <chakekatzil@gmail.com>
 * \section license
 *	This program is free software; you can redistribute it and/or modify
 *	it under the terms of the GNU General Public License as published by
@@ -159,7 +159,7 @@ Registers methods:
 */
 void midifile_setup(void)
 {
-    const char aStr[] = "midifile v0.3 20171026 by Martin Peach";
+    const char aStr[] = "midifile v0.4 20200321 by Martin Peach";
 
     midifile_class = class_new (gensym("midifile"),
         (t_newmethod) midifile_new,
@@ -179,7 +179,6 @@ void midifile_setup(void)
     class_addmethod(midifile_class, (t_method)midifile_rewind, gensym("rewind"), 0);
     class_addmethod(midifile_class, (t_method)midifile_verbosity, gensym("verbose"), A_DEFFLOAT, 0);
     class_sethelpsymbol(midifile_class, gensym("midifile-help"));
-    post("Hello?");
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aStr);
 #else
@@ -505,7 +504,7 @@ static void midifile_write(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
     }
     post("midifile_write: path = %s, fps = %d, tpf = %d", path, frames_per_second, ticks_per_frame);
     midifile_free_file(x);
-	if (midifile_open_path(x, path, "wb"))
+	  if (midifile_open_path(x, path, "wb"))
     {
         if (x->verbosity) post("midifile: opened %s", x->fPath);
 		x->state = mfWriting;
@@ -542,11 +541,23 @@ static int midifile_write_delta_time(t_midifile *x)
     return midifile_write_variable_length_value(x->tmpFP[x->track], x->track_chunk[x->track].delta_time);
 }
 
+/** midifile_begin_meta writes the first part of a meta message to the current track of the open file.
+*
+- First argument is the midifile object
+- Second arg is the meta type
+*/
+static int midifile_begin_meta(t_midifile *x, int metaType)
+{
+    int n = midifile_write_delta_time(x);
+    putc (0xFF, x->tmpFP[x->track]); // Meta Status
+    putc (metaType, x->tmpFP[x->track]); // Meta Type
+    return n+2;
+}
 /** midifile_meta attempts to add the arguments as a meta event to the current track of the open file.
 *
 - First argument is the event ID
 - Subsequent args are parameters for the specific meta avent
-- calls midifile_write_delta_time
+- calls midifile_write_delta_time and midifile_begin_meta
 */
 static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
 {
@@ -594,13 +605,12 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
             }
             j = atom_getint(&argv[1]);
             if (x->verbosity > 1) post ("midifile_meta: Sequence Number %d", j);
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (0, x->tmpFP[x->track]); // Sequence Number Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // Sequence Number Meta
             putc (2, x->tmpFP[x->track]); // len
             putc (j>>8, x->tmpFP[x->track]); // Sequence Number high byte
             putc (j%256, x->tmpFP[x->track]); // Sequence Number low byte
-            nbWritten += 5;
+            nbWritten += 3;
             break;
         case 1:
         case 2:
@@ -631,10 +641,8 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 return;
             }
             sPtr = argv[1].a_w.w_symbol->s_name;
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (metaType, x->tmpFP[x->track]); // a textual Event Meta
-            nbWritten += 2;             
+            nbWritten = midifile_begin_meta(x, metaType);
+            // a textual Event Meta
             len = strlen(sPtr);
             nbWritten += midifile_write_variable_length_value(x->tmpFP[x->track], len);
             for (jj = 0; jj < len; ++jj)
@@ -665,22 +673,20 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 post ("midifile_meta: channel number out of range [0-15]");
                 return;
             }
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (32, x->tmpFP[x->track]);; // MIDI Channel Prefix Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // MIDI Channel Prefix Meta
             putc (1, x->tmpFP[x->track]); // len
             putc (j, x->tmpFP[x->track]); // channel byte
-            nbWritten += 4;
+            nbWritten += 2;
             break;
         case 47:
             if (x->verbosity > 1) post ("midifile_meta: End of Track");
             /* must be the last event */
             /* len is always 00 */
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (47, x->tmpFP[x->track]);; // End of Track Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // End of Track Meta
             putc (0, x->tmpFP[x->track]); // len
-            nbWritten += 3;
+            nbWritten += 1;
             x->track_chunk[x->track].track_ended = 1; // can't write any more data to this track
             break;
         case 81:
@@ -704,14 +710,13 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 return;
             }
             if (x->verbosity > 1) post ("midifile_meta: Set Tempo %ld", jj);
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (81, x->tmpFP[x->track]);; // Set Tempo Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // Set Tempo Meta
             putc (3, x->tmpFP[x->track]); // len
             putc ((jj>>16)&0xFF, x->tmpFP[x->track]); // Set Tempo high byte
             putc ((jj>>8)&0xFF, x->tmpFP[x->track]); // Set Tempo mid byte
             putc (jj%256, x->tmpFP[x->track]); // Set Tempo low byte
-            nbWritten += 6;
+            nbWritten += 4;
             break;
         case 84:
             if (x->verbosity > 1) post ("midifile_meta: SMPTE Offset");
@@ -737,15 +742,14 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 }
                 paramBuf[i-1] = j;
             }
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (84, x->tmpFP[x->track]);; // Set SMPTE Offset Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // Set SMPTE Offset Meta
             putc (5, x->tmpFP[x->track]); // len
             for (i = 0; i < 5; ++i)
             {
               putc (paramBuf[i], x->tmpFP[x->track]); // timecode
             }
-            nbWritten += 8;
+            nbWritten += 6;
             break;
         case 88:
             if (x->verbosity > 1) post ("midifile_meta: Time Signature");
@@ -772,15 +776,14 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 }
                 paramBuf[i-1] = j;
             }
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            nbWritten = midifile_write_delta_time(x);
-            putc (88, x->tmpFP[x->track]);; // Time Signatre Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // Time Signatre Meta
             putc (4, x->tmpFP[x->track]); // len
             for (i = 0; i < 4; ++i)
             {
               putc (paramBuf[i], x->tmpFP[x->track]); // time signature
             }
-            nbWritten += 7;
+            nbWritten += 5;
             break;
         case 89:
             if (x->verbosity > 1) post ("midifile_meta: Key Signature");
@@ -812,15 +815,14 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
                 }
                 paramBuf[i-1] = j;
             }
-            nbWritten = midifile_write_delta_time(x);
-            putc (0xFF, x->tmpFP[x->track]); // Meta Status
-            putc (89, x->tmpFP[x->track]);; // Key Signatre Meta
+            nbWritten = midifile_begin_meta(x, metaType);
+            // Key Signatre Meta
             putc (2, x->tmpFP[x->track]); // len
             for (i = 0; i < 2; ++i)
             {
               putc (paramBuf[i], x->tmpFP[x->track]); // key signature
             }
-            nbWritten += 5;
+            nbWritten += 3;
             break;
         case 127:
             if (x->verbosity > 1) post ("midifile_meta: Sequencer-Specific Meta-Event");
@@ -836,19 +838,6 @@ static void midifile_meta(t_midifile *x, t_symbol *s, int argc, t_atom *argv)
             post("Unknown Meta tag %d", metaType);
             return;
     }
-/*
-    for (i = 1; i < argc; ++i)
-    {
-        if (A_FLOAT == argv[i].a_type)
-        {
-            j = atom_getint(&argv[i]);
-            if (x->verbosity > 1) post ("midifile_meta: %d", j);
-        }
-        else if (A_SYMBOL == argv[i].a_type)
-        {
-            ts = atom_getsymbol(&argv[i]);
-            len += strlen(ts->s_name);
-*/
     if (0 != nbWritten)
     {
         if (x->verbosity > 1)  post("Wrote %lu to track %d", nbWritten, x->track);
@@ -1105,8 +1094,9 @@ static void midifile_float(t_midifile *x, t_float ticks)
 static int midifile_read_chunks(t_midifile *x)
 {
     int     j, result;
+
     result = midifile_read_header_chunk(x);
-	midifile_rewind_tracks(x);
+	  midifile_rewind_tracks(x);
     for (j = 0; ((j < x->header_chunk.chunk_ntrks)&&(result != 0)); ++j)
         midifile_read_track_chunk(x, j);
     return result;
@@ -1133,8 +1123,8 @@ static int midifile_read_header_chunk(t_midifile *x)
         error("midifile: no open file");
         return 0;/* no open file */
     }
-	rewind(x->fP);
-	x->offset = 0L;
+    rewind(x->fP);
+    x->offset = 0L;
     n = fread(cP, 1L, 4L, x->fP);
     x->offset += n;
     if (n != 4L)
@@ -1297,12 +1287,6 @@ static unsigned short midifile_combine_bytes(unsigned char data1, unsigned char 
 /** make a short from two 7bit MIDI data bytes
 */
 {
-/*
-    unsigned short value = (unsigned short)data2;
-    value <<= 7;
-    value |= (unsigned short)data1;
-    return value;
-*/
     return ((((unsigned short)data2)<< 7) | ((unsigned short)data1));
 }
 
@@ -1443,7 +1427,7 @@ static void midifile_set_track(t_midifile *x, t_floatarg track)
         if (x->track_chunk[x->track].track_data == NULL)
         {
             /* this track is being used for the first time */
-post("this track (%d) is being used for the first time", x->track);
+            post("this track (%d) is being used for the first time", x->track);
             x->tmpFP[x->track] = midifile_open_track_file(x, x->track);//tmpfile(); /* a temporary file for the MIDI data while we don't know how long it is */
             strncpy (x->track_chunk[x->track].chunk_type, "MTrk", 4L);
             x->track_chunk[x->track].chunk_length = 0L; /* for now */
