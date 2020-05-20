@@ -1,455 +1,70 @@
-## based on Pd library template version 1.0.14
-## (with some modifications to allow for sources/helppatches in subdirectories)
-LIBRARY_NAME = mrpeach
+# Makefile to build library 'mrpeach' for Pure Data.
+# Needs Makefile.pdlibbuilder as helper makefile for platform-dependent build
+# settings and rules.
 
-# add your .c source files, one object per file, to the SOURCES
-# variable, help files will be included automatically, and for GUI
-# objects, the matching .tcl file too
-SOURCES = \
-	f2b.c b2f.c \
-	slipdec.c slipenc.c \
-	packxbee.c unpackxbee.c \
-	binfile.c \
-	midifile.c \
-	life2x.c \
-	op~.c \
-	rc~.c \
-	rcosc~.c \
-	rojo~.c \
-	runningmean.c \
-	sqosc~.c \
-	str.c \
-	tab2flist.c \
-	tabfind.c \
-	flist2tab.c \
-	which.c
+# library name
+lib.name = mrpeach
 
-## where to find the source files (and help-patches)
-VPATH=binfile:flist2tab:life2x:midifile:op~:rc~:rcosc~:rojo~:runningmean:serializer:slipdec:slipenc:sqosc~:str:tab2flist:tabfind:which:xbee
+# input source file (class name == source file basename)
+class.sources = 	binfile/binfile.c \
+  cmos/cd4000.c cmos/cd4001.c cmos/cd4002.c cmos/cd4008.c cmos/cd4011.c \
+  cmos/cd4012.c cmos/cd4013.c cmos/cd4014.c cmos/cd4015.c cmos/cd4017.c cmos/cd40193.c cmos/cd4023.c \
+  cmos/cd4024.c cmos/cd4025.c cmos/cd4027.c cmos/cd4070.c cmos/cd4071.c cmos/cd4072.c cmos/cd4073.c \
+  cmos/cd4075.c cmos/cd4076.c cmos/cd4081.c cmos/cd4082.c cmos/cd4094.c cmos/cd4516.c \
+	flist2tab/flist2tab.c \
+	life2x/life2x.c \
+	midifile/midifile.c \
+	op~/op~.c \
+	xbee/packxbee.c xbee/unpackxbee.c \
+	rc~/rc~.c \
+	rcosc~/rcosc~.c \
+	rojo~/rojo~.c \
+	runningmean/runningmean.c \
+  serializer/sprint.c serializer/f2b.c serializer/b2f.c \
+	slipdec/slipdec.c slipenc/slipenc.c \
+	sqosc~/sqosc~.c \
+	str/str.c \
+	tab2flist/tab2flist.c \
+	tabfind/tabfind.c \
+	which/which.c \
+  osc/unpackOSC.c osc/routeOSC.c osc/packOSC.c osc/pipelist.c \
+  net/udpsend.c net/httpreceive.c net/tcpclient.c net/tcpserver.c net/udpreceive~.c net/udpreceive.c \
+  net/httpreq.c net/tcpreceive.c net/udpsndrcv.c net/tcpsend.c net/udpsend~.c
 
-# list all pd objects (i.e. myobject.pd) files here, and their helpfiles will
-# be included automatically
-PDOBJECTS = 
+# all extra files to be included in binary distribution of the library
+datafiles = binfile/binfile-help.pd \
+ cmos/cd4000-help.pd cmos/cd4001-help.pd cmos/cmos/cd4002-help.pd cmos/cd4008-help.pd cmos/cd4011-help.pd cmos/cd4012-help.pd \
+ cmos/cd4013-help.pd cmos/cd4014-help.pd cmos/cd4015-help.pd cmos/cd4017-help.pd cmos/cd40193-help.pd cmos/cd4023-help.pd \
+ cmos/cd4024-help.pd cmos/cd4025-help.pd cmos/cd4027-help.pd cmos/cd4070-help.pd cmos/cd4071-help.pd cmos/cd4072-help.pd \
+ cmos/cd4073-help.pd cmos/cd4075-help.pd cmos/cd4076-help.pd cmos/cd4081-help.pd cmos/cd4082-help.pd cmos/cd4094-help.pd \
+ cmos/cd4516-help.pd \
+ flist2tab/flist2tab-help.pd \
+ life2x/life2x-help.pd \
+ midifile/I_Wanna_Be_Sedated.mid  midifile/midifile-help.pd \
+ op~/op~-help.pd \
+ xbee/bits.pd  xbee/packxbee-help.pd xbee/xbeeio.pd xbee/unpackxbee-help.pd xbee/packxbee-example.pd \
+ rc~/rc~-help.pd \
+ rcosc~/rcosc~-help.pd \
+ rojo~/rojo~-help.pd \
+ runningmean/runningmean-help.pd \
+ serializer/f2b-help.pd serializer/b2f-help.pd serializer/sprint-help.pd \
+ slipdec/slipdec-help.pd slipenc/slipenc-help.pd \
+ sqosc~/sqosc~-help.pd \
+ str/str-help.pd str/str-to-comport.pd \
+ tab2flist/tab2flist-help.pd \
+ tabfind/tabfind-help.pd \
+ which/which-help.pd \
+ osc/packOSC-help.pd osc/pipelist-help.pd  osc/unpackOSCstream.pd osc/osc-meta.pd \
+ osc/packOSCstream-help.pd osc/README.txt osc/unpackOSC-help.pd \
+ osc/packOSCstream.pd  osc/routeOSC-help.pd  osc/unpackOSCstream-help.pd \
+ net/net-meta.pd net/tcpsend-help.pd net/tcpsocketserver-help.pd \
+ net/README.txt net/tcpsocketserver.pd net/httpreceive-help.pd \
+ net/udpsend~-help.pd net/tcpclient-help.pd net/tcpserver-help.pd \
+ net/udpsend-help.pd net/udpreceive~-help.pd net/httpreq-help.pd \
+ net/tcpsocket.FUDI-help.pd net/udpreceive-help.pd net/tcpreceive-help.pd \
+ net/tcpsocket.FUDI.pd net/LICENSE.txt net/tcpsocket.OSC-help.pd \
+ net/udpsndrcv-help.pd net/tcpsocket.OSC.pd
 
-# example patches and related files, in the 'examples' subfolder
-EXAMPLES = 
-
-# manuals and related files, in the 'manual' subfolder
-MANUAL = 
-
-# if you want to include any other files in the source and binary tarballs,
-# list them here.  This can be anything from header files, test patches,
-# documentation, etc.  README.txt and LICENSE.txt are required and therefore
-# automatically included
-EXTRA_DIST = pdxbee.h
-
-# unit tests and related files here, in the 'unittests' subfolder
-UNITTESTS = 
-
-
-
-#------------------------------------------------------------------------------#
-#
-# things you might need to edit if you are using other C libraries
-#
-#------------------------------------------------------------------------------#
-
-ALL_CFLAGS = -I"$(PD_INCLUDE)"
-ALL_LDFLAGS =  
-SHARED_LDFLAGS =
-ALL_LIBS = 
-
-
-#------------------------------------------------------------------------------#
-#
-# you shouldn't need to edit anything below here, if we did it right :)
-#
-#------------------------------------------------------------------------------#
-
-# these can be set from outside without (usually) breaking the build
-CFLAGS = -Wall -W -g
-LDFLAGS =
-LIBS =
-
-# get library version from meta file
-LIBRARY_VERSION = $(shell sed -n 's|^\#X text [0-9][0-9]* [0-9][0-9]* VERSION \(.*\);|\1|p' $(LIBRARY_NAME)-meta.pd)
-
-ALL_CFLAGS += -DPD -DVERSION='"$(LIBRARY_VERSION)"'
-
-PD_INCLUDE = $(PD_PATH)/include/pd
-# where to install the library, overridden below depending on platform
-prefix = /usr/local
-libdir = $(prefix)/lib
-pkglibdir = $(libdir)/pd-externals
-objectsdir = $(pkglibdir)
-
-INSTALL = install
-INSTALL_PROGRAM = $(INSTALL) -p -m 644
-INSTALL_DATA = $(INSTALL) -p -m 644
-INSTALL_DIR     = $(INSTALL) -p -m 755 -d
-
-ALLSOURCES := $(SOURCES) $(SOURCES_android) $(SOURCES_cygwin) $(SOURCES_macosx) \
-	         $(SOURCES_iphoneos) $(SOURCES_linux) $(SOURCES_windows)
-
-DISTDIR=$(LIBRARY_NAME)-$(LIBRARY_VERSION)
-ORIGDIR=pd-$(LIBRARY_NAME:~=)_$(LIBRARY_VERSION)
-
-UNAME := $(shell uname -s)
-ifeq ($(UNAME),Darwin)
-  CPU := $(shell uname -p)
-  ifeq ($(CPU),arm) # iPhone/iPod Touch
-    SOURCES += $(SOURCES_iphoneos)
-    EXTENSION = pd_darwin
-    SHARED_EXTENSION = dylib
-    OS = iphoneos
-    PD_PATH = /Applications/Pd-extended.app/Contents/Resources
-    IPHONE_BASE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
-    CC=$(IPHONE_BASE)/gcc
-    CPP=$(IPHONE_BASE)/cpp
-    CXX=$(IPHONE_BASE)/g++
-    ISYSROOT = -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk
-    IPHONE_CFLAGS = -miphoneos-version-min=3.0 $(ISYSROOT) -arch armv6
-    OPT_CFLAGS = -fast -funroll-loops -fomit-frame-pointer
-    ALL_CFLAGS := $(IPHONE_CFLAGS) $(ALL_CFLAGS)
-    ALL_LDFLAGS += -arch armv6 -bundle -undefined dynamic_lookup $(ISYSROOT)
-    SHARED_LDFLAGS += -arch armv6 -dynamiclib -undefined dynamic_lookup $(ISYSROOT)
-    ALL_LIBS += -lc $(LIBS_iphoneos)
-    STRIP = strip -x
-    DISTBINDIR=$(DISTDIR)-$(OS)
-  else # Mac OS X
-    SOURCES += $(SOURCES_macosx)
-    EXTENSION = pd_darwin
-    SHARED_EXTENSION = dylib
-    OS = macosx
-    PD_PATH = /Applications/Pd-extended.app/Contents/Resources
-    OPT_CFLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2 -fast
-# build universal 32-bit on 10.4 and 32/64 on newer
-    ifeq ($(shell uname -r | sed 's|\([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*|\1|'), 8)
-      FAT_FLAGS = -arch ppc -arch i386 -mmacosx-version-min=10.4
-    else
-      SOURCES += $(SOURCES_iphoneos)
-# Starting with Xcode 4.0, the PowerPC compiler is not installed by default
-      ifeq ($(wildcard /usr/llvm-gcc-4.2/libexec/gcc/powerpc*), )
-        FAT_FLAGS = -arch i386 -arch x86_64 -mmacosx-version-min=10.5
-      else
-        FAT_FLAGS = -arch ppc -arch i386 -arch x86_64 -mmacosx-version-min=10.4
-      endif
-    endif
-    ALL_CFLAGS += $(FAT_FLAGS) -fPIC -I/sw/include
-    # if the 'pd' binary exists, check the linking against it to aid with stripping
-    BUNDLE_LOADER = $(shell test ! -e $(PD_PATH)/bin/pd || echo -bundle_loader $(PD_PATH)/bin/pd)
-    ALL_LDFLAGS += $(FAT_FLAGS) -headerpad_max_install_names -bundle $(BUNDLE_LOADER) \
-	-undefined dynamic_lookup -L/sw/lib
-    SHARED_LDFLAGS += $(FAT_FLAGS) -dynamiclib -undefined dynamic_lookup \
-	-install_name @loader_path/$(SHARED_LIB) -compatibility_version 1 -current_version 1.0
-    ALL_LIBS += -lc $(LIBS_macosx)
-    STRIP = strip -x
-    DISTBINDIR=$(DISTDIR)-$(OS)
-# install into ~/Library/Pd on Mac OS X since /usr/local isn't used much
-    pkglibdir=$(HOME)/Library/Pd
-  endif
-endif
-# Tho Android uses Linux, we use this fake uname to provide an easy way to
-# setup all this things needed to cross-compile for Android using the NDK
-ifeq ($(UNAME),ANDROID)
-  CPU := arm
-  SOURCES += $(SOURCES_android)
-  EXTENSION = so
-  SHARED_EXTENSION = so
-  OS = android
-  PD_PATH = /usr
-  NDK_BASE := /opt/android-ndk
-  NDK_PLATFORM_LEVEL ?= 5
-  NDK_ABI=arm
-  NDK_COMPILER_VERSION = 4.6
-  NDK_SYSROOT=$(NDK_BASE)/platforms/android-$(NDK_PLATFORM_LEVEL)/arch-$(NDK_ABI)
-  NDK_UNAME:=$(shell uname -s | tr '[A-Z]' '[a-z]')
-  ifeq ($(NDK_ABI),x86)
-    HOST = i686-linux-android
-    NDK_TOOLCHAIN = $(NDK_ABI)-$(NDK_COMPILER_VERSION)
-  else
-    HOST = $(NDK_ABI)-linux-androideabi
-    NDK_TOOLCHAIN = $(HOST)-$(NDK_COMPILER_VERSION)
-  endif
-  NDK_TOOLCHAIN_BASE=$(NDK_BASE)/toolchains/$(NDK_TOOLCHAIN)/prebuilt/$(NDK_UNAME)-$(NDK_PROCESSOR)
-  CC := $(NDK_TOOLCHAIN_BASE)/bin/$(HOST)-gcc --sysroot=$(NDK_SYSROOT)
-  LD := $(NDK_TOOLCHAIN_BASE)/bin/$(HOST)-ld
-  OPT_CFLAGS = -O6 -funroll-loops -fomit-frame-pointer
-  CFLAGS += 
-  LDFLAGS += -rdynamic -shared
-  SHARED_LDFLAGS += -Wl,-soname,$(SHARED_LIB) -shared
-  LIBS += -lc $(LIBS_android)
-  STRIP := $(NDK_TOOLCHAIN_BASE)/bin/$(HOST)-strip) \
-	--strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)-$(shell uname -m)
-endif
-ifeq ($(UNAME),Linux)
-  CPU := $(shell uname -m)
-  SOURCES += $(SOURCES_linux)
-  EXTENSION = pd_linux
-  SHARED_EXTENSION = so
-  OS = linux
-  PD_PATH = /usr
-  OPT_CFLAGS = -O6 -funroll-loops -fomit-frame-pointer
-  ALL_CFLAGS += -fPIC
-  ALL_LDFLAGS += -rdynamic -shared -fPIC -Wl,-rpath,"\$$ORIGIN",--enable-new-dtags
-  SHARED_LDFLAGS += -Wl,-soname,$(SHARED_LIB) -shared
-  ALL_LIBS += -lc $(LIBS_linux)
-  STRIP = strip --strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)-$(shell uname -m)
-endif
-ifeq ($(UNAME),GNU)
-  # GNU/Hurd, should work like GNU/Linux for basically all externals
-  CPU := $(shell uname -m)
-  SOURCES += $(SOURCES_linux)
-  EXTENSION = pd_linux
-  SHARED_EXTENSION = so
-  OS = linux
-  PD_PATH = /usr
-  OPT_CFLAGS = -O6 -funroll-loops -fomit-frame-pointer
-  ALL_CFLAGS += -fPIC
-  ALL_LDFLAGS += -rdynamic -shared -fPIC -Wl,-rpath,"\$$ORIGIN",--enable-new-dtags
-  SHARED_LDFLAGS += -shared -Wl,-soname,$(SHARED_LIB)
-  ALL_LIBS += -lc $(LIBS_linux)
-  STRIP = strip --strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)-$(shell uname -m)
-endif
-ifeq ($(UNAME),GNU/kFreeBSD)
-  # Debian GNU/kFreeBSD, should work like GNU/Linux for basically all externals
-  CPU := $(shell uname -m)
-  SOURCES += $(SOURCES_linux)
-  EXTENSION = pd_linux
-  SHARED_EXTENSION = so
-  OS = linux
-  PD_PATH = /usr
-  OPT_CFLAGS = -O6 -funroll-loops -fomit-frame-pointer
-  ALL_CFLAGS += -fPIC
-  ALL_LDFLAGS += -rdynamic -shared -fPIC -Wl,-rpath,"\$$ORIGIN",--enable-new-dtags
-  SHARED_LDFLAGS += -shared -Wl,-soname,$(SHARED_LIB)
-  ALL_LIBS += -lc $(LIBS_linux)
-  STRIP = strip --strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)-$(shell uname -m)
-endif
-ifeq (CYGWIN,$(findstring CYGWIN,$(UNAME)))
-  CPU := $(shell uname -m)
-  SOURCES += $(SOURCES_cygwin)
-  EXTENSION = dll
-  SHARED_EXTENSION = dll
-  OS = cygwin
-  PD_PATH = $(shell cygpath $$PROGRAMFILES)/pd
-  OPT_CFLAGS = -O6 -funroll-loops -fomit-frame-pointer
-  ALL_CFLAGS += 
-  ALL_LDFLAGS += -rdynamic -shared -L"$(PD_PATH)/src" -L"$(PD_PATH)/bin"
-  SHARED_LDFLAGS += -shared -Wl,-soname,$(SHARED_LIB)
-  ALL_LIBS += -lc -lpd $(LIBS_cygwin)
-  STRIP = strip --strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)
-endif
-ifeq (MINGW,$(findstring MINGW,$(UNAME)))
-  CPU := $(shell uname -m)
-  SOURCES += $(SOURCES_windows)
-  EXTENSION = dll
-  SHARED_EXTENSION = dll
-  OS = windows
-  PD_PATH = $(shell cd "$$PROGRAMFILES/pd" && pwd)
-  # MinGW doesn't seem to include cc so force gcc
-  CC=gcc
-  OPT_CFLAGS = -O3 -funroll-loops -fomit-frame-pointer
-  ALL_CFLAGS += -mms-bitfields
-  ALL_LDFLAGS += -s -shared -Wl,--enable-auto-import
-  SHARED_LDFLAGS += -shared
-  ALL_LIBS += -L"$(PD_PATH)/src" -L"$(PD_PATH)/bin" -L"$(PD_PATH)/obj" \
-	-lpd -lwsock32 -lkernel32 -luser32 -lgdi32 -liberty $(LIBS_windows)
-  STRIP = strip --strip-unneeded -R .note -R .comment
-  DISTBINDIR=$(DISTDIR)-$(OS)
-endif
-
-# in case somebody manually set the HELPPATCHES above
-HELPPATCHES ?= $(SOURCES:.c=-help.pd) $(PDOBJECTS:.pd=-help.pd)
-
-ALL_CFLAGS := $(ALL_CFLAGS) $(CFLAGS) $(OPT_CFLAGS)
-ALL_LDFLAGS := $(LDFLAGS) $(ALL_LDFLAGS)
-ALL_LIBS := $(LIBS) $(ALL_LIBS)
-
-SHARED_SOURCE ?= $(wildcard lib$(LIBRARY_NAME).c)
-SHARED_HEADER ?= $(shell test ! -e $(LIBRARY_NAME).h || echo $(LIBRARY_NAME).h)
-SHARED_LIB ?= $(SHARED_SOURCE:.c=.$(SHARED_EXTENSION))
-SHARED_TCL_LIB = $(wildcard lib$(LIBRARY_NAME).tcl)
-
-.PHONY = install libdir_install single_install install-objects install-libobject install-doc install-examples install-manual install-unittests clean distclean dist etags $(LIBRARY_NAME)
-
-all: $(SOURCES:.c=.$(EXTENSION)) $(SHARED_LIB)
-
-%.o: %.c
-	$(CC) $(ALL_CFLAGS) -o $@ -c $<
-
-%.$(EXTENSION): %.o $(SHARED_LIB)
-	$(CC) $(ALL_LDFLAGS) -o $@ $^  $(ALL_LIBS)
-	chmod a-x $@
-
-# this links everything into a single binary file
-$(LIBRARY_NAME): $(SOURCES:.c=.o) $(LIBRARY_NAME).o lib$(LIBRARY_NAME).o
-	$(CC) $(ALL_LDFLAGS) -o $(LIBRARY_NAME).$(EXTENSION) $(SOURCES:.c=.o) \
-		$(LIBRARY_NAME).o lib$(LIBRARY_NAME).o $(ALL_LIBS)
-	chmod a-x $(LIBRARY_NAME).$(EXTENSION)
-
-$(SHARED_LIB): $(SHARED_SOURCE:.c=.o)
-	$(CC) $(SHARED_LDFLAGS) -o $(SHARED_LIB) $(SHARED_SOURCE:.c=.o) $(ALL_LIBS)
-
-install: libdir_install
-
-# The meta and help files are explicitly installed to make sure they are
-# actually there.  Those files are not optional, then need to be there.
-install-objects: $(SOURCES:.c=.$(EXTENSION)) $(SHARED_LIB) $(PDOBJECTS) $(SHARED_TCL_LIB)
-	$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(INSTALL_DATA) $(LIBRARY_NAME)-meta.pd \
-		$(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(INSTALL_DATA) $^ $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	test -z "$(strip $(wildcard $(SOURCES:.c=.tcl)))" || \
-		$(INSTALL_DATA) $(wildcard $(SOURCES:.c=.tcl)) \
-			$(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-libdir_install: install-objects install-doc install-examples install-manual install-unittests
-
-# install library linked as single binary
-install-libobject: $(LIBRARY_NAME).$(EXTENSION)
-	$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(INSTALL_PROGRAM) $@ $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(STRIP) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/$@
-single_install: install-libobject install-doc install-examples install-manual install-unittests
-
-install-doc: $(HELPPATCHES)
-	$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(INSTALL_DATA) $^ $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)
-	$(INSTALL_DATA) README.txt $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/README.txt
-	$(INSTALL_DATA) LICENSE.txt $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/LICENSE.txt
-
-install-examples:
-	test -z "$(strip $(EXAMPLES))" || \
-		$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/examples && \
-		for file in $(EXAMPLES); do \
-			$(INSTALL_DATA) examples/$$file $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/examples; \
-		done
-
-install-manual:
-	test -z "$(strip $(MANUAL))" || \
-		$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/manual && \
-		for file in $(MANUAL); do \
-			$(INSTALL_DATA) manual/$$file $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/manual; \
-		done
-
-install-unittests:
-	test -z "$(strip $(UNITTESTS))" || \
-		$(INSTALL_DIR) $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/unittests && \
-		for file in $(UNITTESTS); do \
-			$(INSTALL_DATA) unittests/$$file $(DESTDIR)$(objectsdir)/$(LIBRARY_NAME)/unittests; \
-		done
-
-clean:
-	-rm -f -- $(SOURCES:.c=.o) $(SOURCES_LIB:.c=.o) $(SHARED_SOURCE:.c=.o)
-	-rm -f -- $(SOURCES:.c=.$(EXTENSION))
-	-rm -f -- $(LIBRARY_NAME).o
-	-rm -f -- $(LIBRARY_NAME).$(EXTENSION)
-	-rm -f -- $(SHARED_LIB)
-
-distclean: clean
-	-rm -f -- $(DISTBINDIR).tar.gz
-	-rm -rf -- $(DISTBINDIR)
-	-rm -f -- $(DISTDIR).tar.gz
-	-rm -rf -- $(DISTDIR)
-	-rm -f -- $(ORIGDIR).tar.gz
-	-rm -rf -- $(ORIGDIR)
-
-
-$(DISTBINDIR):
-	$(INSTALL_DIR) $(DISTBINDIR)
-
-libdir: all $(DISTBINDIR)
-	$(INSTALL_DATA) $(LIBRARY_NAME)-meta.pd  $(DISTBINDIR)
-	$(INSTALL_DATA) $(SOURCES) $(SHARED_SOURCE) $(SHARED_HEADER) $(DISTBINDIR)
-	$(INSTALL_DATA) $(HELPPATCHES) $(DISTBINDIR)
-	test -z "$(strip $(EXTRA_DIST))" || \
-		$(INSTALL_DATA) $(EXTRA_DIST)    $(DISTBINDIR)
-#	tar --exclude-vcs -czpf $(DISTBINDIR).tar.gz $(DISTBINDIR)
-
-$(DISTDIR):
-	$(INSTALL_DIR) $(DISTDIR)
-
-$(ORIGDIR):
-	$(INSTALL_DIR) $(ORIGDIR)
-
-dist: $(ALLSOURCES) $(HELPPATCHES) $(EXTRA_DIST) $(SHARED_HEADER) $(SHARED_SOURCE) $(SHARED_TCL_LIB) $(PDOBJECTS)
-	$(INSTALL_DIR) $(DISTDIR)
-	$(INSTALL_DATA) Makefile  $(DISTDIR)
-	$(INSTALL_DATA) README.txt $(DISTDIR)
-	$(INSTALL_DATA) LICENSE.txt $(DISTDIR)
-	$(INSTALL_DATA) $(LIBRARY_NAME)-meta.pd  $(DISTDIR)
-	test -z "$(strip $^)" || \
-		$(INSTALL_DATA) $^  $(DISTDIR)
-	test -z "$(strip $(wildcard $(ALLSOURCES:.c=.tcl)))" || \
-		$(INSTALL_DATA) $(wildcard $(ALLSOURCES:.c=.tcl))  $(DISTDIR)
-	test -z "$(strip $(wildcard $(LIBRARY_NAME).c))" || \
-		$(INSTALL_DATA) $(LIBRARY_NAME).c  $(DISTDIR)
-	test -z "$(strip $(EXAMPLES))" || \
-		$(INSTALL_DIR) $(DISTDIR)/examples && \
-		for file in $(EXAMPLES); do \
-			$(INSTALL_DATA) examples/$$file $(DISTDIR)/examples; \
-		done
-	test -z "$(strip $(MANUAL))" || \
-		$(INSTALL_DIR) $(DISTDIR)/manual && \
-		for file in $(MANUAL); do \
-			$(INSTALL_DATA) manual/$$file $(DISTDIR)/manual; \
-		done
-	test -z "$(strip $(UNITTESTS))" || \
-		$(INSTALL_DIR) $(DISTDIR)/unittests && \
-		for file in $(UNITTESTS); do \
-			$(INSTALL_DATA) unittests/$$file $(DISTDIR)/unittests; \
-		done
-	tar --exclude-vcs -czpf $(DISTDIR).tar.gz $(DISTDIR)
-
-# make a Debian source package
-dpkg-source:
-	debclean
-	make distclean dist
-	mv $(DISTDIR) $(ORIGDIR)
-	tar --exclude-vcs -czpf ../$(ORIGDIR).orig.tar.gz $(ORIGDIR)
-	rm -f -- $(DISTDIR).tar.gz
-	rm -rf -- $(DISTDIR) $(ORIGDIR)
-	cd .. && dpkg-source -b $(LIBRARY_NAME)
-
-etags: TAGS
-
-TAGS: $(wildcard $(PD_INCLUDE)/*.h) $(SOURCES) $(SHARED_SOURCE) $(SHARED_HEADER)
-	etags $(wildcard $(PD_INCLUDE)/*.h)
-	etags -a *.h $(SOURCES) $(SHARED_SOURCE) $(SHARED_HEADER)
-	etags -a --language=none --regex="/proc[ \t]+\([^ \t]+\)/\1/" *.tcl
-
-showsetup:
-	@echo "CC: $(CC)"
-	@echo "CFLAGS: $(CFLAGS)"
-	@echo "LDFLAGS: $(LDFLAGS)"
-	@echo "LIBS: $(LIBS)"
-	@echo "ALL_CFLAGS: $(ALL_CFLAGS)"
-	@echo "ALL_LDFLAGS: $(ALL_LDFLAGS)"
-	@echo "ALL_LIBS: $(ALL_LIBS)"
-	@echo "PD_INCLUDE: $(PD_INCLUDE)"
-	@echo "PD_PATH: $(PD_PATH)"
-	@echo "objectsdir: $(objectsdir)"
-	@echo "LIBRARY_NAME: $(LIBRARY_NAME)"
-	@echo "LIBRARY_VERSION: $(LIBRARY_VERSION)"
-	@echo "SOURCES: $(SOURCES)"
-	@echo "SHARED_HEADER: $(SHARED_HEADER)"
-	@echo "SHARED_SOURCE: $(SHARED_SOURCE)"
-	@echo "SHARED_LIB: $(SHARED_LIB)"
-	@echo "SHARED_TCL_LIB: $(SHARED_TCL_LIB)"
-	@echo "PDOBJECTS: $(PDOBJECTS)"
-	@echo "ALLSOURCES: $(ALLSOURCES)"
-	@echo "ALLSOURCES TCL: $(wildcard $(ALLSOURCES:.c=.tcl))"
-	@echo "UNAME: $(UNAME)"
-	@echo "CPU: $(CPU)"
-	@echo "pkglibdir: $(pkglibdir)"
-	@echo "DISTDIR: $(DISTDIR)"
-	@echo "ORIGDIR: $(ORIGDIR)"
-	@echo "NDK_TOOLCHAIN: $(NDK_TOOLCHAIN)"
-	@echo "NDK_BASE: $(NDK_BASE)"
-	@echo "NDK_SYSROOT: $(NDK_SYSROOT)"
-	@echo "VPATH: $(VPATH)"
+# include Makefile.pdlibbuilder from submodule directory 'pd-lib-builder'
+PDLIBBUILDER_DIR=pd-lib-builder/
+include $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder
