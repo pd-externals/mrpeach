@@ -178,7 +178,6 @@ void midifile_setup(void)
     class_addmethod(midifile_class, (t_method)midifile_set_track, gensym("track"), A_DEFFLOAT, 0);
     class_addmethod(midifile_class, (t_method)midifile_rewind, gensym("rewind"), 0);
     class_addmethod(midifile_class, (t_method)midifile_verbosity, gensym("verbose"), A_DEFFLOAT, 0);
-    class_sethelpsymbol(midifile_class, gensym("midifile-help"));
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
     post(aStr);
 #else

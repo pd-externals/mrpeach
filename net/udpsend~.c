@@ -924,7 +924,6 @@ void udpsend_tilde_setup(void)
     class_addmethod(udpsend_tilde_class, (t_method)udpsend_tilde_disconnect, gensym("disconnect"), 0);
     class_addmethod(udpsend_tilde_class, (t_method)udpsend_tilde_channels, gensym("channels"), A_FLOAT, 0);
     class_addmethod(udpsend_tilde_class, (t_method)udpsend_tilde_format, gensym("format"), A_SYMBOL, A_DEFFLOAT, 0);
-    class_sethelpsymbol(udpsend_tilde_class, gensym("udpsend~"));
     post("udpsend~ v%s, (c) 2004-2005 Olaf Matthes, 2010 Martin Peach", VERSION);
     post("udpsend~ Default blocksize is %d", DEFAULT_AUDIO_BUFFER_SIZE);
 
