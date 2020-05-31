@@ -1,75 +1,68 @@
 #N canvas 31 152 1205 761 12;
-#X msg 148 156 disconnect;
-#X floatatom 482 635 3 0 0 0 - - -, f 3;
-#X floatatom 516 635 3 0 0 0 - - -, f 3;
-#X floatatom 552 635 3 0 0 0 - - -, f 3;
-#X floatatom 588 635 3 0 0 0 - - -, f 3;
-#X text 442 634 from;
-#X obj 459 487 tcpclient;
-#X obj 505 513 tgl 15 0 empty empty connected 18 7 0 8 -24198 -13381
--1 1 1;
-#X msg 172 180 dump \$1;
-#X obj 120 165 tgl 15 0 empty empty empty 0 -6 0 8 -4034 -13381 -1
+#X msg 208 155 disconnect;
+#X floatatom 473 566 3 0 0 0 - - -;
+#X floatatom 507 566 3 0 0 0 - - -;
+#X floatatom 543 566 3 0 0 0 - - -;
+#X floatatom 579 566 3 0 0 0 - - -;
+#X text 433 565 from;
+#X obj 450 418 tcpclient;
+#X obj 496 444 tgl 15 0 empty empty connected 18 7 0 8 -24198 -13381
+-1 0 1;
+#X msg 232 179 dump \$1;
+#X obj 180 164 tgl 15 0 empty empty empty 0 -6 0 8 -4034 -13381 -1
 0 1;
-#X text 224 42 connect with an IP address and port number;
-#X msg 60 68 connect www.concordia.ca 80;
-#X text 243 179 print received messages to main window in hexdump format
+#X text 284 41 connect with an IP address and port number;
+#X msg 120 67 connect www.concordia.ca 80;
+#X text 303 178 print received messages to main window in hexdump format
 ;
-#X text 543 486 tcpclient opens a tcp socket to send and receive bytes
+#X text 534 417 tcpclient opens a tcp socket to send and receive bytes
 on;
-#X text 43 405 See also:;
-#X obj 48 429 netclient;
-#X msg 35 43 connect 127.0.0.1 9997;
-#X obj 48 452 tcpreceive;
-#X text 46 474 can receive messages from tcpclient;
-#X text 124 428 is what tcpclient is based on;
-#X text 524 683 Received messages are output as a list of bytes;
-#X msg 343 351 send 49 127 128 51 59;
-#X obj 176 452 tcpserver;
-#X text 142 451 and;
-#X text 607 45 tcpclient can connect to a server and send and receive
+#X text 34 336 See also:;
+#X obj 39 360 netclient;
+#X msg 95 42 connect 127.0.0.1 9997;
+#X obj 39 383 tcpreceive;
+#X text 37 405 can receive messages from tcpclient;
+#X text 115 359 is what tcpclient is based on;
+#X text 515 614 Received messages are output as a list of bytes;
+#X msg 334 282 send 49 127 128 51 59;
+#X obj 167 383 tcpserver;
+#X text 133 382 and;
+#X text 667 44 tcpclient can connect to a server and send and receive
 messages as lists of bytes. Any integer value between 0 and 255 can
 be transmitted or received.;
-#X msg 197 205 send examples/test.txt;
-#X obj 245 229 openpanel;
-#X msg 245 253 send \$1;
-#X obj 159 214 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -13381
+#X msg 257 204 send examples/test.txt;
+#X obj 305 228 openpanel;
+#X msg 305 252 send \$1;
+#X obj 219 213 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -13381
 -1;
-#X text 382 205 send a file;
-#X text 322 228 ...any file;
-#X msg 382 374 71 69 84 32 104 116 116 112 58 47 47 47 105 110 100
+#X text 442 204 send a file;
+#X text 382 227 ...any file;
+#X msg 373 305 71 69 84 32 104 116 116 112 58 47 47 47 105 110 100
 101 120 46 104 116 109 108 13 10;
-#X text 865 381 'send' prefix is optional;
-#X obj 459 684 spigot;
-#X obj 504 661 tgl 15 0 empty empty enable_print 18 7 0 8 -24198 -13381
+#X text 856 312 'send' prefix is optional;
+#X obj 450 615 spigot;
+#X obj 495 592 tgl 15 0 empty empty enable_print 18 7 0 8 -24198 -13381
 -1 0 1;
-#X obj 459 713 print >>>;
-#X text 612 124 GET http:///index.phpCRLF;
-#X floatatom 634 583 9 0 0 0 - - -, f 9;
-#X text 467 414 set send-buffer size;
-#X floatatom 689 557 9 0 0 0 - - -, f 9;
-#X text 768 556 Size of the send buffer;
-#X msg 430 438 buf;
-#X text 471 437 get send-buffer size;
-#X msg 406 414 buf 10;
-#X msg 454 462 verbosity \$1;
-#X obj 399 447 tgl 15 1 empty empty empty 0 -6 0 8 -4034 -13381 -1
+#X obj 450 644 print >>>;
+#X text 672 123 GET http:///index.phpCRLF;
+#X floatatom 625 514 9 0 0 0 - - -;
+#X text 458 345 set send-buffer size;
+#X floatatom 680 488 9 0 0 0 - - -;
+#X text 759 487 Size of the send buffer;
+#X msg 421 369 buf;
+#X text 462 368 get send-buffer size;
+#X msg 397 345 buf 10;
+#X msg 445 393 verbosity \$1;
+#X obj 390 378 tgl 15 1 empty empty empty 0 -6 0 8 -4034 -13381 -1
 1 1;
-#X text 566 463 print connection status messages to main window (default)
+#X text 557 394 print connection status messages to main window (default)
 ;
-#X msg 124 116 send 71 69 84 32 104 116 116 112 58 47 47 47 105 110
+#X msg 184 115 send 71 69 84 32 104 116 116 112 58 47 47 47 105 110
 100 101 120 46 112 104 112 13 10 13 10;
-#X text 545 712 Attempting to print long messages can hang Pd!;
-#X msg 271 279 unblock;
-#X msg 85 93 connect 132.205.142.11 9997;
-#X msg 226 307 hello \;;
-#X obj 319 327 str to_list;
-#X text 418 325 semicolon-terminated strings for netserver or netreceive
-;
-#X text 353 275 if the tcpclient sender blocks for any reason \, it
-must be unblocked manually;
-#X text 704 582 Number of bytes sent;
-#X obj 744 533 print sender_blocked!;
+#X text 536 643 Attempting to print long messages can hang Pd!;
+#X msg 145 92 connect 132.205.142.11 9997;
+#X text 695 513 Number of bytes sent;
+#X obj 735 464 print sender_blocked!;
 #N canvas 527 268 494 344 META 0;
 #X text 12 215 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
 Wilkes for Pd version 0.42.;
@@ -84,23 +77,23 @@ unblock;
 #X text 12 135 OUTLET_1 list;
 #X text 12 155 OUTLET_2 float;
 #X text 12 175 OUTLET_3 sent buf blocked ourIP;
-#X restore 993 691 pd META;
-#X obj 634 507 route sent buf blocked ourIP;
-#X text 32 716 2017/12/27 Martin Peach;
-#X floatatom 799 635 3 0 0 0 - - -, f 3;
-#X floatatom 833 635 3 0 0 0 - - -, f 3;
-#X floatatom 869 635 3 0 0 0 - - -, f 3;
-#X floatatom 905 635 3 0 0 0 - - -, f 3;
-#X text 739 634 our IP;
-#X obj 799 607 unpack 0 0 0 0 0;
-#X floatatom 945 635 6 0 0 0 - - -, f 6;
-#X floatatom 625 635 5 0 0 0 - - -, f 5;
-#X obj 482 607 unpack 0 0 0 0 0;
+#X restore 984 622 pd META;
+#X obj 625 438 route sent buf blocked ourIP;
+#X floatatom 790 566 3 0 0 0 - - -;
+#X floatatom 824 566 3 0 0 0 - - -;
+#X floatatom 860 566 3 0 0 0 - - -;
+#X floatatom 896 566 3 0 0 0 - - -;
+#X text 730 565 our IP;
+#X obj 790 538 unpack 0 0 0 0 0;
+#X floatatom 936 566 6 0 0 0 - - -;
+#X floatatom 616 566 5 0 0 0 - - -;
+#X obj 473 538 unpack 0 0 0 0 0;
+#X text 23 647 2020/05/26 Martin Peach;
 #X connect 0 0 6 0;
 #X connect 6 0 33 0;
-#X connect 6 1 68 0;
+#X connect 6 1 62 0;
 #X connect 6 2 7 0;
-#X connect 6 3 58 0;
+#X connect 6 3 53 0;
 #X connect 8 0 6 0;
 #X connect 9 0 8 0;
 #X connect 11 0 6 0;
@@ -119,19 +112,17 @@ unblock;
 #X connect 45 0 44 0;
 #X connect 47 0 6 0;
 #X connect 49 0 6 0;
-#X connect 50 0 6 0;
-#X connect 51 0 52 0;
-#X connect 58 0 37 0;
-#X connect 58 1 39 0;
-#X connect 58 2 56 0;
-#X connect 58 3 65 0;
-#X connect 65 0 60 0;
-#X connect 65 1 61 0;
-#X connect 65 2 62 0;
-#X connect 65 3 63 0;
-#X connect 65 4 66 0;
-#X connect 68 0 1 0;
-#X connect 68 1 2 0;
-#X connect 68 2 3 0;
-#X connect 68 3 4 0;
-#X connect 68 4 67 0;
+#X connect 53 0 37 0;
+#X connect 53 1 39 0;
+#X connect 53 2 51 0;
+#X connect 53 3 59 0;
+#X connect 59 0 54 0;
+#X connect 59 1 55 0;
+#X connect 59 2 56 0;
+#X connect 59 3 57 0;
+#X connect 59 4 60 0;
+#X connect 62 0 1 0;
+#X connect 62 1 2 0;
+#X connect 62 2 3 0;
+#X connect 62 3 4 0;
+#X connect 62 4 61 0;

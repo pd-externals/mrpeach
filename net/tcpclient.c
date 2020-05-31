@@ -77,6 +77,7 @@ typedef struct _tcpclient_sender_params
     int                 x_sendresult;
     pthread_t           sendthreadid;
     int                 threadisvalid; /*  non-zero if sendthreadid is an active thread */
+    int                 x_finished; /* non-zero if thread has terminated */
     struct _tcpclient   *x_x;
 } t_tcpclient_sender_params;
 #define MAX_TCPCLIENT_THREADS 32
@@ -87,7 +88,7 @@ typedef struct _tcpclient
     t_object                    x_obj;
     t_clock                     *x_clock;
     t_clock                     *x_poll;
-    t_clock                     *x_sendclock;
+    //t_clock                     *x_sendclock;
     t_outlet                    *x_msgout;
     t_outlet                    *x_addrout;
     t_outlet                    *x_connectout;
@@ -106,8 +107,6 @@ typedef struct _tcpclient
     t_atom                      x_msgoutbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as float atoms
     unsigned char               x_msginbuf[MAX_TCPCLIENT_SEND_BUF]; // received data as bytes
     char                        *x_sendbuf; // pointer to data to send
-    int                         x_sendbuf_len; // number of bytes in sendbuf
-    int                         x_sendresult;
     int                         x_blocked;
     /* multithread stuff */
     pthread_t                   x_threadid; /* id of connector child thread */
@@ -134,7 +133,6 @@ static int tcpclient_set_socket_send_buf_size(t_tcpclient *x, int size);
 static void tcpclient_buf_size(t_tcpclient *x, t_symbol *s, int argc, t_atom *argv);
 static void tcpclient_rcv(t_tcpclient *x);
 static void tcpclient_poll(t_tcpclient *x);
-static void tcpclient_unblock(t_tcpclient *x);
 static void *tcpclient_new(void);
 static void tcpclient_free(t_tcpclient *x);
 void tcpclient_setup(void);
@@ -177,6 +175,7 @@ static void tcp_client_hexdump(t_tcpclient *x, long len)
     }
 }
 
+/* tcpclient_tick: this is called when x_clock times out (on connect) */
 static void tcpclient_tick(t_tcpclient *x)
 {
     t_atom output_atom[5];
@@ -189,6 +188,7 @@ static void tcpclient_tick(t_tcpclient *x)
     outlet_float(x->x_connectout, 1);
 }
 
+/* tcpclient_child_connect is in its own thread */
 static void *tcpclient_child_connect(void *w)
 {
     t_tcpclient         *x = (t_tcpclient*) w;
@@ -383,23 +383,18 @@ static int tcpclient_send_buf(t_tcpclient *x, char *buf, int buf_len)
     }
     max = (buf_len > MAX_TCPCLIENT_SEND_BUF)? MAX_TCPCLIENT_SEND_BUF: buf_len;
     while(0 != tsp->threadisvalid); /* wait for thread to clear */
-    for (i = 0; i < max; ++i)
-    {
-        tsp->x_sendbuf[i] = buf[i];
-    }
+    for (i = 0; i < max; ++i) tsp->x_sendbuf[i] = buf[i];/* copy to our buffer so it doesn't get overwritten */
     tsp->x_buf_len = i;
-    x->x_sendbuf_len += i;
     tsp->x_x = x;
     tsp->threadisvalid = 1;
     if((tsp->x_sendresult = pthread_create(&tsp->sendthreadid, &x->x_sendthreadattr, tcpclient_child_send, tsp)) < 0)
     {
         tsp->threadisvalid = 0;
-        post("%s_send_buf: could not create new thread (%d)", objName);
-        clock_delay(x->x_sendclock, 0); // calls tcpclient_sent
+        post("%s_send_buf: could not create new thread (%d)", objName, tsp->x_sendresult);
+        tsp->x_finished = 1; // poll clock will call tcpclient_sent, which looks for this flag
         return 0;
     }
-    x->x_nextthread++;
-    if (x->x_nextthread >= MAX_TCPCLIENT_THREADS) x->x_nextthread = 0;
+    x->x_nextthread = (1+x->x_nextthread)%MAX_TCPCLIENT_THREADS;
     return max;
 }
 
@@ -411,7 +406,7 @@ static void *tcpclient_child_send(void *w)
     if (tsp->x_x->x_fd >= 0) 
     {
         tsp->x_sendresult = send(tsp->x_x->x_fd, tsp->x_sendbuf, tsp->x_buf_len, 0);
-        clock_delay(tsp->x_x->x_sendclock, 0); // calls tcpclient_sent when it's safe to do so
+        tsp->x_finished = 1; // poll clock calls tcpclient_sent      
     }
     tsp->threadisvalid = 0; /* this thread is over */
     return(tsp);
@@ -420,25 +415,32 @@ static void *tcpclient_child_send(void *w)
 static void tcpclient_sent(t_tcpclient *x)
 {
     t_atom  output_atom;
-
-    if (x->x_sendresult < 0)
+    int i;
+    /* scan sender thread list for completed sends */
+    for (i = 0; i < MAX_TCPCLIENT_THREADS; ++i)
     {
-        sys_sockerror("tcpclient: send");
-        post("%s_sent: could not send data ", objName);
-        x->x_blocked++;
-        SETFLOAT(&output_atom, x->x_sendresult);
-        outlet_anything( x->x_statusout, gensym("blocked"), 1, &output_atom);
-    }
-    else if (x->x_sendresult == 0)
-    { /* assume the message is queued and will be sent real soon now */
-        SETFLOAT(&output_atom, x->x_sendbuf_len);
-        outlet_anything( x->x_statusout, gensym("sent"), 1, &output_atom);
-        x->x_sendbuf_len = 0; /* we might be called only once for multiple calls to  tcpclient_send_buf */
-    }
-    else
-    {
-        SETFLOAT(&output_atom, x->x_sendresult);
-        outlet_anything( x->x_statusout, gensym("sent"), 1, &output_atom);
+        x->x_tsp[i].x_finished = 0; 
+        if (x->x_tsp[i].x_finished)
+        {
+            if (x->x_tsp[i].x_sendresult < 0)
+            {
+                sys_sockerror("tcpclient: send");
+                post("%s_sent: could not send data ", objName);
+                x->x_blocked++;
+                SETFLOAT(&output_atom, x->x_tsp[i].x_sendresult);
+                outlet_anything( x->x_statusout, gensym("blocked"), 1, &output_atom);
+            }
+            else if (x->x_tsp[i].x_sendresult == 0) /* does this ever happen? */
+            { /* assume the message is queued and will be sent real soon now */
+                SETFLOAT(&output_atom, x->x_tsp[i].x_buf_len);
+                outlet_anything( x->x_statusout, gensym("queued"), 1, &output_atom);
+            }
+            else
+            {
+                SETFLOAT(&output_atom, x->x_tsp[i].x_sendresult);
+                outlet_anything( x->x_statusout, gensym("sent"), 1, &output_atom);
+            }
+        }
     }
 }
 
@@ -575,19 +577,16 @@ static void tcpclient_rcv(t_tcpclient *x)
             }
         }
     }
-    else post("%s: not connected", objName);
+    //else post("%s: not connected", objName);
 }
 
+/* tcpclient_poll is the x->x_poll clock callback */
+/* Handle the outlets in Pd spacetime */
 static void tcpclient_poll(t_tcpclient *x)
 {
-    if(x->x_connectstate)
-        tcpclient_rcv(x);	/* try to read in case we're connected */
+    tcpclient_rcv(x);	/* try to read in case we're connected */
+    tcpclient_sent(x); /* sere if any sends are complete */
     clock_delay(x->x_poll, DEFPOLLTIME);	/* see you later */
-}
-
-static void tcpclient_unblock(t_tcpclient *x)
-{
-    x->x_blocked = 0;
 }
 
 static void *tcpclient_new(void)
@@ -599,7 +598,7 @@ static void *tcpclient_new(void)
     x->x_addrout = outlet_new(&x->x_obj, &s_list);
     x->x_connectout = outlet_new(&x->x_obj, &s_float);	/* connection state */
     x->x_statusout = outlet_new(&x->x_obj, &s_anything);/* last outlet for everything else */
-    x->x_sendclock = clock_new(x, (t_method)tcpclient_sent);
+    //x->x_sendclock = clock_new(x, (t_method)tcpclient_sent);
     x->x_clock = clock_new(x, (t_method)tcpclient_tick);
     x->x_poll = clock_new(x, (t_method)tcpclient_poll);
     x->x_verbosity = 1; /* default post status changes to main window */
@@ -665,7 +664,6 @@ void tcpclient_setup(void)
     class_addmethod(tcpclient_class, (t_method)tcpclient_disconnect, gensym("disconnect"), 0);
     class_addmethod(tcpclient_class, (t_method)tcpclient_send, gensym("send"), A_GIMME, 0);
     class_addmethod(tcpclient_class, (t_method)tcpclient_buf_size, gensym("buf"), A_GIMME, 0);
-    class_addmethod(tcpclient_class, (t_method)tcpclient_unblock, gensym("unblock"), 0);
     class_addmethod(tcpclient_class, (t_method)tcpclient_verbosity, gensym("verbosity"), A_FLOAT, 0);
     class_addmethod(tcpclient_class, (t_method)tcpclient_dump, gensym("dump"), A_FLOAT, 0);
     class_addlist(tcpclient_class, (t_method)tcpclient_send);
