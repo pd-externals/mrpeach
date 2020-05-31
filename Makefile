@@ -65,6 +65,9 @@ datafiles = binfile/binfile-help.pd \
  net/tcpsocket.FUDI.pd net/LICENSE.txt net/tcpsocket.OSC-help.pd \
  net/udpsndrcv-help.pd net/tcpsocket.OSC.pd
  # pdpigpio/pigpio-help.pd pdpispi/pispi-help.pd pdpii2c/pii2c-help.pd
+ define forWindows
+   ldlibs += -lwsock32 -liphlpapi #-lpthreadGC2 #-lkernel32 -luser32 -lgdi32 -lregex -liberty
+ endef
 
 # include Makefile.pdlibbuilder from submodule directory 'pd-lib-builder'
 PDLIBBUILDER_DIR=pd-lib-builder/
