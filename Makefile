@@ -23,13 +23,14 @@ class.sources = 	binfile/binfile.c \
   serializer/sprint.c serializer/f2b.c serializer/b2f.c \
 	slipdec/slipdec.c slipenc/slipenc.c \
 	sqosc~/sqosc~.c \
-	str/str.c \
 	tab2flist/tab2flist.c \
 	tabfind/tabfind.c \
 	which/which.c \
   osc/unpackOSC.c osc/routeOSC.c osc/packOSC.c osc/pipelist.c \
   net/udpsend.c net/httpreceive.c net/tcpclient.c net/tcpserver.c net/udpreceive~.c net/udpreceive.c \
   net/httpreq.c net/tcpreceive.c net/udpsndrcv.c net/tcpsend.c net/udpsend~.c
+
+  # pdpigpio/pigpio.c pdpispi/pispi.c pdpii2c/pii2c.c
 
 # all extra files to be included in binary distribution of the library
 datafiles = binfile/binfile-help.pd \
@@ -50,7 +51,6 @@ datafiles = binfile/binfile-help.pd \
  serializer/f2b-help.pd serializer/b2f-help.pd serializer/sprint-help.pd \
  slipdec/slipdec-help.pd slipenc/slipenc-help.pd \
  sqosc~/sqosc~-help.pd \
- str/str-help.pd str/str-to-comport.pd \
  tab2flist/tab2flist-help.pd \
  tabfind/tabfind-help.pd \
  which/which-help.pd \
@@ -64,6 +64,7 @@ datafiles = binfile/binfile-help.pd \
  net/tcpsocket.FUDI-help.pd net/udpreceive-help.pd net/tcpreceive-help.pd \
  net/tcpsocket.FUDI.pd net/LICENSE.txt net/tcpsocket.OSC-help.pd \
  net/udpsndrcv-help.pd net/tcpsocket.OSC.pd
+ # pdpigpio/pigpio-help.pd pdpispi/pispi-help.pd pdpii2c/pii2c-help.pd
 
 # include Makefile.pdlibbuilder from submodule directory 'pd-lib-builder'
 PDLIBBUILDER_DIR=pd-lib-builder/
