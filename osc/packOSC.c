@@ -323,7 +323,7 @@ static void packOSC_closebundle(t_packOSC *x)
     }
     outlet_float(x->x_bdpthout, bundledepth);
     /* in bundle mode we send when bundle is closed */
-    if(!OSC_isBufferEmpty(x->x_oscbuf) > 0 && OSC_isBufferDone(x->x_oscbuf))
+    if((!OSC_isBufferEmpty(x->x_oscbuf)) && OSC_isBufferDone(x->x_oscbuf))
     {
         x->x_bundle = 0; /* call this before _sendbuffer() to be ready for recursive calls */
         packOSC_sendbuffer(x);
@@ -672,7 +672,6 @@ static typedArg packOSC_packMIDI(t_atom *a)
   int         i;
   typedArg    returnVal;
   int         m[4];
-  static char buf[MAXPDSTRING];
 
   for (i = 0; i < 4; ++i, ++a)
   {
