@@ -649,7 +649,7 @@ void tcpclient_setup(void)
 {
     char    aboutStr[MAXPDSTRING];
 
-    snprintf(aboutStr, MAXPDSTRING, "%s: (GPL) 20111103 Martin Peach, compiled for pd-%d.%d on %s",
+    snprintf(aboutStr, MAXPDSTRING, "%s: (GPL) 20200530 Martin Peach, compiled for pd-%d.%d on %s",
              objName, PD_MAJOR_VERSION, PD_MINOR_VERSION, BUILD_DATE );
 
 #if PD_MAJOR_VERSION==0 && PD_MINOR_VERSION<43
