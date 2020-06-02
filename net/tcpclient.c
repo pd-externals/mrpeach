@@ -196,20 +196,22 @@ static void *tcpclient_child_connect(void *w)
     struct hostent      *hp;
     int                 sockfd;
     socklen_t           addrlen = sizeof (addr);
-    if (x->x_fd >= 0)
-    {
-        error("%s_child_connect: already connected", objName);
-        return (x);
-    }
+
+    // we already checked x_fd before creating this thread
+    //if (x->x_fd >= 0)
+    //{
+    //    error("%s_child_connect: already connected", objName);
+    //    return (x);
+    //}
 
     /* create a socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 #ifdef DEBUG
-    post("%s: send socket %d\n", objName, sockfd);
+    sys_lock(); post("%s: send socket %d\n", objName, sockfd); sys_unlock();
 #endif
     if (sockfd < 0)
     {
-        sys_sockerror("tcpclient: socket");
+        sys_lock(); sys_sockerror("tcpclient: socket"); sys_unlock();
         return (x);
     }
     /* connect socket using hostname provided in command line */
@@ -217,7 +219,7 @@ static void *tcpclient_child_connect(void *w)
     hp = gethostbyname(x->x_hostname);
     if (hp == 0)
     {
-        sys_sockerror("tcpclient: bad host?\n");
+        sys_lock(); sys_sockerror("tcpclient: bad host?\n"); sys_unlock();
         return (x);
     }
     memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
@@ -225,12 +227,17 @@ static void *tcpclient_child_connect(void *w)
     /* assign client port number */
     server.sin_port = htons((u_short)x->x_port);
 
-    if (x->x_verbosity) post("%s: connecting socket %d to port %d", objName, sockfd, x->x_port);
+    if (x->x_verbosity)
+    {
+      sys_lock(); post("%s: connecting socket %d to port %d", objName, sockfd, x->x_port); sys_unlock();
+    }
     /* try to connect */
     if (connect(sockfd, (struct sockaddr *) &server, sizeof (server)) < 0)
     {
+        sys_lock();
         sys_sockerror("tcpclient: connecting stream socket");
         sys_closesocket(sockfd);
+        sys_unlock();
         return (x);
     }
     x->x_fd = sockfd;
@@ -241,7 +248,9 @@ static void *tcpclient_child_connect(void *w)
     x->x_blocked = 0;
     /* Find our address */
     if (getsockname(sockfd, (struct sockaddr *)&addr, (socklen_t *)&addrlen))
-        sys_sockerror("tcpclient: getting socket name");
+    {
+        sys_lock(); sys_sockerror("tcpclient: getting socket name"); sys_unlock();
+    }
     else
     { /* output the address this socket is bound to */
         //printf("addrlen %u\n", addrlen);
@@ -251,7 +260,7 @@ static void *tcpclient_child_connect(void *w)
         x->x_ourPort = ntohs(addr.sin_port);
     }
     /* use callback instead to set outlet */
-    clock_delay(x->x_clock, 0);
+    sys_lock(); clock_delay(x->x_clock, 0); sys_unlock();
     return (x);
 }
 
@@ -601,7 +610,7 @@ static void *tcpclient_new(void)
     //x->x_sendclock = clock_new(x, (t_method)tcpclient_sent);
     x->x_clock = clock_new(x, (t_method)tcpclient_tick);
     x->x_poll = clock_new(x, (t_method)tcpclient_poll);
-    x->x_verbosity = 1; /* default post status changes to main window */
+    x->x_verbosity = 0; /* by default, don't post status changes to main window */
     x->x_fd = -1;
     /* convert the bytes in the buffer to floats in a list */
     for (i = 0; i < MAX_TCPCLIENT_SEND_BUF; ++i)
