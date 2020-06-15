@@ -41,6 +41,7 @@
 
 #include <sys/errno.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -194,7 +195,7 @@ static void *tcpclient_child_connect(void *w)
     t_tcpclient         *x = (t_tcpclient*) w;
     struct sockaddr_in  server, addr;
     struct hostent      *hp;
-    int                 sockfd;
+    int                 sockfd, intarg;
     socklen_t           addrlen = sizeof (addr);
 
     // we already checked x_fd before creating this thread
@@ -216,6 +217,20 @@ static void *tcpclient_child_connect(void *w)
     }
     /* connect socket using hostname provided in command line */
     server.sin_family = AF_INET;
+
+    /* ask OS to allow another Pd to reopen this port after we close it. */
+    intarg = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&intarg, sizeof(intarg)) < 0)
+    {
+        sys_lock(); post("tcpreceive: setsockopt (SO_REUSEADDR) failed"); sys_unlock();
+    }
+    /* Stream (TCP) sockets are set NODELAY */
+    intarg = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&intarg, sizeof(intarg)) < 0)
+    {
+        sys_lock(); post("setsockopt (TCP_NODELAY) failed\n"); sys_unlock();
+    }
+
     hp = gethostbyname(x->x_hostname);
     if (hp == 0)
     {

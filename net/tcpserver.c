@@ -764,13 +764,13 @@ static int tcpserver_get_socket_send_buf_size(int sockfd)
 static int tcpserver_set_socket_send_buf_size(int sockfd, int size)
 {
     int                 optVal = size;
-    int                 optLen = sizeof(int);
+
 #ifdef _WIN32
-    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, optLen) == SOCKET_ERROR)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, sizeof(int)) == SOCKET_ERROR)
     {
         post("%s_set_socket_send_buf_size: setsockopt returned %d\n", objName, WSAGetLastError());
 #else
-    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, optLen) == -1)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, sizeof(int)) == -1)
     {
         post("%s_set_socket_send_buf_size: setsockopt returned %d\n", objName, errno);
 #endif
@@ -1177,8 +1177,7 @@ static void tcpserver_port(t_tcpserver*x, t_floatarg fportno)
     struct sockaddr_in  server;
     socklen_t           serversize = sizeof(server);
     int                 sockfd = x->x_connectsocket;
-    int                 optVal = 1;
-    int                 optLen = sizeof(int);
+    int                 optVal;
 
 
     if(x->x_port == portno)  return;
@@ -1211,12 +1210,23 @@ static void tcpserver_port(t_tcpserver*x, t_floatarg fportno)
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     /* enable reuse of local address */
+    optVal = 1;
 #ifdef _WIN32
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, optLen) == SOCKET_ERROR)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, sizeof(int)) == SOCKET_ERROR)
+        post("%s SO_REUSEADDR: setsockopt returned %d\n", objName, WSAGetLastError());
 #else
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, optLen) == -1)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, sizeof(int)) == -1)
+        post("%s SO_REUSEADDR: setsockopt returned %d\n", objName, errno);
 #endif
-        sys_sockerror("tcpserver: setsockopt SO_REUSEADDR");
+    /* Stream (TCP) sockets are set NODELAY */
+    optVal = 1;
+#ifdef _WIN32
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&optVal, sizeof(int))  == SOCKET_ERROR)
+        post("%s TCP_NODELAY: setsockopt returned %d\n", objName, WSAGetLastError());
+#else
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&optVal, sizeof(int)) < 0)
+        post("%s TCP_NODELAY: setsockopt returned %d\n", objName, errno);
+#endif
 
     /* assign server port number */
     server.sin_port = htons((u_short)portno);
@@ -1264,8 +1274,7 @@ static void *tcpserver_new(t_floatarg fportno)
     int                 i;
     struct sockaddr_in  server;
     int                 sockfd, portno = fportno;
-    int                 optVal = 1;
-    int                 optLen = sizeof(int);
+    int                 optVal;
 
     /* create a socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -1277,13 +1286,24 @@ static void *tcpserver_new(t_floatarg fportno)
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     /* enable reuse of local address */
+    optVal = 1;
 #ifdef _WIN32
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, optLen) == SOCKET_ERROR)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, sizeof(int)) == SOCKET_ERROR)
+        post("%s SO_REUSEADDR: setsockopt returned %d\n", objName, WSAGetLastError());
 #else
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, optLen) == -1)
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&optVal, sizeof(int)) == -1)
+        post("%s SO_REUSEADDR: setsockopt returned %d\n", objName, errno);
 #endif
         sys_sockerror("tcpserver: setsockopt SO_REUSEADDR");
-
+    /* Stream (TCP) sockets are set NODELAY */
+    optVal = 1;
+#ifdef _WIN32
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&optVal, sizeof(int))  == SOCKET_ERROR)
+        post("%s TCP_NODELAY: setsockopt returned %d\n", objName, WSAGetLastError());
+#else
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*)&optVal, sizeof(int)) < 0)
+        post("%s TCP_NODELAY: setsockopt returned %d\n", objName, errno);
+#endif
     /* assign server port number */
     server.sin_port = htons((u_short)portno);
     /* name the socket */
