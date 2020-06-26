@@ -68,21 +68,21 @@ static t_class *tcpclient_class;
 static char objName[] = "tcpclient";
 #define MAX_TCPCLIENT_SEND_BUF 65536L // longer than data in maximum UDP packet
 
-/* each send is handled by a new thread with a new parameter struct: */
-/* these are stored under x->x_tsp[0..MAX_TCPCLIENT_THREADS-1] */
+/* each send is handled by a thread with a new parameter struct: */
+/* these are stored under x->x_tsp[0..MAX_TCPCLIENT_BUFFERS-1] */
 /* The buffer is preallocated for speed. */
 typedef struct _tcpclient_sender_params
 {
     char                x_sendbuf[MAX_TCPCLIENT_SEND_BUF]; /* possibly allocate this dynamically for space over speed */
     size_t              x_buf_len;
     int                 x_sendresult;
-    pthread_t           sendthreadid;
+//    pthread_t           sendthreadid;
     int                 threadisvalid; /*  non-zero if sendthreadid is an active thread */
     int                 x_finished; /* non-zero if thread has terminated */
-    struct _tcpclient   *x_x;
+//    struct _tcpclient   *x_x;
 } t_tcpclient_sender_params;
-#define MAX_TCPCLIENT_THREADS 32
-/* MAX_TCPCLIENT_THREADS is small to avoid wasting space. This is the maximum number of concurrent threads. */
+#define MAX_TCPCLIENT_BUFFERS 32
+/* MAX_TCPCLIENT_BUFFERS is small to avoid wasting space. This is the maximum number of concurrent threads. */
 
 typedef struct _tcpclient
 {
@@ -111,10 +111,11 @@ typedef struct _tcpclient
     int                         x_blocked;
     /* multithread stuff */
     pthread_t                   x_threadid; /* id of connector child thread */
+    pthread_t                   x_sendthreadid; /* id of sender child thread */
     pthread_attr_t              x_threadattr; /* attributes of connector child thread */
-    pthread_attr_t              x_sendthreadattr; /* attributes of all sender child thread for sending */
-    int                         x_nextthread; /* next unused x_tsp */
-    t_tcpclient_sender_params   x_tsp[MAX_TCPCLIENT_THREADS];
+    pthread_attr_t              x_sendthreadattr; /* attributes of sender child thread */
+    int                         x_nextbuffer; /* next unused send buffer */
+    t_tcpclient_sender_params   x_tsp[MAX_TCPCLIENT_BUFFERS];
 /* Thread params are used round-robin to avoid overwriting buffers when doing multiple sends */
 } t_tcpclient;
 
@@ -127,7 +128,7 @@ static void tcpclient_connect(t_tcpclient *x, t_symbol *hostname, t_floatarg fpo
 static void tcpclient_disconnect(t_tcpclient *x);
 static void tcpclient_send(t_tcpclient *x, t_symbol *s, int argc, t_atom *argv);
 static int tcpclient_send_buf(t_tcpclient *x, char *buf, int buf_len);
-static void *tcpclient_child_send(void *w);
+static void *tcp_client_sender_loop(void *w);
 static void tcpclient_sent(t_tcpclient *x);
 static int tcpclient_get_socket_send_buf_size(t_tcpclient *x);
 static int tcpclient_set_socket_send_buf_size(t_tcpclient *x, int size);
@@ -180,6 +181,8 @@ static void tcp_client_hexdump(t_tcpclient *x, long len)
 static void tcpclient_tick(t_tcpclient *x)
 {
     t_atom output_atom[5];
+    int i, result;
+
     SETFLOAT(&output_atom[0], (x->x_ourAddr & 0xFF000000)>>24); // address of our interface in bytes
     SETFLOAT(&output_atom[1], (x->x_ourAddr & 0x0FF0000)>>16);
     SETFLOAT(&output_atom[2], (x->x_ourAddr & 0x0FF00)>>8);
@@ -187,6 +190,18 @@ static void tcpclient_tick(t_tcpclient *x)
     SETFLOAT(&output_atom[4], x->x_ourPort); // port nunber of our interface
     outlet_anything( x->x_statusout, gensym("ourIP"), 5, output_atom);
     outlet_float(x->x_connectout, 1);
+    /* start the sender loop */
+    for (i = 0; i < MAX_TCPCLIENT_BUFFERS; ++i)
+    {
+        x->x_tsp[i].threadisvalid = 0;
+        x->x_tsp[i].x_buf_len = 0;
+    }
+    if((result = pthread_create(&x->x_sendthreadid, &x->x_sendthreadattr, tcp_client_sender_loop, x)) < 0)
+    {
+        pd_error(x, "tcpclient_tick: could not create new thread (%d)", result);
+        /* mow what? */
+    }
+
 }
 
 /* tcpclient_child_connect is in its own thread */
@@ -197,13 +212,6 @@ static void *tcpclient_child_connect(void *w)
     struct hostent      *hp;
     int                 sockfd, intarg;
     socklen_t           addrlen = sizeof (addr);
-
-    // we already checked x_fd before creating this thread
-    //if (x->x_fd >= 0)
-    //{
-    //    error("%s_child_connect: already connected", objName);
-    //    return (x);
-    //}
 
     /* create a socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -298,17 +306,20 @@ static void tcpclient_connect(t_tcpclient *x, t_symbol *hostname, t_floatarg fpo
 
 static void tcpclient_disconnect(t_tcpclient *x)
 {
-    int i;
+    int i, result;
+    void *status;
 
     if (x->x_fd >= 0)
     {
-        for (i = 0; i < MAX_TCPCLIENT_THREADS;++i)
-        { /* wait for any sender threads to finish */
+        for (i = 0; i < MAX_TCPCLIENT_BUFFERS;++i)
+        { /* wait for sender thread to finish sending */
             while (x->x_tsp[i].threadisvalid != 0);
         }
+        x->x_connectstate = 0; // sender thread looks for this
+        result = pthread_join(x->x_sendthreadid, &status);
+        //post("tcpclient_disconnect pthread_join result = %d, status = %ld", result, (long)status);
         sys_closesocket(x->x_fd);
         x->x_fd = -1;
-        x->x_connectstate = 0;
         x->x_ourAddr = 0L;
         x->x_ourPort = 0;
         outlet_float(x->x_connectout, 0);
@@ -392,10 +403,9 @@ static void tcpclient_send(t_tcpclient *x, t_symbol *s, int argc, t_atom *argv)
     sent += tcpclient_send_buf(x, byte_buf, j);
 }
 
-
 static int tcpclient_send_buf(t_tcpclient *x, char *buf, int buf_len)
 {
-    t_tcpclient_sender_params   *tsp = &x->x_tsp[x->x_nextthread];
+    t_tcpclient_sender_params   *tsp = &x->x_tsp[x->x_nextbuffer];
     int                         i, max;
 
     if (x->x_blocked) return 0;
@@ -409,31 +419,32 @@ static int tcpclient_send_buf(t_tcpclient *x, char *buf, int buf_len)
     while(0 != tsp->threadisvalid); /* wait for thread to clear */
     for (i = 0; i < max; ++i) tsp->x_sendbuf[i] = buf[i];/* copy to our buffer so it doesn't get overwritten */
     tsp->x_buf_len = i;
-    tsp->x_x = x;
-    tsp->threadisvalid = 1;
-    if((tsp->x_sendresult = pthread_create(&tsp->sendthreadid, &x->x_sendthreadattr, tcpclient_child_send, tsp)) < 0)
-    {
-        tsp->threadisvalid = 0;
-        post("%s_send_buf: could not create new thread (%d)", objName, tsp->x_sendresult);
-        tsp->x_finished = 1; // poll clock will call tcpclient_sent, which looks for this flag
-        return 0;
-    }
-    x->x_nextthread = (1+x->x_nextthread)%MAX_TCPCLIENT_THREADS;
+    tsp->threadisvalid = 1; // tcp_client_sender_loop is looking for this flag
+    x->x_nextbuffer = (1+x->x_nextbuffer)%MAX_TCPCLIENT_BUFFERS;
     return max;
 }
 
-/* tcpclient_child_send runs in sendthread */
-static void *tcpclient_child_send(void *w)
+/* tcp_client_sender_loop runs in its own thread, checking for things to send */
+static void *tcp_client_sender_loop(void *w)
 {
-    t_tcpclient_sender_params *tsp = (t_tcpclient_sender_params*) w;
+    t_tcpclient *xx = (t_tcpclient *)w;
+    t_tcpclient_sender_params *tsp;
+    int i;
 
-    if (tsp->x_x->x_fd >= 0) 
+    while (0 != xx->x_connectstate)
     {
-        tsp->x_sendresult = send(tsp->x_x->x_fd, tsp->x_sendbuf, tsp->x_buf_len, 0);
-        tsp->x_finished = 1; // poll clock calls tcpclient_sent      
-    }
-    tsp->threadisvalid = 0; /* this thread is over */
-    return(tsp);
+        for (i = 0; i < MAX_TCPCLIENT_BUFFERS; ++i)
+        {
+            tsp = &xx->x_tsp[i];
+            if ((1 == tsp->threadisvalid) && (tsp->x_buf_len > 0))
+            {
+                tsp->x_sendresult = send(xx->x_fd, tsp->x_sendbuf, tsp->x_buf_len, 0);
+                tsp->x_finished = 1; // poll clock calls tcpclient_sent      
+                tsp->threadisvalid = 0; /* this thread is over */
+            }
+        }
+    } // loop while connected
+    pthread_exit((void *)w);
 }
 
 static void tcpclient_sent(t_tcpclient *x)
@@ -441,9 +452,8 @@ static void tcpclient_sent(t_tcpclient *x)
     t_atom  output_atom;
     int i;
     /* scan sender thread list for completed sends */
-    for (i = 0; i < MAX_TCPCLIENT_THREADS; ++i)
+    for (i = 0; i < MAX_TCPCLIENT_BUFFERS; ++i)
     {
-        x->x_tsp[i].x_finished = 0; 
         if (x->x_tsp[i].x_finished)
         {
             if (x->x_tsp[i].x_sendresult < 0)
@@ -462,8 +472,10 @@ static void tcpclient_sent(t_tcpclient *x)
             else
             {
                 SETFLOAT(&output_atom, x->x_tsp[i].x_sendresult);
+                //SETFLOAT(&output_atom, i); // see which buffer was sent
                 outlet_anything( x->x_statusout, gensym("sent"), 1, &output_atom);
             }
+            x->x_tsp[i].x_finished = 0; 
         }
     }
 }
@@ -643,7 +655,7 @@ static void *tcpclient_new(void)
     x->x_ourAddr = 0L;
     x->x_ourPort = 0;
     x->x_connectstate = 0;
-    x->x_nextthread = 0;
+    x->x_nextbuffer = 0;
     /* prepare child threads */
     if(pthread_attr_init(&x->x_threadattr) < 0)
         post("%s: warning: could not prepare child thread", objName);
@@ -651,7 +663,7 @@ static void *tcpclient_new(void)
         post("%s: warning: could not prepare child thread", objName);
     if(pthread_attr_init(&x->x_sendthreadattr) < 0)
         post("%s: warning: could not prepare child thread", objName);
-    if(pthread_attr_setdetachstate(&x->x_sendthreadattr, PTHREAD_CREATE_DETACHED) < 0)
+    if(pthread_attr_setdetachstate(&x->x_sendthreadattr, PTHREAD_CREATE_JOINABLE) < 0)
         post("%s: warning: could not prepare child thread", objName);
     clock_delay(x->x_poll, 0);	/* start polling the input */
     return (x);
