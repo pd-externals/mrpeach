@@ -89,6 +89,12 @@ static OSCTimeTag OSCTT_Infinite(void);
 
 static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint32_t offset);
 
+static OSCTimeTag OSCTT_CurrentPdTimePlusOffset(uint32_t offset);
+/* these are globals so other packOSCs will be in lockstep */
+OSCTimeTag packOSCStartTimeTag;
+double packOSCLogicalStartTime;
+int packOSCs;
+/* packOSCLogicalStartTime is Pd's count of DSP ticks. Use clock_gettimesince() to measure intervals in milliseconds from here */
 
 /* Don't ever manipulate the data in the OSCbuf struct directly.  (It's
    declared here in the header file only so your program will be able to
@@ -226,6 +232,7 @@ typedef struct _packOSC
     t_atom      *x_bufferForOSClist; /*[SC_BUFFER_SIZE];*/
     char        *x_prefix;
     int         x_reentry_count;
+    int         x_use_pd_time;
 } t_packOSC;
 
 static void *packOSC_new(void);
@@ -251,6 +258,7 @@ static void packOSC_sendbuffer(t_packOSC *x);
 
 static void *packOSC_new(void)
 {
+    double delta_ms;
     t_packOSC *x = (t_packOSC *)pd_new(packOSC_class);
     x->x_typetags = 1; /* set typetags to 1 by default */
     x->x_bundle = 0; /* bundle is closed */
@@ -273,6 +281,15 @@ static void *packOSC_new(void)
     x->x_bdpthout = outlet_new(&x->x_obj, &s_float);
     x->x_timeTagOffset = -1; /* immediately */
     x->x_reentry_count = 0;
+    x->x_use_pd_time = 1; /* TODO set this somehwere else */
+    if  (0 == packOSCLogicalStartTime)
+    {
+        packOSCLogicalStartTime = clock_getlogicaltime();
+        packOSCStartTimeTag = OSCTT_CurrentTimePlusOffset(0L);
+    }
+    delta_ms = clock_gettimesince(packOSCLogicalStartTime);
+    packOSCs++;
+    post("packOSC[%d]: delta_ms %lf timetag: %ldsec %ld\n", packOSCs, delta_ms, packOSCStartTimeTag.seconds, packOSCStartTimeTag.fraction);
     return (x);
 fail:
     if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
@@ -300,8 +317,11 @@ static void packOSC_openbundle(t_packOSC *x)
 {
     int result;
     t_float bundledepth=(t_float)x->x_oscbuf->bundleDepth;
+
     if (x->x_timeTagOffset == -1)
         result = OSC_openBundle(x->x_oscbuf, OSCTT_Immediately());
+    else if (x->x_use_pd_time)
+        result = OSC_openBundle(x->x_oscbuf, OSCTT_CurrentPdTimePlusOffset((uint32_t)x->x_timeTagOffset));
     else
         result = OSC_openBundle(x->x_oscbuf, OSCTT_CurrentTimePlusOffset((uint32_t)x->x_timeTagOffset));
     if (result != 0)
@@ -1537,6 +1557,36 @@ static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint32_t offset)
         tt.seconds++;
     }
     tt.fraction *= (unsigned) TWO_TO_THE_32_OVER_ONE_MILLION; /* convert usec to 32-bit fraction of 1 sec */
+    return tt;
+}
+
+/* Use the global time that was set once by the first packOSC instance, to avoid OS/Pd clock jitter  */
+static OSCTimeTag OSCTT_CurrentPdTimePlusOffset(uint32_t offset)
+{ /* offset is in microseconds */
+    OSCTimeTag tt;
+    static unsigned int onemillion = 1000000;
+    static unsigned int onethousand = 1000;
+
+    /* milliseconds since 'our' epoch */
+    double delta_ms = clock_gettimesince(packOSCLogicalStartTime);
+
+
+    /* First get the seconds right */
+    tt.seconds = floor(delta_ms/onethousand) +
+        packOSCStartTimeTag.seconds +
+        (unsigned) offset/onemillion;
+    /* Now get the fractional part. */
+    tt.fraction = (unsigned) (delta_ms*onethousand - tt.seconds*onemillion) +
+        packOSCStartTimeTag.fraction + 
+        (unsigned)(offset%onemillion); /* in usec */
+        
+    if (tt.fraction > onemillion)
+    {
+        tt.fraction -= onemillion;
+        tt.seconds++;
+    }
+    tt.fraction *= (unsigned) TWO_TO_THE_32_OVER_ONE_MILLION; /* convert usec to 32-bit fraction of 1 sec */
+    post("delta_ms %lf timetag: %ldsec %ld\n", delta_ms, tt.seconds, tt.fraction);
     return tt;
 }
 
