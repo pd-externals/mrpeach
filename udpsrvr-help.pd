@@ -1,0 +1,70 @@
+#N canvas 248 527 722 628 12;
+#X declare -path mrpeach;
+#X msg 216 314 status;
+#X text 23 315 get status on right outlet:;
+#N canvas 510 620 494 344 META 0;
+#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
+Wilkes for Pd version 0.42.;
+#X text 12 25 LICENSE GPL v2 or later;
+#X text 12 5 KEYWORDS control network;
+#X text 12 135 AUTHOR Martin Peach \, Dennis Engdahl;
+#X text 12 45 DESCRIPTION listens for datagrams over a udp connection
+and outputs them as raw bytes. Sends to specific hosts.;
+#X text 12 75 INLET_0 status listen connect disconnect float(s);
+#X text 12 95 OUTLET_0 received data;
+#X text 12 115 OUTLET_1 status messages;
+#X restore 638 13 pd META;
+#X msg 88 186 disconnect;
+#X msg -6 92 listen 10101;
+#X obj 259 377 udpsrvr;
+#X obj 529 423 print c;
+#X msg 56 154 5 6 7;
+#X obj 345 465 unpack 0 0 0 0 0, f 23;
+#X floatatom 346 504 5 0 0 0 - - -;
+#X floatatom 385 504 5 0 0 0 - - -;
+#X floatatom 424 504 5 0 0 0 - - -;
+#X floatatom 463 504 5 0 0 0 - - -;
+#X floatatom 503 504 7 0 0 0 - - -;
+#X obj 259 538 print rcvd;
+#X floatatom 402 423 5 0 0 0 - - -;
+#X text 299 424 bytes received;
+#X text 314 503 from;
+#X obj 543 46 declare -path mrpeach;
+#X text 531 70 Martin Peach 2021/06/07;
+#X text -11 3 [udpsrvr] receives and sends datagrams over a udp connection
+\, outputting them as raw bytes. It can use the same port for both
+send and receive.;
+#X text 107 152 send some data;
+#X text 169 186 resume listening;
+#X text 209 117 prepare to send to this address (reception is turned
+off until you disconnect \, when it reverts to listening);
+#X text 31 55 No creation arguments!;
+#X msg 143 241 connect 10.0.0.186 10101 \, 48 50 51 \, disconnect;
+#X text 20 219 doing it as one operation is faster \, reducing loss
+of incoming packets:;
+#X msg 167 265 listen 9998;
+#X text 258 265 listening on another port recreates the socket;
+#X obj 345 397 route from received total;
+#X floatatom 459 441 7 0 0 0 - - -;
+#X text 315 444 total bytes received;
+#X msg 25 123 connect 10.0.0.5 10102;
+#X text 93 91 listen on port 10101 Accepts datagrams from any address.
+;
+#X connect 0 0 5 0;
+#X connect 3 0 5 0;
+#X connect 4 0 5 0;
+#X connect 5 0 14 0;
+#X connect 5 1 29 0;
+#X connect 7 0 5 0;
+#X connect 8 0 9 0;
+#X connect 8 1 10 0;
+#X connect 8 2 11 0;
+#X connect 8 3 12 0;
+#X connect 8 4 13 0;
+#X connect 25 0 5 0;
+#X connect 27 0 5 0;
+#X connect 29 0 8 0;
+#X connect 29 1 15 0;
+#X connect 29 2 30 0;
+#X connect 29 3 6 0;
+#X connect 32 0 5 0;
