@@ -41,27 +41,26 @@ static t_class *udpsrvr_class;
 
 typedef struct _udpsrvr
 {
-    t_object        x_obj;
-    int             x_fd; /* the socket */
-    int             x_portno; /* the port we listen on */
-    t_outlet        *x_msgout;
-    t_outlet        *x_addrout;
-    long            x_total_received;
-    t_atom          x_addrbytes[5];
-    t_atom          x_msgoutbuf[MAX_UDP_RECEIVE];
-    char            x_msginbuf[MAX_UDP_RECEIVE];
-    char            x_addr_name[256]; // a multicast address or 0
+    t_object            x_obj;
+    int                 x_fd; /* the socket */
+    int                 x_portno; /* the port we listen on */
+    t_outlet            *x_msgout;
+    t_outlet            *x_addrout;
+    long                x_total_received;
+    struct sockaddr_in  x_remote;
+    t_atom              x_addrbytes[5];
+    t_atom              x_msgoutbuf[MAX_UDP_RECEIVE];
+    char                x_msginbuf[MAX_UDP_RECEIVE];
+    char                x_addr_name[256]; // a multicast address or 0
 } t_udpsrvr;
 
 void udpsrvr_setup(void);
 static void udpsrvr_free(t_udpsrvr *x);
 static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv);
-static void udpsrvr_disconnect(t_udpsrvr *x);
 static void udpsrvr_listen(t_udpsrvr *x, t_floatarg fListeningPort);
-static void udpsrvr_connect(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort);
+static void udpsrvr_to(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort);
 static void udpsrvr_sock_err(t_udpsrvr *x, char *err_string);
 static void *udpsrvr_new(void);
-static void udpsrvr_sock_err(t_udpsrvr *x, char *err_string);
 static void udpsrvr_status(t_udpsrvr *x);
 static void udpsrvr_read(t_udpsrvr *x, int sockfd);
 
@@ -200,12 +199,10 @@ static void udpsrvr_listen(t_udpsrvr *x, t_floatarg fListeningPort)
     return;
 }
 
-static void udpsrvr_connect(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort)
-{
-    struct sockaddr_in  server;
+static void udpsrvr_to(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort)
+{ // set up the remote address for sendto
     struct hostent      *hp;
     int                 toPort = fToPort;
-    t_atom              output_atom;
 
     if (x->x_fd < 0)
     {
@@ -215,7 +212,7 @@ static void udpsrvr_connect(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort
 
     /* assign client port number */
     if (toPort == 0) toPort = x->x_portno;
-    server.sin_family = AF_INET;
+    x->x_remote.sin_family = AF_INET;
 
     /* connect socket using hostname provided in command line */
     hp = gethostbyname(hostname->s_name);
@@ -224,18 +221,10 @@ static void udpsrvr_connect(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort
         post("udpsrvr: bad host?\n");
         return;
     }
-    memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
-    server.sin_port = htons((u_short)toPort);
+    memcpy((char *)&x->x_remote.sin_addr, (char *)hp->h_addr, hp->h_length);
+    x->x_remote.sin_port = htons((u_short)toPort);
 
-    post("udpsrvr: connecting to port %d from %d", toPort, x->x_portno);
-    /* try to connect, but Leave the socket open if it fails */
-    if (connect(x->x_fd, (struct sockaddr *) &server, sizeof (server)) < 0)
-    {
-        udpsrvr_sock_err(x, "udpsrvr connect");
-        return;
-    }
-    SETFLOAT(&output_atom, 1);
-    outlet_anything(x->x_addrout, gensym("connected"), 1, &output_atom);
+    post("udpsrvr: will send to port %d from %d", toPort, x->x_portno);
     return;
 }
 
@@ -274,36 +263,6 @@ static void udpsrvr_status(t_udpsrvr *x)
 
     SETFLOAT(&output_atom, x->x_total_received);
     outlet_anything(x->x_addrout, gensym("total"), 1, &output_atom);
-}
-
-static void udpsrvr_disconnect(t_udpsrvr *x)
-{
-    struct sockaddr_in  server;
-    t_atom              output_atom;
-
-    if (x->x_fd < 0)
-    {
-        pd_error(x, "udpsrvr: no socket: listen first");
-        return;
-    }
-
-    server.sin_family = AF_INET;
-
-    /* connect socket using AF_UNSPEC to disconnect */
-
-    server.sin_family = AF_UNSPEC;
-    server.sin_port = x->x_portno;
-
-    post("udpsrvr: disconnecting");
-    /* try to connect, but Leave the socket open if it fails */
-    if (connect(x->x_fd, (struct sockaddr *) &server, sizeof (server)) < 0)
-    {
-        udpsrvr_sock_err(x, "udpsrvr connect");
-        return;
-    }
-    SETFLOAT(&output_atom, 0);
-    outlet_anything(x->x_addrout, gensym("connected"), 1, &output_atom);
-    return;
 }
 
 static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv)
@@ -398,7 +357,8 @@ static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv)
         for (bp = byte_buf, sent = 0; sent < length;)
         {
             timebefore = sys_getrealtime();
-            result = send(x->x_fd, byte_buf, length-sent, 0);
+            //result = send(x->x_fd, byte_buf, length-sent, 0);
+            result = sendto(x->x_fd, byte_buf, length-sent, 0, (struct sockaddr *)&x->x_remote, sizeof(x->x_remote));
             timeafter = sys_getrealtime();
             late = (timeafter - timebefore > 0.005);
             if (late || pleasewarn)
@@ -415,7 +375,6 @@ static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv)
             if (result <= 0)
             {
                 udpsrvr_sock_err(x, "udpsrvr send");
-                udpsrvr_disconnect(x);
                 break;
             }
             else
@@ -430,15 +389,19 @@ static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv)
 
 static void udpsrvr_free(t_udpsrvr *x)
 {
-    udpsrvr_disconnect(x);
+    if (x->x_fd >= 0)
+    {
+        sys_closesocket(x->x_fd);
+        sys_rmpollfn(x->x_fd);
+        x->x_fd = -1;
+    }
 }
 
 void udpsrvr_setup(void)
 {
     udpsrvr_class = class_new(gensym("udpsrvr"), (t_newmethod)udpsrvr_new, (t_method)udpsrvr_free, sizeof(t_udpsrvr), 0, 0);
     class_addmethod(udpsrvr_class, (t_method)udpsrvr_listen, gensym("listen"), A_FLOAT, 0);
-    class_addmethod(udpsrvr_class, (t_method)udpsrvr_connect, gensym("connect"), A_SYMBOL, A_FLOAT, 0);
-    class_addmethod(udpsrvr_class, (t_method)udpsrvr_disconnect, gensym("disconnect"), 0);
+    class_addmethod(udpsrvr_class, (t_method)udpsrvr_to, gensym("to"), A_SYMBOL, A_FLOAT, 0);
     class_addmethod(udpsrvr_class, (t_method)udpsrvr_send, gensym("send"), A_GIMME, 0);
     class_addmethod(udpsrvr_class, (t_method)udpsrvr_status,
         gensym("status"), 0);
