@@ -47,8 +47,9 @@ typedef struct _udpsrvr
     t_outlet            *x_msgout;
     t_outlet            *x_addrout;
     long                x_total_received;
+    t_float             x_verbose; 
     struct sockaddr_in  x_remote;
-    t_atom              x_addrbytes[5];
+    t_atom              x_addrbytes[6];
     t_atom              x_msgoutbuf[MAX_UDP_RECEIVE];
     char                x_msginbuf[MAX_UDP_RECEIVE];
     char                x_addr_name[256]; // a multicast address or 0
@@ -63,11 +64,12 @@ static void udpsrvr_sock_err(t_udpsrvr *x, char *err_string);
 static void *udpsrvr_new(void);
 static void udpsrvr_status(t_udpsrvr *x);
 static void udpsrvr_read(t_udpsrvr *x, int sockfd);
+static void udpsrvr_verbosity(t_udpsrvr *x, t_floatarg v);
 
 static void *udpsrvr_new(void)
 {
-    t_udpsrvr        *x;
-    int                 i;
+    t_udpsrvr *x;
+    int       i;
 
     x = (t_udpsrvr *)pd_new(udpsrvr_class); /* if something fails we return 0 instead of x. Is this OK? */
     if (NULL == x) return x;
@@ -83,7 +85,7 @@ static void *udpsrvr_new(void)
         x->x_addrbytes[i].a_type = A_FLOAT;
         x->x_addrbytes[i].a_w.w_float = 0;
     }
-
+    SETSYMBOL(&x->x_addrbytes[i], gensym("empty"));
     //outlet_new(&x->x_obj, &s_float);
     x->x_msgout = outlet_new(&x->x_obj, &s_anything);
     x->x_addrout = outlet_new(&x->x_obj, &s_anything);
@@ -101,6 +103,7 @@ static void udpsrvr_read(t_udpsrvr *x, int sockfd)
     t_atom              output_atom;
     long                addr;
     unsigned short      port;
+    char                ipBuf[16];
 
     read = recvfrom(sockfd, x->x_msginbuf, MAX_UDP_RECEIVE, 0, (struct sockaddr *)&from, &fromlen);
 #ifdef DEBUG
@@ -116,7 +119,12 @@ static void udpsrvr_read(t_udpsrvr *x, int sockfd)
     x->x_addrbytes[2].a_w.w_float = (addr & 0x0FF00)>>8;
     x->x_addrbytes[3].a_w.w_float = (addr & 0x0FF);
     x->x_addrbytes[4].a_w.w_float = port;
-    outlet_anything(x->x_addrout, gensym("from"), 5L, x->x_addrbytes);
+    sprintf(ipBuf, "%d.%d.%d.%d", (int)x->x_addrbytes[0].a_w.w_float,
+                           (int)x->x_addrbytes[1].a_w.w_float,
+                           (int)x->x_addrbytes[2].a_w.w_float,
+                           (int)x->x_addrbytes[3].a_w.w_float);
+    SETSYMBOL(&x->x_addrbytes[5], gensym(ipBuf));
+    outlet_anything(x->x_addrout, gensym("from"), 6L, x->x_addrbytes);
 
     if (read < 0)
     {
@@ -162,9 +170,7 @@ static void udpsrvr_listen(t_udpsrvr *x, t_floatarg fListeningPort)
     {
         /* First time only, create a UDP socket to listen on */
         sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-//#ifdef DEBUG
-        post("udpsrvr_listen: new socket %d", sockfd);
-//#endif
+        if (x->x_verbose) post("udpsrvr_listen: new socket %d", sockfd);
         if (sockfd < 0)
         {
             udpsrvr_sock_err(x, "udpsrvr socket");
@@ -190,9 +196,7 @@ static void udpsrvr_listen(t_udpsrvr *x, t_floatarg fListeningPort)
         return;
     }
     x->x_portno = portno;
-//#ifdef DEBUG
-    post("udpsrvr listening on port %d", x->x_portno);
-//#endif
+    if (x->x_verbose) post("udpsrvr listening on port %d", x->x_portno);
     x->x_total_received = 0L;
     SETFLOAT(&output_atom, x->x_portno);
     outlet_anything(x->x_addrout, gensym("listening"), 1, &output_atom);
@@ -224,7 +228,7 @@ static void udpsrvr_to(t_udpsrvr *x, t_symbol *hostname, t_floatarg fToPort)
     memcpy((char *)&x->x_remote.sin_addr, (char *)hp->h_addr, hp->h_length);
     x->x_remote.sin_port = htons((u_short)toPort);
 
-    post("udpsrvr: will send to port %d from %d", toPort, x->x_portno);
+    if (x->x_verbose) post("udpsrvr: will send to port %d from %d", toPort, x->x_portno);
     return;
 }
 
@@ -387,6 +391,12 @@ static void udpsrvr_send(t_udpsrvr *x, t_symbol *s, int argc, t_atom *argv)
     else pd_error(x, "udpsrvr: not connected");
 }
 
+static void udpsrvr_verbosity(t_udpsrvr *x, t_floatarg v)
+{
+    x->x_verbose = (v == 0)?0:1;
+}
+
+
 static void udpsrvr_free(t_udpsrvr *x)
 {
     if (x->x_fd >= 0)
@@ -406,6 +416,7 @@ void udpsrvr_setup(void)
     class_addmethod(udpsrvr_class, (t_method)udpsrvr_status,
         gensym("status"), 0);
     class_addlist(udpsrvr_class, (t_method)udpsrvr_send);
+    class_addmethod(udpsrvr_class, (t_method)udpsrvr_verbosity, gensym("verbose"), A_FLOAT, 0);
 }
 
 /* end udpsrvr.c*/
