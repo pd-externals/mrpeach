@@ -1,6 +1,6 @@
-#N canvas 160 522 763 467 12;
+#N canvas 93 559 763 656 12;
 #X declare -path mrpeach;
-#X msg 225 236 status;
+#X msg 255 266 status;
 #N canvas 510 620 494 344 META 0;
 #X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
 Wilkes for Pd version 0.42.;
@@ -14,65 +14,99 @@ and outputs them as raw bytes. Sends to specific hosts.;
 #X text 12 75 INLET_0 status listen to float(s);
 #X restore 668 13 pd META;
 #X msg 81 92 listen 10101;
-#X obj 238 269 udpsrvr;
-#X floatatom 324 396 5 0 0 0 - - -;
-#X floatatom 366 396 5 0 0 0 - - -;
-#X floatatom 409 396 5 0 0 0 - - -;
-#X floatatom 452 396 5 0 0 0 - - -;
-#X floatatom 495 396 7 0 0 0 - - -;
-#X obj 238 424 print rcvd;
-#X floatatom 381 315 5 0 0 0 - - -;
-#X text 278 316 bytes received;
-#X text 292 395 from;
+#X obj 268 299 udpsrvr;
+#X floatatom 465 439 5 0 0 0 - - -;
+#X floatatom 508 439 5 0 0 0 - - -;
+#X floatatom 551 439 5 0 0 0 - - -;
+#X floatatom 594 439 5 0 0 0 - - -;
+#X floatatom 637 439 7 0 0 0 - - -;
+#X obj 267 414 print rcvd;
+#X floatatom 521 345 5 0 0 0 - - -;
+#X text 418 345 bytes received;
+#X text 426 430 from;
 #X obj 573 46 declare -path mrpeach;
-#X text 191 141 send some data;
+#X text 221 171 send some data;
 #X text 61 55 No creation arguments!;
-#X msg 196 207 listen 9998;
-#X text 287 207 listening on another port recreates the socket;
-#X obj 324 289 route from received total;
-#X floatatom 438 333 7 0 0 0 - - -;
-#X text 294 336 total bytes received;
+#X msg 226 237 listen 9998;
+#X text 317 237 listening on another port recreates the socket;
+#X obj 464 319 route from received total;
+#X floatatom 578 363 7 0 0 0 - - -;
+#X text 434 366 total bytes received;
 #X text 180 91 listen on port 10101 Accepts datagrams from any address.
 ;
-#X msg 130 141 99 98 97;
 #X msg 104 115 to 10.0.0.5 10101;
-#X text 242 114 set destination address and port for subsequent sends
-;
-#X text 279 234 get status on right outlet;
-#X msg 164 175 to 10.0.0.186 10101;
-#X obj 324 357 unpack 0 0 0 0 0 s, f 31;
-#X symbolatom 555 376 16 0 0 0 - - -;
+#X text 309 264 get status on right outlet;
+#X msg 194 205 to 10.0.0.186 10101;
 #X text 19 3 [udpsrvr] receives and sends UDP datagrams \, outputting
 them as raw bytes. It can use the same port for both send and receive.
 ;
-#X text 465 376 ip as symbol;
-#X msg 82 249 verbose \$1;
-#X obj 81 221 tgl 15 0 empty empty empty 17 7 0 10 -4034 -1 -1 0 1
+#X msg 112 230 verbose \$1;
+#X obj 111 202 tgl 15 0 empty empty empty 17 7 0 10 -4034 -1 -1 0 1
 ;
-#X obj 238 379 spigot;
-#X obj 277 358 tgl 15 0 empty empty empty 17 7 0 10 -4032 -1 -1 0 1
+#X obj 267 369 spigot;
+#X obj 306 334 tgl 15 0 empty empty empty 17 7 0 10 -4032 -1 -1 0 1
 ;
-#X obj 508 315 print other;
-#X text 561 70 Martin Peach 2021/06/08;
+#X obj 636 345 print other;
+#X msg 130 141 to 10 0 0 5 10101;
+#X text 242 114 set destination address and port for subsequent sends
+(symbol address), f 71;
+#X text 257 140 set destination address and port for subsequent sends
+(float address), f 69;
+#X msg 160 171 99 98 32;
+#X obj 319 484 spigot;
+#X obj 357 463 tgl 15 0 empty empty set_reply_address 17 7 0 10 -260097
+-1 -1 0 1;
+#X obj 351 607 s udpsrvrin;
+#X obj 112 279 r udpsrvrin;
+#X obj 318 507 t b l;
+#X msg 351 531 to \$1 \$2 \$3 \$4 0;
+#X obj 253 565 f;
+#X obj 281 565 + 1;
+#X obj 309 565 % 256;
+#X obj 253 539 spigot;
+#X obj 291 485 tgl 15 0 empty empty send_count -32 -8 0 10 -257985
+-1 -1 0 1;
+#X text 561 70 Martin Peach 2021/06/09;
+#X obj 465 400 unpack 0 0 0 0 0, f 25;
+#X obj 255 592 nbx 3 14 0 255 0 0 empty empty count -32 8 0 10 -257985
+-1 -1 167 256;
+#X text 478 531 0 will be replaced by isten port;
+#X obj 218 341 bng 15 250 50 0 empty empty empty 17 7 0 10 -13381 -4034
+-1;
 #X connect 0 0 3 0;
 #X connect 2 0 3 0;
-#X connect 3 0 33 0;
+#X connect 3 0 28 0;
+#X connect 3 0 50 0;
 #X connect 3 1 18 0;
 #X connect 16 0 3 0;
-#X connect 18 0 27 0;
+#X connect 18 0 35 0;
+#X connect 18 0 47 0;
 #X connect 18 1 10 0;
 #X connect 18 2 19 0;
-#X connect 18 3 35 0;
+#X connect 18 3 30 0;
 #X connect 22 0 3 0;
-#X connect 23 0 3 0;
+#X connect 24 0 3 0;
 #X connect 26 0 3 0;
-#X connect 27 0 4 0;
-#X connect 27 1 5 0;
-#X connect 27 2 6 0;
-#X connect 27 3 7 0;
-#X connect 27 4 8 0;
-#X connect 27 5 28 0;
+#X connect 27 0 26 0;
+#X connect 28 0 9 0;
+#X connect 29 0 28 1;
 #X connect 31 0 3 0;
-#X connect 32 0 31 0;
-#X connect 33 0 9 0;
-#X connect 34 0 33 1;
+#X connect 34 0 3 0;
+#X connect 35 0 39 0;
+#X connect 36 0 35 1;
+#X connect 38 0 3 0;
+#X connect 39 0 44 0;
+#X connect 39 1 40 0;
+#X connect 40 0 37 0;
+#X connect 41 0 42 0;
+#X connect 41 0 48 0;
+#X connect 42 0 43 0;
+#X connect 43 0 41 1;
+#X connect 44 0 41 0;
+#X connect 45 0 44 1;
+#X connect 47 0 4 0;
+#X connect 47 1 5 0;
+#X connect 47 2 6 0;
+#X connect 47 3 7 0;
+#X connect 47 4 8 0;
+#X connect 48 0 37 0;
