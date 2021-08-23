@@ -289,7 +289,7 @@ static void *packOSC_new(void)
     }
     delta_ms = clock_gettimesince(packOSCLogicalStartTime);
     packOSCs++;
-    post("packOSC[%d]: delta_ms %lf timetag: %ldsec %ld\n", packOSCs, delta_ms, packOSCStartTimeTag.seconds, packOSCStartTimeTag.fraction);
+    logpost(x, 3, "packOSC[%d]: delta_ms %lf timetag: %ldsec %ld\n", packOSCs, delta_ms, packOSCStartTimeTag.seconds, packOSCStartTimeTag.fraction);
     return (x);
 fail:
     if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
@@ -354,14 +354,14 @@ static void packOSC_closebundle(t_packOSC *x)
 static void packOSC_settypetags(t_packOSC *x, t_floatarg f)
 {
     x->x_typetags = (f != 0)?1:0;
-    post("packOSC: setting typetags %d", x->x_typetags);
+    logpost(x, 3, "packOSC: setting typetags %d", x->x_typetags);
 }
 
 static void packOSC_setbufsize(t_packOSC *x, t_floatarg f)
 {
     if (x->x_bufferForOSCbuf != NULL) freebytes((void *)x->x_bufferForOSCbuf, sizeof(char)*x->x_buflength);
     if (x->x_bufferForOSClist != NULL) freebytes((void *)x->x_bufferForOSClist, sizeof(t_atom)*x->x_buflength);
-    post("packOSC: bufsize arg is %f (%lu)", f, (long)f);
+    logpost(x, 3, "packOSC: bufsize arg is %f (%lu)", f, (long)f);
     x->x_buflength = (long)f;
     x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
     if(x->x_bufferForOSCbuf == NULL)
@@ -370,7 +370,7 @@ static void packOSC_setbufsize(t_packOSC *x, t_floatarg f)
     if(x->x_bufferForOSClist == NULL)
         pd_error(x, "packOSC unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
     OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
-    post("packOSC: bufsize is now %d",x->x_buflength);
+    logpost(x, 3, "packOSC: bufsize is now %d",x->x_buflength);
 }
 
 
@@ -772,7 +772,7 @@ static typedArg packOSC_forceatom(t_atom *a, char ctype)
 #endif
                     break;
                 default:
-                    post("packOSC: unknown OSC type %c", ctype);
+                    pd_error(0, "packOSC: unknown OSC type %c", ctype);
                     returnVal.type = NOTYPE_osc;
                     returnVal.datum.s = NULL;
                     break;
@@ -806,7 +806,7 @@ static typedArg packOSC_forceatom(t_atom *a, char ctype)
 #endif
                     break;
                 default:
-                    post("packOSC: unknown OSC type %c", ctype);
+                    pd_error(0, "packOSC: unknown OSC type %c", ctype);
                     returnVal.type = NOTYPE_osc;
                     returnVal.datum.s = NULL;
                     break;
@@ -1586,7 +1586,7 @@ static OSCTimeTag OSCTT_CurrentPdTimePlusOffset(uint32_t offset)
         tt.seconds++;
     }
     tt.fraction *= (unsigned) TWO_TO_THE_32_OVER_ONE_MILLION; /* convert usec to 32-bit fraction of 1 sec */
-    post("delta_ms %lf timetag: %ldsec %ld\n", delta_ms, tt.seconds, tt.fraction);
+    logpost(0, 3, "delta_ms %lf timetag: %ldsec %ld\n", delta_ms, tt.seconds, tt.fraction);
     return tt;
 }
 
