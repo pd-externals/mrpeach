@@ -1,0 +1,1890 @@
+2021-06-10 12:57  mrpeach
+
+	* [r17672] Removed the symbol received Overloaded the 'to' method,
+	  to accept 4-float IP, avoiding gethostbyname().
+	  Added exxample to help patch.
+
+2021-06-08 16:25  mrpeach
+
+	* [r17671] Added a verbosity control; received ip address is also
+	  output as a symbol so it can be passed directly to a [to(
+	  message.
+	  Cleaned up the help patch.
+
+2021-06-07 20:50  mrpeach
+
+	* [r17670] Uses sendto instead of connect to greaty simplify
+	  things.
+
+2021-06-07 19:31  mrpeach
+
+	* [r17669] moved the help file to the right place
+
+2021-06-07 19:23  mrpeach
+
+	* [r17668] A server for udp connections that can use the same port
+	  number for sending and receiving.
+
+2021-04-28 16:58  mrpeach
+
+	* [r17667] Now syncs timestamps to system clock only at astartup,
+	  then tracks Pd's DSP clock.
+
+2020-06-26 21:32  mrpeach
+
+	* [r17666] Sender thread is now a loop that runs while connected,
+	  instead of once per send.
+
+2020-06-15 15:53  mrpeach
+
+	* [r17665] Added REUSEADDR and NODELAY to the tcp options. Changed
+	  the error messages to print the errno.
+
+2020-06-10 18:05  mrpeach
+
+	* [r17664] Added a switch to stop printing status names, cleaned up
+	  formatting.
+
+2020-06-02 15:49  mrpeach
+
+	* [r17663] Don't print anything to console unless verbosity > 0.
+	  Added sys_locks around connect threads potentially dangerous
+	  function calls.
+
+2020-05-31 17:56  mrpeach
+
+	* [r17662] see if it works on Windows
+
+2020-05-31 17:56  mrpeach
+
+	* [r17661] get the date right
+
+2020-05-31 17:24  mrpeach
+
+	* [r17660] Fixed ambiguous expression for completed bundle.
+
+2020-05-31 15:40  mrpeach
+
+	* [r17659] Use pd-lib-builder instead of pd-extended makefile.
+
+2020-05-31 15:35  mrpeach
+
+	* [r17658] Simpiflied the I/O so receives and iolets are handled in
+	  poll routine while sends are in their own thread.
+
+2020-05-20 21:03  mrpeach
+
+	* [r17657] The rest of pd-lib-builder
+
+2020-05-20 20:48  mrpeach
+
+	* [r17656] This makefile uses pd-lib-builder.
+
+2020-05-20 20:47  mrpeach
+
+	* [r17655] Removed calls to class_sethelpsymbol, as help file is
+	  named classname-help.pd by default.
+
+2020-03-21 20:52  mrpeach
+
+	* [r17654] Fixed bug in midifile_meta time signature.
+	  First part of meta tag write moved to separate function.
+	  Version is now 0.4.
+
+2020-03-10 17:33  mrpeach
+
+	* [r17653] Added a missing break statement.
+
+2019-12-05 22:01  mrpeach
+
+	* [r17651] [sprint] is an object similar to [print] that 'prints'
+	  its input as characters suitable for input to objects like
+	  [comport] or [udpsend] that expect character input.
+
+2018-02-19 18:00  mrpeach
+
+	* [r17647] Writes multitrack files using temporary files in the
+	  same directory as the main file. On Windows midifile.c compiles
+	  using minGW to be compatible with vanilla Pd.
+	  Updated midifile-help.pd.
+
+2018-02-13 21:49  mrpeach
+
+	* [r17646] Implemented meta messages and multitrack recording.
+
+2018-01-18 16:39  mrpeach
+
+	* [r17645] Added a status outlet for ourIP message on connect,
+	  updated and tidied up the help patches
+
+2017-12-27 21:44  mrpeach
+
+	* [r17644] Added output of local socket IP address and port via
+	  status outlet whenever new connection is made.
+	  Updated and tidied-up help patch.
+
+2017-10-11 21:00  mrpeach
+
+	* [r17643] Don't use sys_fopen with MSVC as its FILE struct is not
+	  compatible. Write track header one char at a time, not as a
+	  null-terminated string.
+
+2017-09-04 15:11  zmoelnig
+
+	* [r17642] removed executable bit from MIDI file
+
+2017-09-04 13:45  zmoelnig
+
+	* [r17641] fixed logpost() invocation: requires format *and*
+	  string, not just format
+
+2017-03-20 17:20  mrpeach
+
+	* [r17636] First attempt to implement multitrack write.
+
+2017-03-20 17:19  mrpeach
+
+	* [r17635] Updated and cleaned up.
+
+2016-08-26 15:28  mrpeach
+
+	* [r17626] Fixed type mismatch in which.c so which_setup matches
+	  which_new.
+	  (spotted by Jonathan Wilkes) Also cleaned up help patch.
+
+2016-07-13 23:14  mrpeach
+
+	* [r17623] Implemented MIDI message using 'sendtyped' selector and
+	  'm' typetags.
+	  Cleaned up help patches.
+
+2016-03-09 23:23  zmoelnig
+
+	* [r17615] allow to override build-date (for reproducible-builds)
+
+2016-01-18 21:02  mrpeach
+
+	* [r17601] Clarify comments in unpackOSC_IsNiceString.
+
+2016-01-18 16:26  mrpeach
+
+	* [r17600] Now accepts OSC-strings containing any non-zero
+	  characters.
+
+2015-11-26 16:46  mrpeach
+
+	* [r17597] In OSC_writeAddressAndTypes set buf->typeStringPtr = 0
+	  before returning. This fixes the bundle error bug.
+	  Also added a lot of #ifdef DEBUG printfs.
+
+2015-11-23 19:21  mrpeach
+
+	* [r17596] Moved data buffers and counters to the stack to
+	  facilitate rentrancy. Changed post() to printf() for DEBUG
+	  output.
+
+2015-11-23 17:40  mrpeach
+
+	* [r17595] This implements zmoelnig's stack-based fix for
+	  recursion.
+
+2015-11-18 19:19  mrpeach
+
+	* [r17594] Reentrancy made possible by using two buffers.
+
+2015-11-16 20:16  mrpeach
+
+	* [r17591] Prevent reentrancy by using a counter. Replace some
+	  error() with pd_error(). Don't create if no moemory available.
+
+2015-08-31 19:41  mrpeach
+
+	* [r17542] Changes submitted by zmoelnig to allow Debian package
+	  building.
+
+2015-08-31 19:40  mrpeach
+
+	* [r17541] Changes submitted by zmoelnig to allow debian package
+	  building.
+
+2015-05-01 18:34  zmoelnig
+
+	* [r17464] '#include <ws2tcpip.h>' for 'socklen_t'
+	  
+	  as found in other externals in this directory that use socklen_t
+
+2015-01-19 17:51  mrpeach
+
+	* [r17414] Abandon processing when bad typetag encountered, added
+	  some more debug messages.
+
+2015-01-12 16:12  mrpeach
+
+	* [r17406] Correct out of range format messages.
+
+2015-01-12 16:08  mrpeach
+
+	* [r17405] Use uint32_t for 4-byte OSC components.
+
+2015-01-06 21:40  mrpeach
+
+	* [r17404] Check for null pointer in unpackOSC_PrintTypeTaggedArgs,
+	  use uint32_t for OSC timetag components.
+
+2014-11-11 16:04  mrpeach
+
+	* [r17382] Version is now 0.2
+
+2014-11-10 22:31  mrpeach
+
+	* [r17381] Changed t_int to int
+
+2014-11-10 22:30  mrpeach
+
+	* [r17380] Changed t_int to int
+
+2014-11-10 22:12  mrpeach
+
+	* [r17379] Changed t_int to int, removed unused variable j.
+
+2014-11-10 22:09  mrpeach
+
+	* [r17378] Changed t_int to int
+
+2014-11-10 22:05  mrpeach
+
+	* [r17377] Changed t_int to int
+
+2014-11-10 22:05  mrpeach
+
+	* [r17376] Changed t_int to int
+
+2014-11-10 22:01  mrpeach
+
+	* [r17375] Commented out unnecessary posts to console.
+
+2014-11-10 21:54  mrpeach
+
+	* [r17374] Changed t_int to int, added some verbosity.
+
+2014-11-10 21:47  mrpeach
+
+	* [r17373] Changed t_int to int
+
+2014-11-10 21:45  mrpeach
+
+	* [r17372] Applied zmoelnig's patch #1168 packOSC: fix some
+	  build-warnings
+
+2014-11-07 16:41  mrpeach
+
+	* [r17371] Added check for valid data while building a blob packet
+	  in packOSC_sendtyped. Any bad data will cause the packet to be
+	  dropped.
+
+2014-10-29 18:58  mrpeach
+
+	* [r17367] Added xbeeio to packxbee help patch.
+
+2014-10-29 18:21  mrpeach
+
+	* [r17366] Cleaned up and corrected unpackxbee status outlet
+
+2014-10-15 19:51  mrpeach
+
+	* [r17360] Default format is actually float.
+
+2014-02-26 20:25  mrpeach
+
+	* [r17273] [udpsndrcv] can specify its own sending port and outputs
+	  bytes received on that port. Thanks to Dennis Engdahl.
+
+2014-02-18 20:09  mrpeach
+
+	* [r17267] More crash prevention in 64-bit
+
+2014-02-13 22:00  mrpeach
+
+	* [r17265] Possibly fixed some crashing when freeing resources, by
+	  checking for NULL before freeing.
+	  Added a verbosity message to control printout to console. Default
+	  is 0, or no output except errors.
+	  Fixed a bug with the [client n( message and non-existent client
+	  number.
+	  --This line, and those below, will be ignored-
+	  
+	  M tcpserver.c
+	  M tcpserver-help.pd
+
+2014-02-12 18:34  mrpeach
+
+	* [r17264] Make sure ntohl accesses 32 bits even on 64-bit systems.
+
+2014-01-27 21:37  mrpeach
+
+	* [r17259] Eliminated most compiler warnings by using %zu to print
+	  size_t and changing signedness of some variables and parameters.
+
+2014-01-27 18:54  mrpeach
+
+	* [r17258] Add a length parameter to the read message to set the
+	  number of bytes to be read in. This also applies to the creation
+	  arguments.
+
+2013-10-01 20:07  mrpeach
+
+	* [r17207] Added handler for Transmit Status (series 1) packet.
+
+2013-09-17 16:59  mrpeach
+
+	* [r17206] Added methods for non-OSC input, which silently route
+	  all such input to the rightmost outlet unchanged.
+
+2013-06-28 20:05  mrpeach
+
+	* [r17170] Added the two Series 1 transmit messages (TX64 and TX16)
+	  to the Transmit help patch.
+
+2013-06-28 19:33  mrpeach
+
+	* [r17169] Added handlers for transmit and receive packets for
+	  Series1 XBees (64-bit and 16-bit address versions). Some packets
+	  are still not implemented.
+
+2013-06-11 21:48  mrpeach
+
+	* [r17151] Add an optional value to the clear method. The current
+	  running mean will be written to the entire array if the length
+	  changes, avoiding glitches.
+
+2013-05-20 22:37  mrpeach
+
+	* [r17143] Added a port method to change the listening port.
+
+2013-05-19 06:13  mrpeach
+
+	* [r17142] Check for space before accepting incoming connection,
+	  increased MAX_CONNECT.
+	  Also changed print format for size_t from %d to %lu
+	  And commented out some unused variables.
+
+2013-03-13 19:02  mrpeach
+
+	* [r17064] Two objects to convert between floats and their binary
+	  representation as bytes, so you can send floats through [comport]
+	  for example.
+
+2013-03-13 15:41  mrpeach
+
+	* [r17063] Corrected for new outlet in [unpackxbee]
+
+2013-03-13 15:33  mrpeach
+
+	* [r17062] Corrected [unpackxbee] with new outlet for sample frames
+
+2013-03-04 16:47  mrpeach
+
+	* [r17058] AT and RAT messages can have parameters greater than
+	  255.
+
+2013-02-28 22:03  mrpeach
+
+	* [r17056] Added a middle outlet for sample frames. Sample frames
+	  are unpacked into digital bits and analog values.
+
+2013-02-25 20:58  mrpeach
+
+	* [r17051] A patch to use with remote xbee IO. [bits] is a 16-bit
+	  word to bit converter used in [xbeeio].
+
+2013-02-20 21:02  mrpeach
+
+	* [r17049] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 21:01  mrpeach
+
+	* [r17048] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 21:00  mrpeach
+
+	* [r17047] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 20:59  mrpeach
+
+	* [r17046] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 20:58  mrpeach
+
+	* [r17045] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 20:58  mrpeach
+
+	* [r17044] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 20:57  mrpeach
+
+	* [r17043] fopen and fclose -> sys_fopen and sys_fclose for recent
+	  pd
+
+2013-02-20 18:24  mrpeach
+
+	* [r17042] An example data transmitter.
+
+2013-02-20 18:23  mrpeach
+
+	* [r17041] unpackxbee_add is declared static.
+
+2013-02-20 18:21  mrpeach
+
+	* [r17040] Cleaned up packxbee help patch.
+
+2013-02-20 18:21  mrpeach
+
+	* [r17039] New unpackxbee help patch.
+
+2012-04-13 06:20  rdz
+
+	* [r16122] added 5th outlet to [tcpsocketserver]
+
+2012-03-21 21:16  mrpeach
+
+	* [r16088] Added [import moocow] so [any2string] and [string2any]
+	  will work. Removed [declare] objects that don't work.
+
+2012-03-21 21:10  rdz
+
+	* [r16087] fixed [declare] to comply with Pd-extended layout
+
+2012-03-20 20:26  mrpeach
+
+	* [r16082] Attempt to allow UTF-8 text in strings by only rejecting
+	  characters less than space (0x20).
+
+2012-03-13 16:50  mrpeach
+
+	* [r16072] Removed a debug post()
+
+2012-03-13 16:41  mrpeach
+
+	* [r16071] Now accepts lists without complaining. Also routes
+	  non-OSC messages to right outlet. Corrected and updated help
+	  patch.
+
+2012-02-14 21:09  mrpeach
+
+	* [r15965] Added an [unpackOSC] help patch.
+
+2011-11-17 18:31  mrpeach
+
+	* [r15788] Added remote command response packet handler, fixed some
+	  signed/unsigned warnings. Help patch is a bit better but still
+	  needs organizing.
+
+2011-11-16 18:54  mrpeach
+
+	* [r15775] Get 64-bit address to print as 16-characters with
+	  leading zeros. Eliminate compiler warnings about signed/unsigned
+	  characters in floatstring.
+
+2011-11-08 17:12  mrpeach
+
+	* [r15714] Fixed an off-by-one error in thread buffer indexing.
+
+2011-11-07 16:52  mrpeach
+
+	* [r15710] Changed sscanf format for long long to $LX for non-MSVC
+	  versions. Some code in packxbee_pack_frame was outside of its
+	  block. Removed unused variable use_floatstring.
+
+2011-11-06 15:53  mrpeach
+
+	* [r15708] Externs to pack and unpack Xbee messages in API modes 1
+	  or 2. Interfaces with an Xbee via [comport].
+
+2011-11-04 21:24  mrpeach
+
+	* [r15704] Add a flag to sendthreadparams to indicate if the thread
+	  is in use or not. Don't reuse the buffer if it's still active.
+
+2011-11-03 18:40  mrpeach
+
+	* [r15700] To prevent overwriting the send buffer with multiple
+	  simultaneous messages, each sender thread now gets its own
+	  buffer.
+	  (Usually a multiple message results in two TCP packets, with the
+	  first message in the first packet and the rest in the second.)
+	  The buffers are preallocated and assigned to threads in
+	  round-robin fashion. There are MAX_TCPCLIENT_THREADS (32)
+	  buffers.
+	  Wait for all threads to terminate before disconnecting a socket.
+
+2011-10-21 22:19  eighthave
+
+	* [r15639] added abstractions to the Makefile for inclusion in the
+	  library
+
+2011-10-21 22:14  eighthave
+
+	* [r15638] updated udpreceive~ help with example from udpsend~ help
+
+2011-10-21 22:10  eighthave
+
+	* [r15637] ported to Library Template
+
+2011-10-21 20:37  eighthave
+
+	* [r15636] use auto-macro _WIN32 instead of Pd-defined macro UNIX,
+	  this means the build system doesn't need to set any macros to
+	  work properly
+
+2011-10-21 20:31  mrpeach
+
+	* [r15635] A readme and license file.
+
+2011-10-21 20:21  mrpeach
+
+	* [r15634] A new meta file
+
+2011-10-21 20:02  mrpeach
+
+	* [r15633] When path pattern matches exactly, don't output the
+	  empty symbol as selector. Instead output bang if no args, use
+	  arg[0] as selector if it's a
+	  symbol, and otherwise use "list" as the selector. This should fix
+	  bug ID: 3426523.
+
+2011-08-05 14:03  eighthave
+
+	* [r15204] downcased library name to 'osc' to match standard for
+	  library names
+
+2011-08-05 13:59  eighthave
+
+	* [r15203] downcased OSC as library name to make dir name, etc
+
+2011-08-04 12:34  zmoelnig
+
+	* [r15202] added short descriptions
+
+2011-08-04 12:06  zmoelnig
+
+	* [r15201] include packingOSC.h in DIST
+
+2011-08-04 12:01  zmoelnig
+
+	* [r15200] updated template Makefile to the newest version
+
+2011-08-04 11:53  zmoelnig
+
+	* [r15199] added LICENSE and (short) README
+	  
+	  LICENSE is GPLv2, according to the help-patches
+
+2011-08-03 13:26  postlude
+
+	* [r15193] - updated mrpeach/osc to use the MakefileTemplate from
+	  http://puredata.info/docs/developer/MakefileTemplate
+
+2011-05-23 01:42  mrpeach
+
+	* [r15093] [routeOSC] now handles incoming messages that are not
+	  valid OSC messages as though they were messages with the OSC path
+	  /, so that [routeOSC]s may be cascaded, with the / argument used
+	  to select messages whose path matched the previous level.
+
+2011-03-26 02:02  mrpeach
+
+	* [r15041] Fixed sizes of blocks to be freed and allocated. Check
+	  for good arguments before allocating any memory.
+
+2011-03-03 19:28  jancsika1
+
+	* [r15012] added META subpatch
+
+2011-03-03 19:22  jancsika1
+
+	* [r15011] added META subpatch
+
+2011-03-03 19:21  jancsika1
+
+	* [r15010] added META subpatch
+
+2011-03-03 19:19  jancsika1
+
+	* [r15009] added META subpatch
+
+2011-03-03 19:18  jancsika1
+
+	* [r15008] added META subpatch
+
+2011-03-03 19:17  jancsika1
+
+	* [r15007] added META subpatch
+
+2011-03-03 19:16  jancsika1
+
+	* [r15006] added META subpatch
+
+2011-03-03 19:15  jancsika1
+
+	* [r15005] added META subpatch
+
+2011-03-03 19:15  jancsika1
+
+	* [r15004] added META subpatch
+
+2011-03-03 19:14  jancsika1
+
+	* [r15003] added META subpatch
+
+2011-03-03 19:13  jancsika1
+
+	* [r15002] added META subpatch
+
+2011-03-03 19:12  jancsika1
+
+	* [r15001] added META subpatch
+
+2011-03-03 05:36  jancsika1
+
+	* [r15000] added META subpatch
+
+2011-03-03 05:35  jancsika1
+
+	* [r14999] added META subpatch
+
+2011-03-03 05:31  jancsika1
+
+	* [r14998] added META subpatch
+
+2011-03-03 05:21  jancsika1
+
+	* [r14997] added META subpatch
+
+2011-03-03 05:16  jancsika1
+
+	* [r14996] added META subpatch
+
+2011-03-03 05:10  jancsika1
+
+	* [r14995] added META subpatch
+
+2011-03-02 18:23  mrpeach
+
+	* [r14994] Made the input buffer unsigned so bytes > 127 will be
+	  interpreted as positive.
+
+2011-02-21 18:52  mrpeach
+
+	* [r14937] Accepts HTTP 1.0 as well as 1.1. Increased buffer for
+	  status lines to 4096.
+
+2011-02-12 21:55  mrpeach
+
+	* [r14914] Changed rightmost outlet into a status outlet for track
+	  tempo and meta info. Updated help patch.
+
+2011-02-01 21:52  rdz
+
+	* [r14850] those abstractions actually belong to the 'net' section
+
+2011-02-01 21:52  rdz
+
+	* [r14849] those abstractions actually belong to the 'net' section
+
+2011-02-01 21:48  rdz
+
+	* [r14848] use SLIP as a container for OSC messages when
+	  transporting them over a stream oriented protocol (according to
+	  the OSC 1.1 specification)
+
+2011-01-17 20:30  mrpeach
+
+	* [r14748] [routeOSC] can now route addresses deeper than 1 (like
+	  /testing/one/two/three). Added a [verbosity( message to print
+	  some debug info.
+	  Added a [paths( message to print out the currently active
+	  addresses to Pd console. Updated the help patch to match.
+
+2011-01-16 18:41  mrpeach
+
+	* [r14745] should now recover gracefully from excessive bundle
+	  depth. Cleaned up some whitespace and removed duplicate define of
+	  MAX_BUNDLE_DEPTH.
+
+2011-01-13 21:15  mrpeach
+
+	* [r14737] Added a HEAD method.
+
+2011-01-13 19:19  mrpeach
+
+	* [r14736] Sometimes send returns 0 if the packet is queued, so we
+	  don't consider that to mean it's blocked.
+
+2011-01-13 18:54  mrpeach
+
+	* [r14735] Two externals to process HTTP/1.1 requests and responses
+	  in conjunction with net exernals like [tcpclient] or
+	  [slipenc]/[slipdec]. So far only GET requests work.
+
+2010-12-16 05:35  mrpeach
+
+	* [r14663] Fixed problems when bundle depth is exceeded. Placed
+	  global defines in packingOSC.h. Thanks to zmoelnig for pointing
+	  this out in tracker id 3136648.
+
+2010-12-11 20:43  mrpeach
+
+	* [r14590] Fixed bug in record where running status was not
+	  implemented properly. Now running status is not used, to
+	  facilitate looping the file.
+	  Changed help patch to implement real MIDI input from hardware.
+
+2010-11-28 18:19  mrpeach
+
+	* [r14534] changed #ifdef for
+	  #define snprintf sprintf_s
+	  to _MSC_VER so MinGW doesn't see it.
+
+2010-11-22 04:50  mrpeach
+
+	* [r14473] include ifaddrs.h for mac, for getifaddrs() and
+	  freeifaddrs()
+
+2010-11-03 21:37  mrpeach
+
+	* [r14261] changed long to int in the tag struct, as longs are 8
+	  bytes in 64-bit
+	  architectures.
+
+2010-10-29 17:32  mrpeach
+
+	* [r14247] Cleaned up unused code.
+
+2010-10-28 19:25  mrpeach
+
+	* [r14246] cleaned up whitespace
+
+2010-10-28 19:04  mrpeach
+
+	* [r14245] Added multicast support
+
+2010-10-15 21:24  mrpeach
+
+	* [r14233] Added a method for a port message so port number can be
+	  changed on the fly. Updated the help patch.
+
+2010-10-01 18:59  mrpeach
+
+	* [r14184] Moved slipdec help details to a separate patch
+
+2010-10-01 18:58  mrpeach
+
+	* [r14183] Fixed bugs where incomplete packets with escapes were
+	  not decoded correctly. Added a help patch.
+
+2010-09-15 18:52  mrpeach
+
+	* [r14147] Can set maximum packet length. Updated help patch.
+
+2010-09-15 18:51  mrpeach
+
+	* [r14146] Can set maximum packet length. Verbosity extended to
+	  list inputs.
+
+2010-09-08 20:56  mrpeach
+
+	* [r14002] Cleaned out some useless post statements. Removed
+	  sys_lock and sys_unlock since they would freeze everything if
+	  nothing was found. If an
+	  object is an internal, it still won't be found by [which] since
+	  we don't seem to have access to that list.
+
+2010-08-26 20:30  mrpeach
+
+	* [r13945] Applied zmoelnig's patch 3051663 to handle intermixed
+	  floats and lists as input.
+
+2010-08-26 20:12  mrpeach
+
+	* [r13944] Removed spurious warning about extra byte.
+
+2010-08-11 16:11  mrpeach
+
+	* [r13786] added parentheses around ored constants to stop warning
+	  in _WIN32 version
+
+2010-08-06 23:15  mrpeach
+
+	* [r13765] Don't allow setting multicast ttl or loopback if not
+	  connected.
+
+2010-08-05 20:45  mrpeach
+
+	* [r13758] Added #include <errno.h> for the new sock_error function
+
+2010-08-05 20:26  mrpeach
+
+	* [r13757] _WIN32 multicast works (needed to bind socket before
+	  joining multicast).
+
+2010-08-05 18:52  mrpeach
+
+	* [r13755] Fixed bugs in _WIN32 socket error reporting.
+
+2010-08-04 17:18  mrpeach
+
+	* [r13745] Removed remaining calls to things in s_stuff.h
+	  (sys_closesocket)
+
+2010-08-04 16:56  mrpeach
+
+	* [r13744] Can set multicast interface in MacOSX, added a
+	  udpsend_sock_err function to print system errors in the pd
+	  console instead of stderr.
+
+2010-08-03 03:46  mrpeach
+
+	* [r13741] Can set_multicast_interface on _WIN32 now.
+	  Remembered to set size of parameter before calling getsockopt.
+
+2010-08-03 02:07  mrpeach
+
+	* [r13740] include <ws2tcpip.h> for multicast sockopts on _WIN32
+
+2010-08-02 21:17  mrpeach
+
+	* [r13738] Methods for multicast ttl and loopback only make sense
+	  on udpsend... updated help patches.
+
+2010-08-02 16:00  mrpeach
+
+	* [r13737] Added method to set multicast TTL, updated help patch.
+
+2010-08-02 15:37  mrpeach
+
+	* [r13736] set_multicast_interface doesn't work in _WIN32 yet so I
+	  just post a message.
+
+2010-07-30 19:09  mrpeach
+
+	* [r13734] Added method to select interface when multicasting,
+	  updated help patch.
+
+2010-07-18 23:24  mrpeach
+
+	* [r13723] Fix ip_mreq stuff for MACOSX and _WIN32 (we hope...)
+
+2010-07-16 21:30  mrpeach
+
+	* [r13720] MacOSX wants a struct_mreq instead of a struct_mreqn
+
+2010-07-13 20:32  mrpeach
+
+	* [r13711] Added messages to set multicast ttl and loopback,
+	  updated the help patch.
+
+2010-07-13 17:59  mrpeach
+
+	* [r13708] Added support for multicasting. Added a status message
+	  to output total received bytes and multicast status on right
+	  outlet. Added
+	  received byte count on right outlet. Help patch updated.
+
+2010-07-07 23:20  eighthave
+
+	* [r13694] converted error() calls to pd_error() calls where
+	  appropriate, ie. where a findable error is desirable
+
+2010-06-14 20:38  mrpeach
+
+	* [r13656] Removed class_sethelpsymbol as it's the same name as the
+	  object.
+
+2010-06-14 19:17  mrpeach
+
+	* [r13655] removed ifdef for useless D_HAVECONFIG
+
+2010-06-14 19:15  mrpeach
+
+	* [r13654] Fixed name of help patch, removed some sludge.
+
+2010-05-21 20:31  mrpeach
+
+	* [r13568] Eliminate any post of any part of a bad address string
+	  in case it contains '{', which hangs Pd.
+
+2010-05-19 21:18  mrpeach
+
+	* [r13565] Cleaned up some diagnostic messages.
+
+2010-05-19 20:45  mrpeach
+
+	* [r13564] Trying to make it immune to garbage input: Don't attempt
+	  to print bad OSC path, it could cause trouble.
+
+2010-05-13 19:35  mrpeach
+
+	* [r13533] Check for buffer overflow in case of bad input.
+
+2010-05-13 19:33  mrpeach
+
+	* [r13532] Check for buffer overflow when adding individual floats.
+	  Also it should be possible to interleave floats and lists, but
+	  there are
+	  probably bugs in that bit...
+
+2010-05-08 19:01  mrpeach
+
+	* [r13510] Incorporated ico's patch for threaded broadcasting.
+
+2010-05-06 04:51  mrpeach
+
+	* [r13498] Added tcpserver_broadcast_bytes() to speed up broadcast
+	  by resending the buffer if < 65536 bytes
+
+2010-05-06 03:33  mrpeach
+
+	* [r13497] Make sure client is not already connected before
+	  spawning a thread to connect it. Based on ico's patch
+
+2010-05-05 00:50  mrpeach
+
+	* [r13494] SO_REUSEADDR fixed cut-and-paste error for _WIN32
+	  version.
+
+2010-05-04 16:07  mrpeach
+
+	* [r13493] SO_REUSEADDR was not being set on linux.
+
+2010-05-04 04:24  mrpeach
+
+	* [r13492] More debug...missing terminator is flagged.
+
+2010-05-04 04:12  mrpeach
+
+	* [r13491] Change %d to %f in input error message
+
+2010-05-04 04:10  mrpeach
+
+	* [r13490] Updated with test inputs
+
+2010-05-04 04:09  mrpeach
+
+	* [r13489] Added float input
+
+2010-05-03 23:24  mrpeach
+
+	* [r13488] [slipdec] decodes an input list of bytes-as-floats
+	  assuming they were encoded using SLIP. Useful for OSC over serial
+	  links.
+
+2010-05-03 23:23  mrpeach
+
+	* [r13487] slipenc encodes an input list of bytes-as-floats with
+	  the Serial Line Internet Protocol, suitable for transmission over
+	  a serial link. This is used in OSC 1.1.
+
+2010-05-01 06:11  mrpeach
+
+	* [r13486] Fixed call to setsockopt( SO_REUSEADDR ), which was
+	  previously set false and ifdeffed for IRIX...
+
+2010-04-25 05:44  mrpeach
+
+	* [r13468] Updated help file
+
+2010-04-25 05:12  mrpeach
+
+	* [r13467] fixed bug where messages with same running status don't
+	  get written.
+
+2010-04-21 23:03  mrpeach
+
+	* [r13462] Set help symbol to routeOSC as it's the same help patch.
+
+2010-04-15 21:16  mrpeach
+
+	* [r13452] A band-limited oscillator based on a resistor-capacitor
+	  timing scheme like the 555 timer IC.
+	  
+
+2010-03-29 17:29  zmoelnig
+
+	* [r13306] oops, undoing last commit; sorry
+
+2010-03-29 17:26  zmoelnig
+
+	* [r13305] replaced &s_... by gensym("...")
+
+2010-03-27 15:58  mrpeach
+
+	* [r13292] Added output of IP address of disconnecting client at
+	  suggestion of Ivica Ico Bukvic ico@vt.edu.
+	  Removed send timeout message since each send is in its own thread
+	  and won't cause trouble if it hangs...
+
+2010-03-26 18:41  mrpeach
+
+	* [r13290] Sends all bytes in one block in a single thread, blocks
+	  further sends if one doesn't work until [unblock( message
+	  received.
+	  Removed [receive(, [recv(, [timeout( message methods as they are
+	  not relevant.
+
+2010-03-24 15:46  mrpeach
+
+	* [r13253] Added a flag that is set if sender thread can't create.
+	  This stops any further sends until an [unblock( message is sent
+	  to tcpserver.
+
+2010-03-23 21:11  mrpeach
+
+	* [r13248] signal/float operators like [>=~] from zexy but operator
+	  can be reconfigured on the fly.
+
+2010-03-23 21:08  mrpeach
+
+	* [r13247] Made all functions except rc_tilde_setup() static.
+
+2010-03-23 16:13  mrpeach
+
+	* [r13243] Fixed NULL-pointer access bug in tcpserver_free() that
+	  caused trouble when closing a [tcpserver].
+	  Free send parameters if thread fails to create.
+	  [tcpclient] posts "tcpclient_free" at start and end of
+	  tcpclient_free if verbosity==1.
+
+2010-03-22 20:12  mrpeach
+
+	* [r13239] Changed valid-stream output to be a signal output. Moved
+	  all post()s out of the perform routine. Updated help patch and
+	  version.
+
+2010-03-22 15:29  zmoelnig
+
+	* [r13238] check for NULL-pointer in destructor
+
+2010-03-16 17:22  mrpeach
+
+	* [r13216] Output valid state only when it changes.
+
+2010-03-16 16:42  mrpeach
+
+	* [r13215] Added an outlet to udpreceive~ to indicate valid audio.
+	  Ouput address and port only if changed. Updated version and help
+	  patch.
+
+2010-03-15 21:24  mrpeach
+
+	* [r13207] An external that emulates an RC timer, similar to lop~
+	  but good for envelope generation.
+
+2010-03-11 21:04  mrpeach
+
+	* [r13205] Updfated version number and help patch.
+
+2010-03-11 19:28  mrpeach
+
+	* [r13204] Added a "TAG!" identifier field to the tag so it can be
+	  verified as a tag. This should help prevent crashes in case of
+	  dropped packets.
+
+2010-03-09 17:31  mrpeach
+
+	* [r13199] Moved client-specific parameters into a single
+	  t_tcpserver_socketreceiver struct.
+
+2010-03-09 10:28  zmoelnig
+
+	* [r13197] fixing bug #2966186
+
+2010-03-02 17:44  mrpeach
+
+	* [r13193] Added a verbosity method to stop [tcpclient] printing in
+	  the main window every time it connects/disconnects.
+	  Updated the help patch to match.
+
+2010-02-24 18:37  mrpeach
+
+	* [r13189] Corrected some error messages, check for EINVAL after
+	  recvfrom(), to try to find out why it happens...
+
+2010-01-25 14:40  zmoelnig
+
+	* [r13088] install reference files side-by-side with the object
+	  files
+
+2010-01-20 19:41  mrpeach
+
+	* [r13057] Added SO_BROADCAST so you can actually broadcast with a
+	  .255 address...
+
+2010-01-18 17:41  mrpeach
+
+	* [r13038] use unix line endings
+
+2010-01-18 17:25  mrpeach
+
+	* [r13037] Make the connection thread detached and don't refer to
+	  its struct directly, check for thread
+	  creation errors.
+
+2010-01-18 04:31  mrpeach
+
+	* [r13031] Use NULL instead of 0 to reset thread pointer so maybe
+	  now MinGW can compile it...removed unused symbols
+
+2010-01-15 18:53  mrpeach
+
+	* [r13013] Added include for ws2tcpip.h for socklen_t for _WIN32
+
+2010-01-14 20:26  mrpeach
+
+	* [r12999] Don't need float_cast.h anymore, using the flint union
+	  with ntohl/htonl instead.
+
+2010-01-14 20:24  mrpeach
+
+	* [r12998] Always send in network byte order for all architectures.
+	  UDP receiving socket doesn't need to be
+	  non-blocking (I think...). Cleaned up help patch.
+
+2010-01-14 20:21  mrpeach
+
+	* [r12997] Changed int optLen to socklen_t to avoid signedness
+	  warning
+
+2010-01-13 21:54  mrpeach
+
+	* [r12985] Fixed header files for _WIN32
+
+2010-01-12 18:58  mrpeach
+
+	* [r12968] Block size is settable by creation argument. Buffer size
+	  message is specified in frames. Info message gives some more
+	  info. Channels
+	  transmitted can be set to zero. Cleaned up help patch.
+
+2010-01-11 16:56  mrpeach
+
+	* [r12955] Added "unix" to the test for "UNIX".
+
+2010-01-11 14:27  mrpeach
+
+	* [r12954] help patch for udpsend~ and udpreceive~
+
+2010-01-11 14:25  mrpeach
+
+	* [r12953] Versions of netsend~ for udp.
+
+2010-01-04 16:49  mrpeach
+
+	* [r12882] Had the wrong #include for ioctl...
+
+2010-01-02 20:50  mrpeach
+
+	* [r12874] Changed MSW to _WIN32. Added
+	  tcpserver_send_buffer_avaliable_for_client()
+	  using SIOCOUTQ ioctl in linux to see if send buffer has any room
+	  left. Apparently no equivalent exists for BSD or Windows.
+
+2010-01-02 20:22  mrpeach
+
+	* [r12873] Cleaned up a bit...
+
+2010-01-02 20:19  mrpeach
+
+	* [r12872] Changed MSW to _WIN32
+
+2010-01-02 20:17  mrpeach
+
+	* [r12871] Changed MSW to _WIN32
+
+2010-01-02 20:11  mrpeach
+
+	* [r12870] Changed MSW to _WIN32
+
+2010-01-02 20:09  mrpeach
+
+	* [r12869] Changed MSW to _WIN32
+
+2010-01-02 20:08  mrpeach
+
+	* [r12868] Changed MSW to _WIN32
+
+2010-01-02 20:04  mrpeach
+
+	* [r12867] Changed MSW to _WIN32
+
+2010-01-02 20:03  mrpeach
+
+	* [r12866] Changed MSW to _WIN32
+
+2010-01-02 19:59  mrpeach
+
+	* [r12865] Changed MSW to _WIN32
+
+2010-01-02 19:52  mrpeach
+
+	* [r12864] Changed MSW to _WIN32
+
+2010-01-02 19:51  mrpeach
+
+	* [r12863] Changed MSW to _WIN32
+
+2009-12-27 03:09  mrpeach
+
+	* [r12845] include math.h for log()
+
+2009-12-13 23:34  matju
+
+	* [r12834] fixed two 64-bit bugs because int!=long
+
+2009-12-13 23:33  matju
+
+	* [r12833] resolved 1 slight 64-bit bug because int!=long and 5
+	  spurious warnings because long!=size_t
+
+2009-12-13 23:27  matju
+
+	* [r12832] added by request from two independent people at once
+
+2009-11-29 17:37  mrpeach
+
+	* [r12814] Sender threads are now created in the detached state so
+	  their resources will be freed when the threads complete. This
+	  appears to stop the accumulation of handles on WinXP at least.
+
+2009-11-28 21:38  mrpeach
+
+	* [r12813] Removed duplicate send, added threaded send for files,
+	  and also send whenever buffer is full (65536 bytes) for incoming
+	  lists (although [tcpserver] is unlikely to be fed lists that
+	  long)
+
+2009-11-12 22:16  mrpeach
+
+	* [r12760] Using pthreads to send each message to each client in
+	  its own thread. This should eliminate hangups when clients
+	  disappear halfway through, and increase responsiveness of Pd with
+	  [tcpserver]. Messages are sent as one unit instead of
+	  byte-by-byte. Select() is no longer used to check for available
+	  space in the buffer.
+
+2009-07-23 22:15  mrpeach
+
+	* [r11879] Outputs a bang via bang outlet when done, same as
+	  [textfile]. No more bangs through bin outlet.
+
+2009-07-09 15:41  mrpeach
+
+	* [r11853] Changed midifile playback to print status instead of
+	  playing it.
+	  (thanks Alex x37v.alex@gmail.com)
+
+2009-06-10 04:18  mrpeach
+
+	* [r11735] Blob padding does not add zero if already modulo 4
+	  length.
+	  Blob length one also works.
+	  Thanks Wolfgang Jäger for debugs...
+
+2009-06-08 22:33  mrpeach
+
+	* [r11720] Added blob type
+
+2009-06-08 22:33  mrpeach
+
+	* [r11719] Added a blob type, changed some post()s to error()s.
+
+2009-05-10 19:42  mrpeach
+
+	* [r11314] Fixed a bug where a type-forced message with a non-data
+	  type following a type with an argument would cause an error.
+
+2009-04-24 02:17  mrpeach
+
+	* [r11107] removed unnecessary call to filelength.
+	  added name of function in post()s to console.
+
+2009-04-10 15:32  mrpeach
+
+	* [r11003] Buffer must be less than or equal to argument,
+	  not greater than.
+
+2009-04-08 20:04  mrpeach
+
+	* [r10989] This is an object that is supposed to output the
+	  absolute path to the Pd external or abstraction named in its
+	  argument or a message. Currently it works on linux but,
+	  mysteriously, crashes Pd on WinXp.
+
+2009-04-08 19:48  mrpeach
+
+	* [r10988] Oops, I had forgotten to add the default timeout of
+	  1000us.
+
+2009-04-08 19:34  mrpeach
+
+	* [r10987] Added timeout message to set send timeout in
+	  microseconds, defaults to 1000.
+	  Changed help patch to match.
+
+2009-04-08 18:35  mrpeach
+
+	* [r10986] Added [timeout( message to set microsecond timeout for
+	  send. This gives time for unusually small buffers to clear.
+	  Set default timeout to 1000us.
+	  Also prints a message if the whole send didn't complete.
+	  Updated help patch to match.
+
+2009-03-09 16:01  mrpeach
+
+	* [r10852] The 'sent' message now contains client number, bytes
+	  sent, socket number. Empty 'send' message triggers list of client
+	  messages on right outlet. Empty socket number message causes a
+	  client message on right outlet.
+	  Help patch updated.
+
+2009-03-04 22:33  mrpeach
+
+	* [r10835] Changed send routine to send one byte at a time and
+	  output number of bytes sent, so it won't block if the other end
+	  disappears. Also settable buffer size.
+	  Help path updated.
+
+2009-03-02 17:55  mrpeach
+
+	* [r10829] Fixed some warnings about signed/unsigned variables.
+
+2009-03-02 17:01  mrpeach
+
+	* [r10828] Fixed a bug that prevented the send routine from leaving
+	  the loop when no more data can be sent.
+	  Now it won't hang if you try sending to a recently disconnected
+	  client, honest!
+
+2009-03-02 03:41  mrpeach
+
+	* [r10827] tcpserver_send_buf: send only one byte at a time into
+	  the buffer to avoid buffer overflow. This should not slow the
+	  whole thing down too much since we're already passing things one
+	  byte at a time.
+
+2009-03-01 21:56  mrpeach
+
+	* [r10824] Added a [clientbuf( message to set the send buffer size
+	  for that client. Also the [client( message will output the
+	  current buffer size as well as the socket and ip for that client.
+	  Help patch updated.
+
+2009-02-25 00:41  eighthave
+
+	* [r10815] added workaround for missing random() and srandom() on
+	  Windows
+
+2009-02-24 21:07  mrpeach
+
+	* [r10813] Updated help files to reflect new [tcpserver], cleaned
+	  up a bit more.
+
+2009-02-24 21:06  mrpeach
+
+	* [r10812] Adds a status outlet which currently gives info about
+	  connected clients and the amount of sent data.
+
+2009-02-23 20:58  mrpeach
+
+	* [r10810] Fixed select call so it works properly
+
+2009-02-22 23:39  mrpeach
+
+	* [r10806] include errno.h for linux
+
+2009-02-22 22:36  mrpeach
+
+	* [r10805] Removed some commented-out stuff
+
+2009-02-22 22:25  mrpeach
+
+	* [r10804] Checks to see if a socket can be written to before
+	  sending. If not, prints a message to the pd window and doesn't
+	  send the data.
+
+2009-02-03 14:05  mrpeach
+
+	* [r10727] These were updated by roman
+	  roman.haefeli@gmail.com
+	  
+	  [tcpsocket.OSC]
+	  - fixed limitation of maximum size for incoming list for
+	  serialization.
+	  handles now arbitrary list lengths correctly.
+	  
+	  [tcpsocket.FUDI]
+	  - fixed limitation of maximum size for incoming list for
+	  serialization.
+	  handles now arbitrary list lengths correctly.
+	  - fixed delimiting problem: semicolons prepended by backslashes
+	  are
+	  correctly omitted for delimiter evaluation.
+
+2009-01-28 21:58  mrpeach
+
+	* [r10673] Updated to reflect changed object.
+
+2009-01-28 21:57  mrpeach
+
+	* [r10672] Updated to reflect changed object.
+
+2009-01-28 21:47  mrpeach
+
+	* [r10671] Added bang method which does nothing.
+
+2009-01-28 21:45  mrpeach
+
+	* [r10670] Added "delimiter" message to enable output from offset
+	  to first delimiter.
+
+2009-01-28 21:42  mrpeach
+
+	* [r10669] Added an outlet for the array size. The outlet is
+	  updated with each incoming list or float. This makes it easier to
+	  append to existing arrays.
+
+2009-01-22 18:52  mrpeach
+
+	* [r10598] flist2tab loads a list of floats into a table, resizing
+	  the table if it is too small.
+
+2009-01-22 18:51  mrpeach
+
+	* [r10597] tab2flist extracts a list of floats from a table at a
+	  given offset. The length of the list can be set via the second
+	  inlet. Points outside the table are returned as zeros.
+
+2009-01-13 14:03  mrpeach
+
+	* [r10527] This is Roman Haefeli's tcpsocketserver for FUDI and
+	  OSC.
+	  Untested!
+
+2008-11-21 22:11  mrpeach
+
+	* [r10375] select garray_getfloatwords() or garray_getfloatarray()
+	  depending on pd version.
+	  (garray_getfloatwords was not implemented until pd 0.41)
+
+2008-11-21 21:25  mrpeach
+
+	* [r10374] An external to find a float or sequence of floats in a
+	  table/array.
+
+2008-11-05 19:58  mrpeach
+
+	* [r10365] Updated to add port number to list on right outlet
+
+2008-11-05 19:58  mrpeach
+
+	* [r10364] Added port number output to ip list on right outlet as
+	  suggested by zmoelnig
+
+2008-11-05 19:35  mrpeach
+
+	* [r10363] Updated to add port number on ip (right) outlet
+
+2008-11-05 19:34  mrpeach
+
+	* [r10362] Added port number to ip outlet as suggested by zmoelnig
+
+2008-11-05 19:06  mrpeach
+
+	* [r10361] Added broadcast permission to sockets as suggested by
+	  zmoelnig's patch 2221504
+
+2008-09-17 18:18  mrpeach
+
+	* [r10295] cleaned up some more.
+
+2008-09-17 18:17  mrpeach
+
+	* [r10294] unpackOSC now always outputs a delay of 0 when a
+	  non-bundled message has been unpacked.
+
+2008-09-16 21:24  mrpeach
+
+	* [r10292] cleaned up some more...
+
+2008-09-16 21:05  mrpeach
+
+	* [r10291] Adding Roman Haefili's abstractions to enable OSC over
+	  streaming connections like TCP and serial.
+
+2008-08-21 20:28  mrpeach
+
+	* [r10258] A cellular automaton to do Conway's life and similar.
+
+2008-07-06 20:04  mrpeach
+
+	* [r10146] The anything method works now...
+
+2008-07-06 19:01  mrpeach
+
+	* [r10143] pipelist now passes meta-messages (lists without the
+	  list selector) as well.
+
+2008-06-19 13:50  zmoelnig
+
+	* [r10048] removed the svn:executable bit for code, patches and
+	  text
+
+2008-06-18 17:30  mrpeach
+
+	* [r10030] Clarify what SO_REUSEADDR is for, no code changes.
+
+2008-05-20 19:54  mrpeach
+
+	* [r9861] Cleaned up and improved...
+
+2008-05-20 19:53  mrpeach
+
+	* [r9860] Changed to using getbytes to allocate the initial array
+	  so it can be as long as you like.
+
+2008-05-16 21:30  mrpeach
+
+	* [r9827] help patch for runningmean
+
+2008-05-16 21:21  mrpeach
+
+	* [r9826] not the binary...
+
+2008-05-16 21:20  mrpeach
+
+	* [r9825] A running mean external with settable length.
+
+2008-05-11 18:13  mrpeach
+
+	* [r9784] Applied zmoelnig's patch (1959417) to use path as output
+	  selector instead of 'list'.
+
+2008-05-07 09:56  zmoelnig
+
+	* [r9769] removed svn:executable-flag
+
+2008-03-27 19:56  mrpeach
+
+	* [r9628] No limit on sendable file size.
+
+2008-03-20 15:57  mrpeach
+
+	* [r9612] Updated with dump message
+
+2008-03-20 15:50  mrpeach
+
+	* [r9611] Added dump message for hexdump of received characters to
+	  main window.
+	  Added #include <sys.types.h> for u_long define.
+
+2008-03-17 15:21  mrpeach
+
+	* [r9595] Adding a red noise generator dsp object.
+
+2008-03-11 17:29  mrpeach
+
+	* [r9560] Updated to reflect new write message, and example uses
+	  real noteoffs
+	  instead of zero-velocity noteons.
+
+2008-03-11 17:03  mrpeach
+
+	* [r9559] Changed "write" message to include frame per second and
+	  ticks per frame.
+
+2008-03-11 02:59  mrpeach
+
+	* [r9555] Use default division of 90 when writing midi files.
+
+2008-02-27 18:23  mrpeach
+
+	* [r9525] This is a sample midi file to use with midifile-help.pd.
+	  It comes from
+	  http://punk.mididb.com/ramones.
+
+2008-02-27 18:20  mrpeach
+
+	* [r9524] Updated the help file.
+
+2008-02-18 04:02  mrpeach
+
+	* [r9450] Cleaned up overlapping comments.
+
+2008-02-18 03:56  mrpeach
+
+	* [r9449] Use canvas-relative path if not an absolute path (with
+	  slash or drive letter at start of path).
+
+2008-02-18 03:25  mrpeach
+
+	* [r9448] Reads and writes to paths relative to current canvas if
+	  path doesn't start with a slash or drive letter.
+
+2008-01-21 14:09  mrpeach
+
+	* [r9154] Applied W.Ritsch's patch to fix sign error with input >
+	  127
+
+2007-11-26 17:14  mrpeach
+
+	* [r9041] Changed atom_blob back to atom_string
+
+2007-11-13 11:46  zmoelnig
+
+	* [r8988] fixed crasher-bug when a "bang" was sent to the
+	  [routeOSC] object;
+	  replaced post() by pd_error() where appropriate
+
+2007-11-07 20:26  mrpeach
+
+	* [r8955] Now uses blobs instead of strings.
+
+2007-10-20 04:45  mrpeach
+
+	* [r8850] Modified OSC_writeFloatArg for strict aliasing
+
+2007-09-26 21:18  mrpeach
+
+	* [r8762] Added readat and writeat messages to set pointers.
+
+2007-09-24 21:01  mrpeach
+
+	* [r8756] An object to manipulate binary files in pd.
+
+2007-09-05 19:45  mrpeach
+
+	* [r8706] Use union for int/float conversion as submitted by
+	  zmoelnig.
+
+2007-09-01 16:39  mrpeach
+
+	* [r8697] Removed timezone calculation from timestamp so timestamp
+	  is always UTC.
+
+2007-08-06 22:18  mrpeach
+
+	* [r8439] Closing socket should actually work now. Before it was
+	  just removing it from the list.
+
+2007-08-02 15:56  mrpeach
+
+	* [r8347] Added disconnectclient and disconnectsocket methods so
+	  server can close connections too.
+
+2007-07-23 16:48  mrpeach
+
+	* [r8211] Removed unused static binbuf that caused occasional
+	  crashes when reinstantiating the object. Thanks IOhannes
+	  for pointing it out!
+
+2007-07-15 18:00  mrpeach
+
+	* [r8082] Should compile on MSW now...
+
+2007-07-12 15:25  mrpeach
+
+	* [r8048] Now outputs negative delays on right outlet. Immediate
+	  time tags will always output 0, "current" time tags will
+	  always be slightly negative.
+
+2007-07-12 15:22  mrpeach
+
+	* [r8047] Reminder that opening a bundle sets the time tag at that
+	  time.
+
+2007-07-12 15:20  mrpeach
+
+	* [r8046] Negative and zero delays now cause lists to pass straight
+	  through without clock_delay and memory allocation/copying.
+
+2007-07-11 20:38  mrpeach
+
+	* [r8027] Added handler for blob type.
+
+2007-07-11 19:45  mrpeach
+
+	* [r8022] Updated to use pipelist.
+
+2007-07-11 19:44  mrpeach
+
+	* [r8021] pipelist is like pipe for lists. It can be used with
+	  unpackOSC to delay timetagged messages.
+
+2007-07-11 17:34  mrpeach
+
+	* [r8008] unpackOSC now simply outputs (through the right outlet) a
+	  delay in milliseconds when it
+	  receives a timetag, as the timetag itself is not useable inside
+	  pd.
+	  The delay is zero when the timetag is in the past.
+	  Help patches have been updated to match.
+	  Also corrected a mistake in packOSC.c timetag calculation.
+
+2007-07-05 19:08  mrpeach
+
+	* [r7901] Added some support for time tags: immediate or current
+	  time plus optional offset.
+
+2007-06-20 21:15  mrpeach
+
+	* [r7791] Updated with "prefix" and send without "send"
+
+2007-06-20 21:10  mrpeach
+
+	* [r7790] Updated
+
+2007-06-20 20:31  mrpeach
+
+	* [r7789] Implemented IOhannes' list send
+
+2007-06-20 20:28  mrpeach
+
+	* [r7788] Implemented IOhannes' prefix and anything methods.
+
+2007-06-04 21:18  mrpeach
+
+	* [r7751] added bufsize message
+
+2007-06-04 21:18  mrpeach
+
+	* [r7750] added bufsize message and cleaned up code
+
+2007-06-03 16:09  mrpeach
+
+	* [r7746] cleaned up some unused variables
+
+2007-06-02 01:10  mrpeach
+
+	* [r7742] cleaned up code to reduce number of warnings
+
+2007-05-28 00:48  mrpeach
+
+	* [r7714] Changed [prepend send] to [list prepend send][list trim]
+
+2007-05-28 00:45  mrpeach
+
+	* [r7713] Removed hardcoded limit on number of arguments.
+
+2007-04-10 03:08  mrpeach
+
+	* [r7551] Cleaned up, should compile under Darwin
+
+2007-03-29 02:42  mrpeach
+
+	* [r7523] Cleaned up help file to make it easier to use
+
+2007-03-29 02:41  mrpeach
+
+	* [r7522] Added finite call to eliminate NaNs
+	  Cleaned up comments
+
+2007-03-20 16:06  mrpeach
+
+	* [r7510] help files for CMOS externals
+
+2007-03-20 16:06  mrpeach
+
+	* [r7509] CMOS digital logic emulation objects
+
+2007-02-15 23:09  mrpeach
+
+	* [r7438] Added handler for T, F, I, and N OSC types
+
+2007-02-15 23:08  mrpeach
+
+	* [r7437] Updated with sendtyped message
+
+2007-02-15 23:07  mrpeach
+
+	* [r7436] Added handler for sendtyped message
+
+2007-02-11 17:01  mrpeach
+
+	* [r7417] Modified str.c to build a dummy object if pd is not
+	  patched for string type.
+
+2007-01-28 21:21  mrpeach
+
+	* [r7390] An external that uses the string type. PD needs to be
+	  patched for this...
+
+2006-12-12 09:07  zmoelnig
+
+	* [r6815] removed the "break;" statement in the broadcast() code to
+	  enable broadcasting
+	  to all connected clients (and not jsut the first one)
+
+2006-12-04 20:18  mrpeach
+
+	* [r6615] make sure bytes > 127 are not interpreted as negative.
+
+2006-12-04 20:17  mrpeach
+
+	* [r6614] make sure bytes >127 are not interpreted as negative.
+
+2006-12-01 16:50  mrpeach
+
+	* [r6563] Use sprintf_s instead of snprintf if _MSC_VER defined
+
+2006-11-28 16:44  mrpeach
+
+	* [r6492] changed MAX_PATH to FILENAME_MAX.
+
+2006-11-28 16:43  mrpeach
+
+	* [r6491] changed MAX_PATH to FILENAME_MAX
+
+2006-11-13 17:54  mrpeach
+
+	* [r6279] Changed file names to conform to ~convention.
+
+2006-11-07 21:58  mrpeach
+
+	* [r6226] test file for net object help patches
+
+2006-11-07 21:57  mrpeach
+
+	* [r6225] added send filename
+
+2006-11-07 21:21  mrpeach
+
+	* [r6224] removed declspec
+
+2006-11-07 21:20  mrpeach
+
+	* [r6223] added file send
+
+2006-08-24 06:56  mrpeach
+
+	* [r5727] Source for midifile.pd with help patch
+
+2006-08-24 06:51  mrpeach
+
+	* [r5726] Renamed files without x_net_ prefix.
+	  Removed extra copies of tcpserver and tcpclient
+
+2006-08-17 05:33  eighthave
+
+	* [r5636] added mrpeach targets and added missing header to get
+	  things compiling on Mac OS X
+
+2006-08-16 20:22  mrpeach
+
+	* [r5629] Added the net, osc and sqosc~ directories
+
