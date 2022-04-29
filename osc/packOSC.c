@@ -248,10 +248,10 @@ static void packOSC_send(t_packOSC *x, t_symbol *s, int argc, t_atom *argv);
 static void packOSC_anything(t_packOSC *x, t_symbol *s, int argc, t_atom *argv);
 static void packOSC_free(t_packOSC *x);
 void packOSC_setup(void);
-static typedArg packOSC_parseatom(t_atom *a);
-static typedArg packOSC_packMIDI(t_atom *a);
-static typedArg packOSC_forceatom(t_atom *a, char ctype);
-static typedArg packOSC_blob(t_atom *a);
+static typedArg packOSC_parseatom(t_atom *a, t_packOSC *x);
+static typedArg packOSC_packMIDI(t_atom *a, t_packOSC *x);
+static typedArg packOSC_forceatom(t_atom *a, char ctype, t_packOSC *x);
+static typedArg packOSC_blob(t_atom *a, t_packOSC *x);
 static int packOSC_writetypedmessage(t_packOSC *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args, char *typeStr);
 static int packOSC_writemessage(t_packOSC *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args);
 static void packOSC_sendbuffer(t_packOSC *x);
@@ -475,7 +475,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
 #ifdef DEBUG
                     printf("packOSC_blob %d:\n", nArgs);
 #endif
-                    args[typedArgIndex] = packOSC_blob(&argv[argvIndex]);
+                    args[typedArgIndex] = packOSC_blob(&argv[argvIndex], x);
                     /* Make sure it was blobbable */
                     if (args[typedArgIndex].type != BLOB_osc) goto cleanup;
                 }
@@ -484,10 +484,10 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
             {
                 if (c == 'm')
                 { // pack the next four arguments into one int
-                  args[typedArgIndex++] = packOSC_packMIDI(&argv[argvIndex]);
+                  args[typedArgIndex++] = packOSC_packMIDI(&argv[argvIndex], x);
                   argvIndex += 4;
                 }
-                else args[typedArgIndex++] = packOSC_forceatom(&argv[argvIndex++], c);
+                else args[typedArgIndex++] = packOSC_forceatom(&argv[argvIndex++], c, x);
             }
         }
         //if(packOSC_writetypedmessage(x, x->x_oscbuf, messageName, nArgs, args, typeStr))
@@ -501,7 +501,7 @@ static void packOSC_sendtyped(t_packOSC *x, t_symbol *s, int argc, t_atom *argv)
     {
         for (i = 0; i < (unsigned)(argc-1); i++)
         {
-            args[i] = packOSC_parseatom(&argv[i+1]);
+            args[i] = packOSC_parseatom(&argv[i+1], x);
 #ifdef DEBUG
             switch (args[i].type)
             {
@@ -613,7 +613,7 @@ void packOSC_setup(void)
     class_addanything(packOSC_class, (t_method)packOSC_anything);
 }
 
-static typedArg packOSC_parseatom(t_atom *a)
+static typedArg packOSC_parseatom(t_atom *a, t_packOSC *x)
 {
     typedArg returnVal;
     t_float  f;
@@ -656,7 +656,7 @@ static typedArg packOSC_parseatom(t_atom *a)
     }
 }
 
-static typedArg packOSC_blob(t_atom *a)
+static typedArg packOSC_blob(t_atom *a, t_packOSC *x)
 { /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
@@ -687,7 +687,7 @@ static typedArg packOSC_blob(t_atom *a)
     return returnVal;
 }
 
-static typedArg packOSC_packMIDI(t_atom *a)
+static typedArg packOSC_packMIDI(t_atom *a, t_packOSC *x)
 { /* pack four bytes at a into one int32 */
   int         i;
   typedArg    returnVal;
@@ -730,7 +730,7 @@ static typedArg packOSC_packMIDI(t_atom *a)
   return returnVal;
 }
 
-static typedArg packOSC_forceatom(t_atom *a, char ctype)
+static typedArg packOSC_forceatom(t_atom *a, char ctype, t_packOSC *x)
 { /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
@@ -1088,7 +1088,7 @@ static int OSC_CheckOverflow(OSCbuf *buf, size_t bytesNeeded)
 {
     if ((bytesNeeded) > OSC_freeSpaceInBuffer(buf))
     {
-        pd_error(x, "packOSC: buffer overflow");
+        pd_error(NULL, "packOSC: buffer overflow");
         return 1;
     }
     return 0;
@@ -1380,7 +1380,7 @@ static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
     {
         if (arg[i].type != BLOB_osc)
         {
-            pd_error(x, "packOSC: blob element %lu not blob type", i);
+            pd_error(NULL, "packOSC: blob element %lu not blob type", i);
             return 9;
         }
         b = (unsigned char)((arg[i].datum.i)&0x0FF);/* force int to 8-bit byte */

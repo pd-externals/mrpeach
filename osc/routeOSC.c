@@ -531,7 +531,7 @@ static int PatternMatch (const char *  pattern, const char * test)
             return PatternMatch (pattern, test+1);
         case ']':
         case '}':
-                  pd_error(x, "routeOSC: Spurious %c in pattern \".../%s/...\"",pattern[0], theWholePattern);
+                  pd_error(NULL, "routeOSC: Spurious %c in pattern \".../%s/...\"",pattern[0], theWholePattern);
             return 0;
         case '[':
             return MatchBrackets (pattern,test);
@@ -557,7 +557,7 @@ static int MatchBrackets (const char *pattern, const char *test)
 
     if (pattern[1] == 0) 
     {
-        pd_error(x, "routeOSC: Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+        pd_error(NULL, "routeOSC: Unterminated [ in pattern \".../%s/...\"", theWholePattern);
         return 0;
     }
     if (pattern[1] == '!')
@@ -569,7 +569,7 @@ static int MatchBrackets (const char *pattern, const char *test)
     {
         if (*p == 0) 
         {
-            pd_error(x, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+            pd_error(NULL, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
         if (p[1] == '-' && p[2] != 0) 
@@ -594,7 +594,7 @@ advance:
     {
         if (*p == 0) 
         {
-            pd_error(x, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+            pd_error(NULL, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
         p++;
@@ -610,7 +610,7 @@ static int MatchList (const char *pattern, const char *test)
     {
         if (*restOfPattern == 0) 
         {
-            pd_error(x, "Unterminated { in pattern \".../%s/...\"", theWholePattern);
+            pd_error(NULL, "Unterminated { in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
     }
