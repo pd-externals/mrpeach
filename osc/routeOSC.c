@@ -173,7 +173,7 @@ static void *routeOSC_new(t_symbol *s, int argc, t_atom *argv)
 
     if (argc > MAX_NUM)
     {
-        error("* routeOSC: too many arguments: %d (max %d)", argc, MAX_NUM);
+        pd_error(x, "* routeOSC: too many arguments: %d (max %d)", argc, MAX_NUM);
         return 0;
     }
     x->x_num = 0;
@@ -188,13 +188,13 @@ static void *routeOSC_new(t_symbol *s, int argc, t_atom *argv)
             }
             else
             {
-                error("routeOSC: argument %d does not begin with a slash(/).", i);
+                pd_error(x, "routeOSC: argument %d does not begin with a slash(/).", i);
                 return(0);
             }
         }
         else
         {
-            error("routeOSC: argument %d is not a symbol.", i);
+            pd_error(x, "routeOSC: argument %d is not a symbol.", i);
             return 0;
         }
     }
@@ -531,7 +531,7 @@ static int PatternMatch (const char *  pattern, const char * test)
             return PatternMatch (pattern, test+1);
         case ']':
         case '}':
-                  error("routeOSC: Spurious %c in pattern \".../%s/...\"",pattern[0], theWholePattern);
+                  pd_error(x, "routeOSC: Spurious %c in pattern \".../%s/...\"",pattern[0], theWholePattern);
             return 0;
         case '[':
             return MatchBrackets (pattern,test);
@@ -557,7 +557,7 @@ static int MatchBrackets (const char *pattern, const char *test)
 
     if (pattern[1] == 0) 
     {
-        error("routeOSC: Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+        pd_error(x, "routeOSC: Unterminated [ in pattern \".../%s/...\"", theWholePattern);
         return 0;
     }
     if (pattern[1] == '!')
@@ -569,7 +569,7 @@ static int MatchBrackets (const char *pattern, const char *test)
     {
         if (*p == 0) 
         {
-            error("Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+            pd_error(x, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
         if (p[1] == '-' && p[2] != 0) 
@@ -594,7 +594,7 @@ advance:
     {
         if (*p == 0) 
         {
-            error("Unterminated [ in pattern \".../%s/...\"", theWholePattern);
+            pd_error(x, "Unterminated [ in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
         p++;
@@ -610,7 +610,7 @@ static int MatchList (const char *pattern, const char *test)
     {
         if (*restOfPattern == 0) 
         {
-            error("Unterminated { in pattern \".../%s/...\"", theWholePattern);
+            pd_error(x, "Unterminated { in pattern \".../%s/...\"", theWholePattern);
             return 0;
         }
     }
