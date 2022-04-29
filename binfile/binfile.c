@@ -98,11 +98,6 @@ static void *binfile_new(t_symbol *s, int argc, t_atom *argv)
     t_symbol    *pathSymbol;
     int         i;
 
-    if (x == NULL)
-    {
-        error("binfile: Could not create...");
-        return x;
-    }
     x->x_fP = NULL;
     x->x_fPath[0] = '\0';
     x->x_our_directory = canvas_getcurrentdir();/* get the current directory to use as the base for relative file paths */
