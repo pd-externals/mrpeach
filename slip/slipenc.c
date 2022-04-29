@@ -89,7 +89,7 @@ static void *slipenc_new(t_symbol *s, int argc, t_atom *argv)
     x->x_slip_buf = (t_atom *)getbytes(sizeof(t_atom)*x->x_slip_max_length);
     if(x->x_slip_buf == NULL)
     {
-        error("slipenc: unable to allocate %lu bytes for x_slip_buf", (long)sizeof(t_atom)*x->x_slip_max_length);
+        pd_error(x, "slipenc: unable to allocate %lu bytes for x_slip_buf", (long)sizeof(t_atom)*x->x_slip_max_length);
         return NULL;
     }
     /* Initialize all the slip buf atoms to float type */
