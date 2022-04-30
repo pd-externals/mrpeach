@@ -329,7 +329,7 @@ static void str_float_to_buf(t_str *x, t_float f)
 
     if (x->x_buf_end > x->x_buf.s_length-20) /* what's the longest float? */
     {
-        error("str_float_to_buf: string too long.");
+        pd_error(x, "str_float_to_buf: string too long.");
         return;
     }
     /* A float is either an ascii character number or a floating-point string */

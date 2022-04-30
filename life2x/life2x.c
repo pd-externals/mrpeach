@@ -372,21 +372,21 @@ static void life2x_rule(t_life2x *x, t_symbol *s)
         if (s->s_name[i] == '/') break;
         if ((s->s_name[i] < 0x30)||(s->s_name[i] > 0x38))
         {
-            error("life2x_rule: bad character in rule: %c", s->s_name[i]);
+            pd_error(x, "life2x_rule: bad character in rule: %c", s->s_name[i]);
             return;
         }
         survive[s->s_name[i]-0x30] = 1;
     }
     if (s->s_name[i] != '/')
     {
-        error("life2x_rule: missing / separator");
+        pd_error(x, "life2x_rule: missing / separator");
         return;
     }
     for (++i; s->s_name[i] != 0; ++i)
     {
         if ((s->s_name[i] < 0x30)||(s->s_name[i] > 0x38))
         {
-            error("life2x_rule: bad character in rule: %c", s->s_name[i]);
+            pd_error(x, "life2x_rule: bad character in rule: %c", s->s_name[i]);
             return;
         }
         born[s->s_name[i]-0x30] = 1;
@@ -512,7 +512,7 @@ static void life2x_novar(t_life2x *x, t_floatarg f)
 
     if (n < 0)
     {
-        error("life2x: novar argument must be positive");
+        pd_error(x, "life2x: novar argument must be positive");
         return;
     }
     else
@@ -552,12 +552,12 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
             x->l_xcellnum = av[0].a_w.w_float; /* arg sets # of horiz cells */
             if (x->l_xcellnum < 4)
             {
-                error("Life: first argument < 4, set to 4");
+                pd_error(NULL, "Life: first argument < 4, set to 4");
                 x->l_xcellnum = 4; /* min # of  horiz cells */
             }
             if (x->l_xcellnum > MAXSIZE)
             {
-                error("Life: first argument > %d, set to %d", MAXSIZE, MAXSIZE);
+                pd_error(NULL, "Life: first argument > %d, set to %d", MAXSIZE, MAXSIZE);
                 x->l_xcellnum = MAXSIZE; /* max # of horiz cells */
             }
             /* if 2 arguments */
@@ -566,18 +566,18 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
                 x->l_ycellnum = av[1].a_w.w_float; /* 2nd arg sets # of verti cells */
                 if (x->l_ycellnum < 4)
                 {
-                    error("Life: 2nd argument < 4, set to 4");
+                    pd_error(NULL, "Life: 2nd argument < 4, set to 4");
                     x->l_ycellnum = 4; /* min # of verti cells */
                 }
                 if (x->l_ycellnum > MAXSIZE)
                 {
-                    error("Life: 2nd argument > %d, set to %d", MAXSIZE, MAXSIZE);
+                    pd_error(NULL, "Life: 2nd argument > %d, set to %d", MAXSIZE, MAXSIZE);
                     x->l_ycellnum = MAXSIZE; /* max # of verti cells */
                 }
             }
             else if (ac > 1)
             { /* if 2nd arg not an int */
-                error("Life: 2nd argument must be int");
+                pd_error(NULL, "Life: 2nd argument must be int");
                 x->l_ycellnum = DEFAULT_DIM; /* default # of verti cells */
             }
             else
@@ -587,7 +587,7 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
         }
         else
         { /*if first arg not an int */
-            error("Life: first argument must be int");
+            pd_error(NULL, "Life: first argument must be int");
             x->l_xcellnum = DEFAULT_DIM; /* default # of horiz cells */
             x->l_ycellnum = DEFAULT_DIM; /* default # of verti cells */
         }
@@ -611,7 +611,7 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
         || (x->gen_shift_ptr == NULL)
     )
     {
-        error ("Unable to allocate memory for the life array (%luX%lu needs %lu bytes)",
+        pd_error(NULL, "Unable to allocate memory for the life array (%luX%lu needs %lu bytes)",
             x->l_xcellnum, x->l_ycellnum, x->l_cellmax*4L);
         life2x_free (x);
         return x;
@@ -620,7 +620,7 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
     x->l_column_list = getbytes(x->l_ycellnum*sizeof (t_atom));
     if (x->l_column_list == NULL)
     {
-        error("life2x_new: Unable to allocate %lu bytes for column list",
+        pd_error(NULL, "life2x_new: Unable to allocate %lu bytes for column list",
         x->l_ycellnum*sizeof (t_atom));
         life2x_free (x);
         return x;
@@ -653,7 +653,7 @@ static void *life2x_new(t_symbol *s, short ac, t_atom *av)
     x->l_cellouts = getbytes(x->l_xcellnum*sizeof (t_outlet*));
     if (x->l_cellouts == NULL)
     {
-        error("life2x_new: Unable to allocate %lu bytes for column outlets",
+        pd_error(NULL, "life2x_new: Unable to allocate %lu bytes for column outlets",
         x->l_xcellnum*sizeof (t_outlet*));
         life2x_free (x);
         return x;
