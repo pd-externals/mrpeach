@@ -31,15 +31,15 @@ Serial line internet protocol for transmitting packets through stream-oriented t
 
 
 ## general purpose objects
-[life2x] game of life
-[op~] signal comparision
-[rc~] resistor-capacitor circuit
-[rcosc~] resistor-capacitor oscillator
-[rojo~] red noise generator
-[runningmean] moving average filter
-[sqosc~] bandlimited pulse generator
-[str] strings
-[tabfind] find a number in a table
-[flist2tab] write lists of floats into a table
-[tab2flist] extract lists of floats from a table
-[which] output path to a Pd-object
+* [life2x] game of life
+* [op~] signal comparision
+* [rc~] resistor-capacitor circuit
+* [rcosc~] resistor-capacitor oscillator
+* [rojo~] red noise generator
+* [runningmean] moving average filter
+* [sqosc~] bandlimited pulse generator
+* [str] strings
+* [tabfind] find a number in a table
+* [flist2tab] write lists of floats into a table
+* [tab2flist] extract lists of floats from a table
+* [which] output path to a Pd-object
