@@ -11,8 +11,24 @@ communication with the XBee
 ## binfile
 read raw files (as bytes)
 
+:warning: **Moved to separate repository**: https://github.com/pd-externals/binfile
+
+
 ## midifile
 play and record MIDI-files
+
+:warning: **Moved to separate repository**: https://github.com/pd-externals/midifile
+
+## osc
+create, route and parse OSC messages
+
+:warning: **Moved to separate repository**: https://github.com/pd-externals/osc
+
+## slipdec, slipenc
+Serial line internet protocol for transmitting packets through stream-oriented transports (e.g OSC-over-TCP)
+
+:warning: **Moved to separate repository**: https://github.com/pd-externals/slip
+
 
 ## general purpose objects
 [life2x] game of life
