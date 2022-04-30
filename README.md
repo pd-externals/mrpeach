@@ -2,8 +2,7 @@ mrpeach - bag of tricks
 ===
 
 ## serial communication
-slipenc, slipdec: SLIP encoder/decoder
-f2b, b2f        : float32<->bytes converter
+* f2b, b2f        : float32<->bytes converter
 
 ## xbee
 communication with the XBee
