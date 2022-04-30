@@ -1,6 +1,9 @@
 OpenSoundControl (OSC) for Pd
 =============================
 
+:warning: **This library is now hosted at:**  https://github.com/pd-externals/osc
+
+
 a collection of Pd objectclasses for OSC-messages.
 these objects only convert between Pd-messages and OSC-messages (binary format),
 so you will need a separate set of objects that implement the transport
