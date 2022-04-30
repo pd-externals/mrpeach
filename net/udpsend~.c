@@ -725,7 +725,7 @@ static void udpsend_tilde_dsp(t_udpsend_tilde *x, t_signal **sp)
 
     if (DEFAULT_AUDIO_BUFFER_SIZE % sp[0]->s_n)
     {
-        error("udpsend~: signal vector size too large (needs to be even divisor of %d)", DEFAULT_AUDIO_BUFFER_SIZE);
+        pd_error(x, "udpsend~: signal vector size too large (needs to be even divisor of %d)", DEFAULT_AUDIO_BUFFER_SIZE);
     }
     else
     {
@@ -845,7 +845,7 @@ static void *udpsend_tilde_new(t_floatarg inlets, t_floatarg blocksize)
 
         if ((int)inlets < 1 || (int)inlets > DEFAULT_AUDIO_CHANNELS)
         {
-            error("udpsend~: Number of channels must be between 1 and %d", DEFAULT_AUDIO_CHANNELS);
+            pd_error(NULL, "udpsend~: Number of channels must be between 1 and %d", DEFAULT_AUDIO_CHANNELS);
             return NULL;
         }
         x->x_ninlets = (int)inlets;
@@ -859,7 +859,7 @@ static void *udpsend_tilde_new(t_floatarg inlets, t_floatarg blocksize)
         x->x_myvec = (t_int **)t_getbytes(sizeof(t_int *) * (x->x_ninlets + 3));
         if (!x->x_myvec)
         {
-            error("udpsend~: out of memory");
+            pd_error(NULL, "udpsend~: out of memory");
             return NULL;
         }
 
@@ -878,7 +878,7 @@ static void *udpsend_tilde_new(t_floatarg inlets, t_floatarg blocksize)
         if (blocksize == 0) x->x_blocksize = DEFAULT_AUDIO_BUFFER_SIZE; 
         else if (DEFAULT_AUDIO_BUFFER_SIZE%(int)blocksize)
         {
-            error("udpsend~: blocksize must fit snugly in %d", DEFAULT_AUDIO_BUFFER_SIZE);
+            pd_error(NULL, "udpsend~: blocksize must fit snugly in %d", DEFAULT_AUDIO_BUFFER_SIZE);
             return NULL;
         } 
         else x->x_blocksize = (int)blocksize; //DEFAULT_AUDIO_BUFFER_SIZE; /* <-- the only place blocksize is set */

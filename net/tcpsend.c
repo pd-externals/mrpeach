@@ -61,7 +61,7 @@ static void tcpsend_connect(t_tcpsend *x, t_symbol *hostname,
 
     if (x->x_fd >= 0)
     {
-        error("tcpsend: already connected");
+        pd_error(x, "tcpsend: already connected");
         return;
     }
 

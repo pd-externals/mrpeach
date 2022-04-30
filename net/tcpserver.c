@@ -207,7 +207,7 @@ static t_tcpserver_socketreceiver *tcpserver_socketreceiver_new(void *owner, t_t
     t_tcpserver_socketreceiver *x = (t_tcpserver_socketreceiver *)getbytes(sizeof(*x));
     if (!x)
     {
-        error("%s_socketreceiver: unable to allocate %zu bytes", objName, sizeof(*x));
+        pd_error(NULL, "%s_socketreceiver: unable to allocate %zu bytes", objName, sizeof(*x));
     }
     else
     {
@@ -219,7 +219,7 @@ static t_tcpserver_socketreceiver *tcpserver_socketreceiver_new(void *owner, t_t
         {
             freebytes(x, sizeof(*x));
             x = NULL;
-            error("%s_socketreceiver: unable to allocate %ld bytes", objName, INBUFSIZE);
+            pd_error(NULL, "%s_socketreceiver: unable to allocate %ld bytes", objName, INBUFSIZE);
         }
     }
     return (x);
@@ -358,12 +358,12 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
         /* sender thread should start out detached so its resouces will be freed when it is done */
         if (0!= (sender_thread_result = pthread_attr_init(&sender_attr)))
         {
-            error("%s: pthread_attr_init failed: %d", objName, sender_thread_result);
+            pd_error(x, "%s: pthread_attr_init failed: %d", objName, sender_thread_result);
             goto failed;
         }
         if(0!= (sender_thread_result = pthread_attr_setdetachstate(&sender_attr, PTHREAD_CREATE_DETACHED)))
         {
-            error("%s: pthread_attr_setdetachstate failed: %d", objName, sender_thread_result);
+            pd_error(x, "%s: pthread_attr_setdetachstate failed: %d", objName, sender_thread_result);
             goto failed;
         }
         for (i = j = 0; i < argc; ++i)
@@ -376,12 +376,12 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                 if (x->x_verbosity > 2) post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
                 if (e != 0)
                 {
-                    error("%s: item %d (%f) is not an integer", objName, i, f);
+                    pd_error(x, "%s: item %d (%f) is not an integer", objName, i, f);
                     goto failed;
                 }
                 if ((d < 0) || (d > 255))
                 {
-                    error("%s: item %d (%f) is not between 0 and 255", objName, i, f);
+                    pd_error(x, "%s: item %d (%f) is not between 0 and 255", objName, i, f);
                     goto failed;
                 }
                 c = (unsigned char)d; /* make sure it doesn't become negative; this only matters for post() */
@@ -392,14 +392,14 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
 #ifdef SIOCOUTQ
                     if (tcpserver_send_buffer_avaliable_for_client(x, client) < j)
                     {
-                        error("%s: buffer too small for client(%d)", objName, client);
+                        pd_error(x, "%s: buffer too small for client(%d)", objName, client);
                         goto failed;
                     }
 #endif // SIOCOUTQ
                     ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                     if (ttsp == NULL)
                     {
-                        error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                        pd_error(x, "%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                         goto failed;
                     }
                     ttsp->client = client;
@@ -410,7 +410,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                     if (0 != (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
                     {
                         ++x->x_blocked;
-                        error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
+                        pd_error(x, "%s: couldn't create sender thread (%d)", objName, sender_thread_result);
                         if (NULL != ttsp)
                         {
                             freebytes (ttsp, sizeof (t_tcpserver_send_params));
@@ -430,7 +430,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                 fptr = sys_fopen(fpath, "rb");
                 if (fptr == NULL)
                 {
-                    error("%s: unable to open \"%s\"", objName, fpath);
+                    pd_error(x, "%s: unable to open \"%s\"", objName, fpath);
                     goto failed;
                 }
                 rewind(fptr);
@@ -445,14 +445,14 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
 #ifdef SIOCOUTQ
                         if (tcpserver_send_buffer_avaliable_for_client(x, client) < j)
                         {
-                            error("%s: buffer too small for client(%d)", objName, client);
+                            pd_error(x, "%s: buffer too small for client(%d)", objName, client);
                             goto failed;
                         }
 #endif // SIOCOUTQ
                         ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
                         if (ttsp == NULL)
                         {
-                            error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                            pd_error(x, "%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                             goto failed;
                         }
                         ttsp->client = client;
@@ -463,7 +463,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
                         if ( 0!= (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
                         {
                             ++x->x_blocked;
-                            error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
+                            pd_error(x, "%s: couldn't create sender thread (%d)", objName, sender_thread_result);
                             if (NULL != ttsp)
                             {
                                 freebytes (ttsp, sizeof (t_tcpserver_send_params));
@@ -482,7 +482,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
             }
             else
             { /* arg was neither a float nor a valid file name */
-                error("%s: item %d is not a float or a file name", objName, i);
+                pd_error(x, "%s: item %d is not a float or a file name", objName, i);
                 goto failed;
             }
         }
@@ -492,14 +492,14 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
 #ifdef SIOCOUTQ
             if (tcpserver_send_buffer_avaliable_for_client(x, client) < length)
             {
-                error("%s: buffer too small for client(%d)", objName, client);
+                pd_error(x, "%s: buffer too small for client(%d)", objName, client);
                 goto failed;
             }
 #endif // SIOCOUTQ
             ttsp = (t_tcpserver_send_params *)getbytes(sizeof(t_tcpserver_send_params));
             if (ttsp == NULL)
             {
-                error("%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
+                pd_error(x, "%s: unable to allocate %zu bytes for t_tcpserver_send_params", objName, sizeof(t_tcpserver_send_params));
                 goto failed;
             }
             ttsp->client = client;
@@ -510,7 +510,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
             if ( 0!= (sender_thread_result = pthread_create(&sender_thread, &sender_attr, tcpserver_send_buf_thread, (void *)ttsp)))
             {
                 ++x->x_blocked;
-                error("%s: couldn't create sender thread (%d)", objName, sender_thread_result);
+                pd_error(x, "%s: couldn't create sender thread (%d)", objName, sender_thread_result);
                 if (NULL != ttsp) 
                 {
                     freebytes (ttsp, sizeof (t_tcpserver_send_params));
@@ -525,7 +525,7 @@ static void tcpserver_send_bytes(int client, t_tcpserver *x, int argc, t_atom *a
 failed:
     if (0!= (sender_thread_result = pthread_attr_destroy(&sender_attr)))
     {
-        error("%s_broadcast: pthread_attr_destroy failed: %d", objName, sender_thread_result);
+        pd_error(x, "%s_broadcast: pthread_attr_destroy failed: %d", objName, sender_thread_result);
     }
 
     SETFLOAT(&output_atom[0], client+1);
@@ -856,13 +856,13 @@ static void *tcpserver_broadcast_thread(void *arg)
             if (ttbp->x->x_verbosity > 1) post("%s: argv[%d]: float:%f int:%d delta:%f", objName, i, f, d, e);
             if (e != 0)
             {
-                error("%s_broadcast_thread: item %d (%f) is not an integer", objName, i, f);
+                pd_error(NULL, "%s_broadcast_thread: item %d (%f) is not an integer", objName, i, f);
                 if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
             if ((d < 0) || (d > 255))
             {
-                error("%s_broadcast_thread: item %d (%f) is not between 0 and 255", objName, i, f);
+                pd_error(NULL, "%s_broadcast_thread: item %d (%f) is not between 0 and 255", objName, i, f);
                 if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
@@ -878,7 +878,7 @@ static void *tcpserver_broadcast_thread(void *arg)
 #ifdef SIOCOUTQ
                     if (tcpserver_send_buffer_avaliable_for_client(ttbp->x, client) < j)
                     {
-                        error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
+                        pd_error(NULL, "%s_broadcast_thread: buffer too small for client(%d)", objName, client);
                         if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                         return NULL;
                     }
@@ -907,7 +907,7 @@ static void *tcpserver_broadcast_thread(void *arg)
             fptr = sys_fopen(fpath, "rb");
             if (fptr == NULL)
             {
-                error("%s_broadcast_thread: unable to open \"%s\"", objName, fpath);
+                pd_error(NULL, "%s_broadcast_thread: unable to open \"%s\"", objName, fpath);
                 if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
@@ -927,7 +927,7 @@ static void *tcpserver_broadcast_thread(void *arg)
 #ifdef SIOCOUTQ
                         if (tcpserver_send_buffer_avaliable_for_client(x, client) < j)
                         {
-                            error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
+                            pd_error(NULL, "%s_broadcast_thread: buffer too small for client(%d)", objName, client);
                             if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                             return NULL;
                         }
@@ -956,7 +956,7 @@ static void *tcpserver_broadcast_thread(void *arg)
         }
         else
         { /* arg was neither a float nor a valid file name */
-            error("%s_broadcast_thread: item %d is not a float or a file name", objName, i);
+            pd_error(NULL, "%s_broadcast_thread: item %d is not a float or a file name", objName, i);
             if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
             return NULL;
         }
@@ -970,7 +970,7 @@ static void *tcpserver_broadcast_thread(void *arg)
 #ifdef SIOCOUTQ
             if (tcpserver_send_buffer_avaliable_for_client(x, client) < length)
             {
-                error("%s_broadcast_thread: buffer too small for client(%d)", objName, client);
+                pd_error(NULL, "%s_broadcast_thread: buffer too small for client(%d)", objName, client);
                 if (NULL != arg) freebytes (arg, sizeof (t_tcpserver_broadcast_params));
                 return NULL;
             }
@@ -1010,20 +1010,20 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
         /* sender thread should start out detached so its resouces will be freed when it is done */
         if (0!= (broadcast_thread_result = pthread_attr_init(&broadcast_attr)))
         {
-            error("%s_broadcast: pthread_attr_init failed: %d", objName, broadcast_thread_result);
+            pd_error(x, "%s_broadcast: pthread_attr_init failed: %d", objName, broadcast_thread_result);
         }
         else
         {
             if(0 != (broadcast_thread_result = pthread_attr_setdetachstate(&broadcast_attr, PTHREAD_CREATE_DETACHED)))
             {
-                error("%s_broadcast: pthread_attr_setdetachstate failed: %d", objName, broadcast_thread_result);
+                pd_error(x, "%s_broadcast: pthread_attr_setdetachstate failed: %d", objName, broadcast_thread_result);
             }
             else
             {
                 ttbp = (t_tcpserver_broadcast_params *)getbytes(sizeof(t_tcpserver_broadcast_params));
                 if (ttbp == NULL)
                 {
-                    error("%s_broadcast: unable to allocate %zu bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
+                    pd_error(x, "%s_broadcast: unable to allocate %zu bytes for t_tcpserver_broadcast_params", objName, sizeof(t_tcpserver_broadcast_params));
                 }
                 else
                 {
@@ -1032,7 +1032,7 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
                     for (i = 0; i < argc; i++) ttbp->argv[i] = argv[i];
                     if (0 != (broadcast_thread_result = pthread_create(&broadcast_thread, &broadcast_attr, tcpserver_broadcast_thread, (void *)ttbp)))
                     {
-                        error("%s_broadcast: couldn't create broadcast thread (%d)", objName, broadcast_thread_result);
+                        pd_error(x, "%s_broadcast: couldn't create broadcast thread (%d)", objName, broadcast_thread_result);
                         if (NULL != ttbp)
                         {
                             freebytes (ttbp, sizeof (t_tcpserver_broadcast_params));
@@ -1043,7 +1043,7 @@ static void tcpserver_broadcast(t_tcpserver *x, t_symbol *s, int argc, t_atom *a
             }
             if (0!= (broadcast_thread_result = pthread_attr_destroy(&broadcast_attr)))
             {
-                error("%s_broadcast: pthread_attr_destroy failed: %d", objName, broadcast_thread_result);
+                pd_error(x, "%s_broadcast: pthread_attr_destroy failed: %d", objName, broadcast_thread_result);
             }
         }
     }

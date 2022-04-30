@@ -216,14 +216,14 @@ static void udpreceive_tilde_datapoll(t_udpreceive_tilde *x)
         {
             /* incomplete header tag: return and try again later */
             /* in the hope that more data will be available */
-            error("udpreceive~: got incomplete header tag");
+            pd_error(x, "udpreceive~: got incomplete header tag");
             return;
         }
         /* make sure this is really a tag */
         if (!((tag_ptr->tag[0] == 'T')&&(tag_ptr->tag[1] == 'A')&&(tag_ptr->tag[2] == 'G')&&(tag_ptr->tag[3] == '!')))
         {
             ++x->x_tag_errors;
-            if (x->x_sync) error("udpreceive~: bad header tag (%d)", x->x_tag_errors);
+            if (x->x_sync) pd_error(x, "udpreceive~: bad header tag (%d)", x->x_tag_errors);
             x->x_sync = 0;
             /* tag length is 16 bytes, a multiple of the data frame size, so eventually we should resync on a tag */
             return;
@@ -235,7 +235,7 @@ static void udpreceive_tilde_datapoll(t_udpreceive_tilde *x)
         /* get info from header tag */
         if (tag_ptr->channels > (x->x_noutlets-1))
         {
-            error("udpreceive~: incoming stream has too many channels (%d)", tag_ptr->channels);
+            pd_error(x, "udpreceive~: incoming stream has too many channels (%d)", tag_ptr->channels);
             x->x_counter = 0;
             return;
         }
@@ -271,7 +271,7 @@ static void udpreceive_tilde_datapoll(t_udpreceive_tilde *x)
         {
             if (x->x_frames[x->x_framein].tag.format == SF_AAC)
             {
-                error("udpreceive~: don't know how to decode AAC format");
+                pd_error(x, "udpreceive~: don't know how to decode AAC format");
                 return;
             }
             x->x_counter++;
@@ -556,7 +556,7 @@ static void udpreceive_tilde_dsp(t_udpreceive_tilde *x, t_signal **sp)
 
     if (x->x_blocksize % sp[0]->s_n)
     {
-        error("udpreceive~: signal vector size too large (needs to be even divisor of %d)", x->x_blocksize);
+        pd_error(x, "udpreceive~: signal vector size too large (needs to be even divisor of %d)", x->x_blocksize);
     }
     else
     {
@@ -707,7 +707,7 @@ static void *udpreceive_tilde_new(t_symbol *s, int argc, t_atom *argv)
 
     if (outlets < 1 || outlets > DEFAULT_AUDIO_CHANNELS)
     {
-        error("udpreceive~: Number of channels must be between 1 and %d", DEFAULT_AUDIO_CHANNELS);
+        pd_error(x, "udpreceive~: Number of channels must be between 1 and %d", DEFAULT_AUDIO_CHANNELS);
         return NULL;
     }
 
@@ -726,7 +726,7 @@ static void *udpreceive_tilde_new(t_symbol *s, int argc, t_atom *argv)
     x->x_myvec = (t_int **)t_getbytes(sizeof(t_int *) * (x->x_noutlets + 3));
     if (!x->x_myvec)
     {
-        error("udpreceive~: out of memory");
+        pd_error(x, "udpreceive~: out of memory");
         return NULL;
     }
     x->x_connectsocket = x->x_socket = -1;
@@ -745,7 +745,7 @@ static void *udpreceive_tilde_new(t_symbol *s, int argc, t_atom *argv)
     if (blocksize == 0) x->x_blocksize = DEFAULT_AUDIO_BUFFER_SIZE; 
     else if (DEFAULT_AUDIO_BUFFER_SIZE%(int)blocksize)
     {
-        error("udpreceive~: blocksize must fit snugly in %d", DEFAULT_AUDIO_BUFFER_SIZE);
+        pd_error(x, "udpreceive~: blocksize must fit snugly in %d", DEFAULT_AUDIO_BUFFER_SIZE);
         return NULL;
     } 
     else x->x_blocksize = blocksize; //DEFAULT_AUDIO_BUFFER_SIZE; /* <-- the only place blocksize is set */
@@ -754,7 +754,7 @@ static void *udpreceive_tilde_new(t_symbol *s, int argc, t_atom *argv)
     x->x_buffering = 1;
     if (!udpreceive_tilde_createsocket(x, x->x_addr_name, portno))
     {
-        error("udpreceive~: failed to create listening socket");
+        pd_error(x, "udpreceive~: failed to create listening socket");
         return NULL;
     }
     return (x);
