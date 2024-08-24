@@ -21,7 +21,7 @@ class.sources = 	binfile/binfile.c \
 	rojo~/rojo~.c \
 	runningmean/runningmean.c \
   serializer/sprint.c serializer/f2b.c serializer/b2f.c \
-	slipdec/slipdec.c slipenc/slipenc.c \
+	slip/slipdec.c slip/slipenc.c \
 	sqosc~/sqosc~.c \
 	tab2flist/tab2flist.c \
 	tabfind/tabfind.c \
@@ -49,7 +49,7 @@ datafiles = binfile/binfile-help.pd \
  rojo~/rojo~-help.pd \
  runningmean/runningmean-help.pd \
  serializer/f2b-help.pd serializer/b2f-help.pd serializer/sprint-help.pd \
- slipdec/slipdec-help.pd slipenc/slipenc-help.pd \
+ slip/slipdec-help.pd slip/slipenc-help.pd \
  sqosc~/sqosc~-help.pd \
  tab2flist/tab2flist-help.pd \
  tabfind/tabfind-help.pd \
