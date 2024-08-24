@@ -1,0 +1,12 @@
+[submodule "osc"]
+	path = osc
+	url = https://github.com/pd-externals/osc
+[submodule "binfile"]
+	path = binfile
+	url = https://github.com/pd-externals/binfile
+[submodule "midifile"]
+	path = midifile
+	url = https://github.com/pd-externals/midifile
+[submodule "slip"]
+	path = slip
+	url = https://github.com/pd-externals/slip
