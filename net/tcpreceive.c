@@ -224,7 +224,7 @@ static void tcpreceive_connectpoll(t_tcpreceive *x)
         }
         else
         {
-            error ("tcpreceive: Too many connections");
+            pd_error(x, "tcpreceive: Too many connections");
             sys_closesocket(fd);
         }
     }

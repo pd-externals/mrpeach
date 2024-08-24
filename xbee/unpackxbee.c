@@ -62,13 +62,13 @@ static void *unpackxbee_new(t_floatarg f)
 static void unpackxbee_API(t_unpackxbee *x, t_float api)
 {
     if ((api == 1) || (api ==2)) x->x_api_mode = api;
-    else error ("unpackxbee: api mode must be 1 or 2");
+    else pd_error(x, "unpackxbee: api mode must be 1 or 2");
 }
 
 static void unpackxbee_verbosity(t_unpackxbee *x, t_float verbosity_level)
 {
     if (verbosity_level >= 0) x->x_verbosity = verbosity_level;
-    else error ("packxbee: verbosity_level must be positive");
+    else pd_error(x, "packxbee: verbosity_level must be positive");
 }
 
 static int unpackxbee_add(t_unpackxbee *x, unsigned char d)

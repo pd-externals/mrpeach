@@ -292,7 +292,7 @@ static void tcpclient_connect(t_tcpclient *x, t_symbol *hostname, t_floatarg fpo
     /* if we are not already connected, as Ivica Ico Bukvic 5/5/10 <ico@bukvic.net> noted */
     if (0 != x->x_connectstate)
     {
-        error("%s_connect: already connected to %s:%d on socket %d", objName, x->x_hostname, x->x_port, x->x_fd);
+        pd_error(x, "%s_connect: already connected to %s:%d on socket %d", objName, x->x_hostname, x->x_port, x->x_fd);
         return;
     }
     /* we get hostname and port and pass them on

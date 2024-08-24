@@ -58,13 +58,13 @@ static void *packxbee_new(t_floatarg f)
 static void packxbee_API(t_packxbee *x, t_float api)
 {
     if ((api == 1) || (api ==2)) x->x_api_mode = api;
-    else error ("packxbee: api mode must be 1 or 2");
+    else pd_error (x, "packxbee: api mode must be 1 or 2");
 }
 
 static void packxbee_verbosity(t_packxbee *x, t_float verbosity_level)
 {
     if (verbosity_level >= 0) x->x_verbosity = verbosity_level;
-    else error ("packxbee: verbosity_level must be positive");
+    else pd_error (x, "packxbee: verbosity_level must be positive");
 }
 
 static int packxbee_outbuf_add(t_packxbee *x, int index, unsigned char val)
@@ -113,18 +113,18 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
 
     if (argc < 5)
     {
-        error("packxbee_TX: not enough parameters");
+        pd_error(x, "packxbee_TX: not enough parameters");
         return;
     }
     /* first arg is dest64, a symbol starting with "0x" */
     if (argv[0].a_type != A_SYMBOL)
     {
-        error("packxbee_TX: first argument is not a symbol");
+        pd_error(x, "packxbee_TX: first argument is not a symbol");
         return;
     }
     if ((argv[0].a_w.w_symbol->s_name[0] != '0')||(argv[0].a_w.w_symbol->s_name[1] != 'x'))
     {
-        error("packxbee_TX: first argument is not a hex string beginning with \"0x\"");
+        pd_error(x, "packxbee_TX: first argument is not a hex string beginning with \"0x\"");
         return;
     }
 #ifdef _MSC_VER
@@ -134,7 +134,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
 #endif
     if (result == 0)
     {
-        error("packxbee_TX: first argument is not a hex string");
+        pd_error(x, "packxbee_TX: first argument is not a hex string");
         return;
     }
 #ifdef _MSC_VER
@@ -145,25 +145,25 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     /* second arg is dest16 also a symbol starting with "0x" */
     if (argv[1].a_type != A_SYMBOL)
     {
-        error("packxbee_TX: second argument is not a symbol");
+        pd_error(x, "packxbee_TX: second argument is not a symbol");
         return;
     }
     if ((argv[1].a_w.w_symbol->s_name[0] != '0')||(argv[1].a_w.w_symbol->s_name[1] != 'x'))
     {
-        error("packxbee_TX: second argument is not a hex string beginning with \"0x\"");
+        pd_error(x, "packxbee_TX: second argument is not a hex string beginning with \"0x\"");
         return;
     }
     result = sscanf(argv[1].a_w.w_symbol->s_name, "0x%X", &dest16);
     if (result == 0)
     {
-        error("packxbee_TX: second argument is not a hex string");
+        pd_error(x, "packxbee_TX: second argument is not a hex string");
         return;
     }
     if (x->x_verbosity > 1) post ("packxbee_TX: dest16: 0x%X", dest16);
     /* broadcast radius is a single byte as a float */
     if (argv[2].a_type != A_FLOAT)
     {
-        error("packxbee_TX: third argument is not a float");
+        pd_error(x, "packxbee_TX: third argument is not a float");
         return;
     }
     f = argv[2].a_w.w_float;
@@ -171,7 +171,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     d = ((unsigned int)f)&0x0FF;
     if (f != d)
     {
-        error ("packxbee_TX: third argument is not a positive integer from 0 to 255");
+        pd_error (x, "packxbee_TX: third argument is not a positive integer from 0 to 255");
         return;
     }
     else broadcast_radius = d;
@@ -180,7 +180,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     /* options is a single byte as a float */
     if (argv[3].a_type != A_FLOAT)
     {
-        error("packxbee_TX: fourth argument is not a float");
+        pd_error(x, "packxbee_TX: fourth argument is not a float");
         return;
     }
     f = argv[3].a_w.w_float;
@@ -188,7 +188,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     d = ((unsigned int)f)&0x0FF;
     if (f != d)
     {
-        error ("packxbee_TX: fourth argument is not a positive integer from 0 to 255");
+        pd_error (x, "packxbee_TX: fourth argument is not a positive integer from 0 to 255");
         return;
     }
     else options = d;
@@ -241,7 +241,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
             d = ((unsigned int)f)&0x0FF;
             if (f != d)
             {
-                error ("packxbee_TX: argument %d is not a positive integer from 0 to 255", k+1);
+                pd_error (x, "packxbee_TX: argument %d is not a positive integer from 0 to 255", k+1);
                 return;
             }
             floatstring[i++] = d;
@@ -256,7 +256,7 @@ static void packxbee_TX(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
         }
         else
         {
-            error("packxbee_TX: argument %d is not a float or a symbol", k+1);
+            pd_error(x, "packxbee_TX: argument %d is not a float or a symbol", k+1);
             return;
         }
     }
@@ -292,18 +292,18 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
 
     if (argc < 3)
     {
-        error("packxbee_TX64: not enough parameters");
+        pd_error(x, "packxbee_TX64: not enough parameters");
         return;
     }
     /* first arg is dest64, a symbol starting with "0x" */
     if (argv[0].a_type != A_SYMBOL)
     {
-        error("packxbee_TX64: first argument is not a symbol");
+        pd_error(x, "packxbee_TX64: first argument is not a symbol");
         return;
     }
     if ((argv[0].a_w.w_symbol->s_name[0] != '0')||(argv[0].a_w.w_symbol->s_name[1] != 'x'))
     {
-        error("packxbee_TX64: first argument is not a hex string beginning with \"0x\"");
+        pd_error(x, "packxbee_TX64: first argument is not a hex string beginning with \"0x\"");
         return;
     }
 #ifdef _MSC_VER
@@ -313,7 +313,7 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
 #endif
     if (result == 0)
     {
-        error("packxbee_TX64: first argument is not a hex string");
+        pd_error(x, "packxbee_TX64: first argument is not a hex string");
         return;
     }
 #ifdef _MSC_VER
@@ -324,7 +324,7 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     /* options is a single byte as a float */
     if (argv[1].a_type != A_FLOAT)
     {
-        error("packxbee_TX64: second argument is not a float");
+        pd_error(x, "packxbee_TX64: second argument is not a float");
         return;
     }
     f = argv[1].a_w.w_float;
@@ -332,7 +332,7 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     d = ((unsigned int)f)&0x0FF;
     if (f != d)
     {
-        error("packxbee_TX64 second argument is not a positive integer from 0 to 255");
+        pd_error(x, "packxbee_TX64 second argument is not a positive integer from 0 to 255");
         return;
     }
     else options = d;
@@ -378,7 +378,7 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
             d = ((unsigned int)f)&0x0FF;
             if (f != d)
             {
-                error("packxbee_TX64: argument %d is not a positive integer from 0 to 255", k+1);
+                pd_error(x, "packxbee_TX64: argument %d is not a positive integer from 0 to 255", k+1);
                 return;
             }
             floatstring[i++] = d;
@@ -393,7 +393,7 @@ static void packxbee_TX64(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
         }
         else
         {
-            error("packxbee_TX64: argument %d is not a float or a symbol", k+1);
+            pd_error(x, "packxbee_TX64: argument %d is not a float or a symbol", k+1);
             return;
         }
     }
@@ -429,24 +429,24 @@ static void packxbee_TX16(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
 
     if (argc < 3)
     {
-        error("packxbee_TX16: not enough parameters");
+        pd_error(x, "packxbee_TX16: not enough parameters");
         return;
     }
     /* first arg is dest16 also a symbol starting with "0x" */
     if (argv[0].a_type != A_SYMBOL)
     {
-        error("packxbee_TX16: first argument is not a symbol");
+        pd_error(x, "packxbee_TX16: first argument is not a symbol");
         return;
     }
     if ((argv[0].a_w.w_symbol->s_name[0] != '0')||(argv[0].a_w.w_symbol->s_name[1] != 'x'))
     {
-        error("packxbee_TX16: first argument is not a hex string beginning with \"0x\"");
+        pd_error(x, "packxbee_TX16: first argument is not a hex string beginning with \"0x\"");
         return;
     }
     result = sscanf(argv[0].a_w.w_symbol->s_name, "0x%X", &dest16);
     if (result == 0)
     {
-        error("packxbee_TX16: first argument is not a hex string");
+        pd_error(x, "packxbee_TX16: first argument is not a hex string");
         return;
     }
     if (x->x_verbosity > 1) post ("packxbee_TX16: dest16: 0x%X", dest16);
@@ -454,7 +454,7 @@ static void packxbee_TX16(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     /* options is a single byte as a float */
     if (argv[1].a_type != A_FLOAT)
     {
-        error("packxbee_TX16: second argument is not a float");
+        pd_error(x, "packxbee_TX16: second argument is not a float");
         return;
     }
     f = argv[1].a_w.w_float;
@@ -496,7 +496,7 @@ static void packxbee_TX16(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
             d = ((unsigned int)f)&0x0FF;
             if (f != d)
             {
-                error ("packxbee_TX16: argument %d is not a positive integer from 0 to 255", k+1);
+                pd_error(x, "packxbee_TX16: argument %d is not a positive integer from 0 to 255", k+1);
                 return;
             }
             floatstring[i++] = d;
@@ -511,7 +511,7 @@ static void packxbee_TX16(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
         }
         else
         {
-            error("packxbee_TX16: argument %d is not a float or a symbol", k+1);
+            pd_error(x, "packxbee_TX16: argument %d is not a float or a symbol", k+1);
             return;
         }
     }
@@ -552,7 +552,7 @@ static void packxbee_RAT(t_packxbee *x, t_symbol *s, int argc, t_atom *argv)
     x->x_frameType = Remote_Command_Request;/* we're building a remote AT frame */
     if (argc < 3)
     {
-        error("packxbee_RAT: not enough parameters");
+        pd_error(x, "packxbee_RAT: not enough parameters");
         return;
     }
     packxbee_pack_remote_frame(x, s, argc, argv);
@@ -579,12 +579,12 @@ static void packxbee_pack_remote_frame(t_packxbee *x, t_symbol *s, int argc, t_a
         /* first arg is dest64, a symbol starting with "0x" */
         if (argv[0].a_type != A_SYMBOL)
         {
-            error("packxbee_pack_remote_frame: first argument is not a symbol");
+            pd_error(x, "packxbee_pack_remote_frame: first argument is not a symbol");
             return;
         }
         if ((argv[0].a_w.w_symbol->s_name[0] != '0')||(argv[0].a_w.w_symbol->s_name[1] != 'x'))
         {
-            error("packxbee_pack_remote_frame: first argument is not a hex string beginning with \"0x\"");
+            pd_error(x, "packxbee_pack_remote_frame: first argument is not a hex string beginning with \"0x\"");
             return;
         }
 #ifdef _MSC_VER
@@ -594,7 +594,7 @@ static void packxbee_pack_remote_frame(t_packxbee *x, t_symbol *s, int argc, t_a
 #endif
         if (result == 0)
         {
-            error("packxbee_pack_remote_frame: first argument is not a hex string");
+            pd_error(x, "packxbee_pack_remote_frame: first argument is not a hex string");
             return;
         }
 #ifdef _MSC_VER
@@ -605,25 +605,25 @@ static void packxbee_pack_remote_frame(t_packxbee *x, t_symbol *s, int argc, t_a
         /* second arg is dest16 also a symbol starting with "0x" */
         if (argv[1].a_type != A_SYMBOL)
         {
-            error("packxbee_pack_remote_frame: second argument is not a symbol");
+            pd_error(x, "packxbee_pack_remote_frame: second argument is not a symbol");
             return;
         }
         if ((argv[1].a_w.w_symbol->s_name[0] != '0')||(argv[1].a_w.w_symbol->s_name[1] != 'x'))
         {
-            error("packxbee_pack_remote_frame: second argument is not a hex string beginning with \"0x\"");
+            pd_error(x, "packxbee_pack_remote_frame: second argument is not a hex string beginning with \"0x\"");
             return;
         }
         result = sscanf(argv[1].a_w.w_symbol->s_name, "0x%X", &dest16);
         if (result == 0)
         {
-            error("packxbee_pack_remote_frame: second argument is not a hex string");
+            pd_error(x, "packxbee_pack_remote_frame: second argument is not a hex string");
             return;
         }
         if (x->x_verbosity > 0) post ("packxbee_pack_remote_frame: dest16: 0x%X", dest16);
         /* options is a single byte as a float */
         if (argv[2].a_type != A_FLOAT)
         {
-            error("packxbee_pack_remote_frame: third argument is not a float");
+            pd_error(x, "packxbee_pack_remote_frame: third argument is not a float");
             return;
         }
         f = argv[2].a_w.w_float;
@@ -775,7 +775,7 @@ static void packxbee_pack_remote_frame(t_packxbee *x, t_symbol *s, int argc, t_a
     } /* argc >= 4 */
     else
     {
-        error("packxbee_pack_remote_frame: not enough parameters");
+        pd_error(x, "packxbee_pack_remote_frame: not enough parameters");
         return;
     }
     length = i-3;
