@@ -68,6 +68,10 @@
 #define INBUFSIZE 65536L /* was 4096: size of receiving data buffer */
 #define MAX_UDP_RECEIVE 65536L /* longer than data in maximum UDP packet */
 
+#if defined TIOCOUTQ && !defined SIOCOUTQ
+# define SIOCOUTQ TIOCOUTQ
+#endif
+
 /* ----------------------------- tcpserver ------------------------- */
 
 static t_class *tcpserver_class;
