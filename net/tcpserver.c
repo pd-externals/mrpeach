@@ -539,7 +539,7 @@ failed:
 /* SIOCOUTQ exists only(?) on linux, returns remaining space in the socket's output buffer  */
 static int tcpserver_send_buffer_avaliable_for_client(t_tcpserver *x, int client)
 {
-    int sockfd = x->x_sr[client].sr_fd;
+    int sockfd = x->x_sr[client]->sr_fd;
     int result = 0L;
 
     ioctl(sockfd, SIOCOUTQ, &result);
