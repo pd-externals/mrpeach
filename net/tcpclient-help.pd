@@ -6,17 +6,13 @@
 #X floatatom 579 566 3 0 0 0 - - -;
 #X text 433 565 from;
 #X obj 450 418 tcpclient;
-#X obj 496 444 tgl 15 0 empty empty connected 18 7 0 8 -24198 -13381
--1 0 1;
+#X obj 496 444 tgl 15 0 empty empty connected 18 7 0 8 -24198 -13381 -1 0 1;
 #X msg 232 179 dump \$1;
-#X obj 180 164 tgl 15 0 empty empty empty 0 -6 0 8 -4034 -13381 -1
-0 1;
+#X obj 180 164 tgl 15 0 empty empty empty 0 -6 0 8 -4034 -13381 -1 0 1;
 #X text 284 41 connect with an IP address and port number;
 #X msg 120 67 connect www.concordia.ca 80;
-#X text 303 178 print received messages to main window in hexdump format
-;
-#X text 534 417 tcpclient opens a tcp socket to send and receive bytes
-on;
+#X text 303 178 print received messages to main window in hexdump format ;
+#X text 534 417 tcpclient opens a tcp socket to send and receive bytes on;
 #X text 34 336 See also:;
 #X obj 39 360 netclient;
 #X msg 95 42 connect 127.0.0.1 9997;
@@ -27,22 +23,17 @@ on;
 #X msg 334 282 send 49 127 128 51 59;
 #X obj 167 383 tcpserver;
 #X text 133 382 and;
-#X text 667 44 tcpclient can connect to a server and send and receive
-messages as lists of bytes. Any integer value between 0 and 255 can
-be transmitted or received.;
+#X text 667 44 tcpclient can connect to a server and send and receive messages as lists of bytes. Any integer value between 0 and 255 can be transmitted or received.;
 #X msg 257 204 send examples/test.txt;
 #X obj 305 228 openpanel;
 #X msg 305 252 send \$1;
-#X obj 219 213 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -13381
--1;
+#X obj 219 213 bng 15 250 50 0 empty empty empty 17 7 0 10 -4034 -13381 -1;
 #X text 442 204 send a file;
 #X text 382 227 ...any file;
-#X msg 373 305 71 69 84 32 104 116 116 112 58 47 47 47 105 110 100
-101 120 46 104 116 109 108 13 10;
+#X msg 373 305 71 69 84 32 104 116 116 112 58 47 47 47 105 110 100 101 120 46 104 116 109 108 13 10;
 #X text 856 312 'send' prefix is optional;
 #X obj 450 615 spigot;
-#X obj 495 592 tgl 15 0 empty empty enable_print 18 7 0 8 -24198 -13381
--1 0 1;
+#X obj 495 592 tgl 15 0 empty empty enable_print 18 7 0 8 -24198 -13381 -1 0 1;
 #X obj 450 644 print >>>;
 #X text 672 123 GET http:///index.phpCRLF;
 #X floatatom 625 514 9 0 0 0 - - -;
@@ -53,25 +44,19 @@ be transmitted or received.;
 #X text 462 368 get send-buffer size;
 #X msg 397 345 buf 10;
 #X msg 445 393 verbosity \$1;
-#X obj 390 378 tgl 15 1 empty empty empty 0 -6 0 8 -4034 -13381 -1
-1 1;
-#X text 557 394 print connection status messages to main window (default)
-;
-#X msg 184 115 send 71 69 84 32 104 116 116 112 58 47 47 47 105 110
-100 101 120 46 112 104 112 13 10 13 10;
+#X obj 390 378 tgl 15 1 empty empty empty 0 -6 0 8 -4034 -13381 -1 1 1;
+#X text 557 394 print connection status messages to main window (default) ;
+#X msg 184 115 send 71 69 84 32 104 116 116 112 58 47 47 47 105 110 100 101 120 46 112 104 112 13 10 13 10;
 #X text 536 643 Attempting to print long messages can hang Pd!;
 #X msg 145 92 connect 132.205.142.11 9997;
 #X text 695 513 Number of bytes sent;
 #X obj 735 464 print sender_blocked!;
 #N canvas 527 268 494 344 META 0;
-#X text 12 215 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
-Wilkes for Pd version 0.42.;
+#X text 12 215 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan Wilkes for Pd version 0.42.;
 #X text 12 195 AUTHOR Martin Peach;
-#X text 12 45 DESCRIPTION connect to a server and send and receive
-messages as lists of bytes;
+#X text 12 45 DESCRIPTION connect to a server and send and receive messages as lists of bytes;
 #X text 12 25 LICENSE GPL v2 or later;
-#X text 12 85 INLET_0 list buf verbosity connect send disconnect dump
-unblock;
+#X text 12 85 INLET_0 list buf verbosity connect send disconnect dump unblock;
 #X text 12 115 OUTLET_0 list;
 #X text 12 5 KEYWORDS control network;
 #X text 12 135 OUTLET_1 list;

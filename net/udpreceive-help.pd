@@ -8,36 +8,29 @@
 #X obj 477 278 unpack 0 0 0 0 0;
 #X msg 222 90 status;
 #X floatatom 339 225 9 0 0 0 - - -, f 9;
-#X obj 546 227 tgl 15 0 empty empty multicast 18 7 0 12 -4034 -258113
--13381 1 1;
+#X obj 546 227 tgl 15 0 empty empty multicast 18 7 0 12 -4034 -258113 -13381 1 1;
 #X floatatom 408 251 9 0 0 0 - - -, f 9;
 #X text 2 90 get status on right outlet:;
 #X text 215 224 bytes received:;
 #X text 236 250 total bytes received:;
 #X text 434 303 from:;
-#X text 324 78 Specify a multicast address (from 224.0.0.0 to 239.255.255.255)
-to use multicasting;
-#X text 48 38 Creation arguments: port number to listen on (required)
-;
+#X text 324 78 Specify a multicast address (from 224.0.0.0 to 239.255.255.255) to use multicasting;
+#X text 48 38 Creation arguments: port number to listen on (required) ;
 #X obj 222 294 spigot;
-#X obj 267 274 tgl 15 0 empty empty enable_print: -90 8 0 12 -4034
--258113 -13381 0 1;
+#X obj 267 274 tgl 15 0 empty empty enable_print: -90 8 0 12 -4034 -258113 -13381 0 1;
 #X obj 222 319 print received;
 #X obj 339 192 route received total from multicast;
 #X text 187 56 IP address to listen on (optional);
 #X msg 233 129 port 9998;
 #X text 310 127 change port to listen on;
 #X text 498 360 Martin Peach 2010/10/15;
-#X text 0 3 [udpreceive] receives datagrams over a udp connection and
-outputs them as raw bytes.;
+#X text 0 3 [udpreceive] receives datagrams over a udp connection and outputs them as raw bytes.;
 #N canvas 529 53 494 344 META 0;
-#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
-Wilkes for Pd version 0.42.;
+#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan Wilkes for Pd version 0.42.;
 #X text 12 25 LICENSE GPL v2 or later;
 #X text 12 135 AUTHOR Martin Peach;
 #X text 12 5 KEYWORDS control network;
-#X text 12 45 DESCRIPTION receive datagrams over a udp connection and
-outputs them as raw bytes;
+#X text 12 45 DESCRIPTION receive datagrams over a udp connection and outputs them as raw bytes;
 #X text 12 75 INLET_0 status port;
 #X text 12 95 OUTLET_0 anything;
 #X text 12 115 OUTLET_1 received total from multicast;

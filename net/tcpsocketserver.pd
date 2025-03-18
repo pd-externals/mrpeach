@@ -40,8 +40,7 @@
 #X msg 65 132 0;
 #X text 116 78 when a new client connects (num_of_clients: +1);
 #X text 119 197 send a 'reset' to the according socket handler;
-#X text 114 266 and if it doesn't respond (which means \, there is
-no socket handler on specified socket) \,;
+#X text 114 266 and if it doesn't respond (which means \, there is no socket handler on specified socket) \,;
 #X text 119 368 create one (into pd-\$0.TCPSOCKETCONTAINER).;
 #X connect 0 0 20 0;
 #X connect 1 0 3 0;

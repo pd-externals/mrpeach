@@ -8,9 +8,7 @@
 #X floatatom 162 228 5 0 0 0 - - -;
 #X text 244 268 Martin Peach 2013_03_13;
 #X msg 135 118 100000;
-#X text 53 8 [f2b] converts floats to lists of four bytes suitable
-for sending through a serial connection. This is the binary representation
-\, so the receiver must use the same floating-point format.;
+#X text 53 8 [f2b] converts floats to lists of four bytes suitable for sending through a serial connection. This is the binary representation \, so the receiver must use the same floating-point format.;
 #X obj 213 114 * 4;
 #X floatatom 213 141 12 0 0 0 - - -;
 #X obj 213 91 atan;

@@ -2,13 +2,11 @@
 #X declare -path mrpeach;
 #X msg 255 266 status;
 #N canvas 510 620 494 344 META 0;
-#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
-Wilkes for Pd version 0.42.;
+#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan Wilkes for Pd version 0.42.;
 #X text 12 25 LICENSE GPL v2 or later;
 #X text 12 5 KEYWORDS control network;
 #X text 12 135 AUTHOR Martin Peach \, Dennis Engdahl;
-#X text 12 45 DESCRIPTION listens for datagrams over a udp connection
-and outputs them as raw bytes. Sends to specific hosts.;
+#X text 12 45 DESCRIPTION listens for datagrams over a udp connection and outputs them as raw bytes. Sends to specific hosts.;
 #X text 12 95 OUTLET_0 received data;
 #X text 12 115 OUTLET_1 status messages;
 #X text 12 75 INLET_0 status listen to float(s);
@@ -32,30 +30,22 @@ and outputs them as raw bytes. Sends to specific hosts.;
 #X obj 464 319 route from received total;
 #X floatatom 578 363 7 0 0 0 - - -;
 #X text 434 366 total bytes received;
-#X text 180 91 listen on port 10101 Accepts datagrams from any address.
-;
+#X text 180 91 listen on port 10101 Accepts datagrams from any address. ;
 #X msg 104 115 to 10.0.0.5 10101;
 #X text 309 264 get status on right outlet;
 #X msg 194 205 to 10.0.0.186 10101;
-#X text 19 3 [udpsrvr] receives and sends UDP datagrams \, outputting
-them as raw bytes. It can use the same port for both send and receive.
-;
+#X text 19 3 [udpsrvr] receives and sends UDP datagrams \, outputting them as raw bytes. It can use the same port for both send and receive. ;
 #X msg 112 230 verbose \$1;
-#X obj 111 202 tgl 15 0 empty empty empty 17 7 0 10 -4034 -1 -1 0 1
-;
+#X obj 111 202 tgl 15 0 empty empty empty 17 7 0 10 -4034 -1 -1 0 1 ;
 #X obj 267 369 spigot;
-#X obj 306 334 tgl 15 0 empty empty empty 17 7 0 10 -4032 -1 -1 0 1
-;
+#X obj 306 334 tgl 15 0 empty empty empty 17 7 0 10 -4032 -1 -1 0 1 ;
 #X obj 636 345 print other;
 #X msg 130 141 to 10 0 0 5 10101;
-#X text 242 114 set destination address and port for subsequent sends
-(symbol address), f 71;
-#X text 257 140 set destination address and port for subsequent sends
-(float address), f 69;
+#X text 242 114 set destination address and port for subsequent sends (symbol address), f 71;
+#X text 257 140 set destination address and port for subsequent sends (float address), f 69;
 #X msg 160 171 99 98 32;
 #X obj 319 484 spigot;
-#X obj 357 463 tgl 15 0 empty empty set_reply_address 17 7 0 10 -260097
--1 -1 0 1;
+#X obj 357 463 tgl 15 0 empty empty set_reply_address 17 7 0 10 -260097 -1 -1 0 1;
 #X obj 351 607 s udpsrvrin;
 #X obj 112 279 r udpsrvrin;
 #X obj 318 507 t b l;
@@ -64,15 +54,12 @@ them as raw bytes. It can use the same port for both send and receive.
 #X obj 281 565 + 1;
 #X obj 309 565 % 256;
 #X obj 253 539 spigot;
-#X obj 291 485 tgl 15 0 empty empty send_count -32 -8 0 10 -257985
--1 -1 0 1;
+#X obj 291 485 tgl 15 0 empty empty send_count -32 -8 0 10 -257985 -1 -1 0 1;
 #X text 561 70 Martin Peach 2021/06/09;
 #X obj 465 400 unpack 0 0 0 0 0, f 25;
-#X obj 255 592 nbx 3 14 0 255 0 0 empty empty count -32 8 0 10 -257985
--1 -1 167 256;
+#X obj 255 592 nbx 3 14 0 255 0 0 empty empty count -32 8 0 10 -257985 -1 -1 167 256;
 #X text 478 531 0 will be replaced by isten port;
-#X obj 218 341 bng 15 250 50 0 empty empty empty 17 7 0 10 -13381 -4034
--1;
+#X obj 218 341 bng 15 250 50 0 empty empty empty 17 7 0 10 -13381 -4034 -1;
 #X connect 0 0 3 0;
 #X connect 2 0 3 0;
 #X connect 3 0 28 0;

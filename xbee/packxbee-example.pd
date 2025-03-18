@@ -1,12 +1,8 @@
 #N canvas 300 169 770 718 10;
-#X text 84 159 data packet: 64-bit_destination 16-bit_destination broadcast_radius
-options data;
-#X obj 80 115 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 5800 0;
-#X obj 77 134 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 58 256;
-#X obj 77 10 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X text 84 159 data packet: 64-bit_destination 16-bit_destination broadcast_radius options data;
+#X obj 80 115 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144 -1 -1 5800 0;
+#X obj 77 134 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 -262144 -1 -1 58 256;
+#X obj 77 10 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X obj 77 247 packxbee 2;
 #X msg 49 309 devices;
 #X obj 77 354 comport 4 9600;
@@ -62,24 +58,20 @@ options data;
 #X text 343 491 frame_type (136);
 #X text 476 571 status;
 #X msg 304 379 verbosity \$1;
-#X obj 304 352 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786
--1 0;
-#X text 188 53 This example transmits a single byte of "data" through
-an xbee in API mode 2 connected to serial port 4 at 9600 baud.;
+#X obj 304 352 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786 -1 0;
+#X text 188 53 This example transmits a single byte of "data" through an xbee in API mode 2 connected to serial port 4 at 9600 baud.;
 #X msg 77 211 TX 0x0013A200406BFD76 0xFA99 0 0 \$1;
 #X msg 480 171 TX 0x0013A200406BFEDF 0x1100 0 0 \$1;
 #X text 700 172 yellow;
 #X text 297 210 green;
 #X text 700 148 blue;
 #X msg 516 230 verbosity \$1;
-#X obj 516 203 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786
--1 0;
+#X obj 516 203 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786 -1 0;
 #X text 439 679 Martin Peach 2014_10_29;
 #X msg 480 147 TX 0x0013A200406BFE6C 0x9ED2 0 0 \$1;
 #X text 700 124 blue;
 #X msg 480 123 TX 0x0013A200406BFE6C 0xFFFE 0 0 \$1;
-#X text 83 184 The destination xbee 64-bit address and the 16-bit address
-must be set first (16-bit address can be 0xFFFE if unknown):;
+#X text 83 184 The destination xbee 64-bit address and the 16-bit address must be set first (16-bit address can be 0xFFFE if unknown):;
 #X obj 157 375 print comport_status;
 #X msg 70 330 ports;
 #X text 108 329 <-list available serial ports via outlet 2;

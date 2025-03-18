@@ -1,8 +1,6 @@
 #N canvas 263 330 984 636 10;
-#X obj -4 -46 cnv 15 220 380 empty empty Get_Current_IO_Parameters
-20 12 0 14 -204800 -13330 0;
-#X text 2 457 remote AT command: 64-bit address \, 16-bit address \,
-options \, command \, parameters;
+#X obj -4 -46 cnv 15 220 380 empty empty Get_Current_IO_Parameters 20 12 0 14 -204800 -13330 0;
+#X text 2 457 remote AT command: 64-bit address \, 16-bit address \, options \, command \, parameters;
 #X msg 292 136 RAT 0x0013A200406BFE6C 0x9A17 2 D0 4;
 #X obj 383 244 packxbee 2;
 #X msg 355 306 devices;
@@ -57,8 +55,7 @@ options \, command \, parameters;
 #X text 956 504 frame_type (136);
 #X text 1089 584 status;
 #X msg 478 376 verbosity \$1;
-#X obj 478 357 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786
--1 2;
+#X obj 478 357 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786 -1 2;
 #X text 1052 692 Martin Peach 2013_02_20;
 #X obj 452 420 route Remote_Command_Response;
 #X floatatom 452 473 5 0 0 0 - - -;
@@ -84,8 +81,7 @@ options \, command \, parameters;
 #X msg 605 712 set Invalid_Parameter;
 #X msg 623 730 set Transmission_Failed;
 #X msg 463 227 verbosity \$1;
-#X obj 463 208 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786
--1 0;
+#X obj 463 208 hradio 15 1 0 3 empty empty empty 0 -8 0 10 -4034 -204786 -1 0;
 #X msg 292 243 close;
 #X msg -1 21 IR;
 #X msg -1 373 RAT 0x0013A200406BFE6C 0x9A17 0;
@@ -107,8 +103,7 @@ options \, command \, parameters;
 #X msg -1 65 RP;
 #X msg -1 43 %V;
 #X msg -1 87 V+;
-#X text 287 -53 This patcher uses the remote AT command message to
-get and set the I/O pins of a remote xbee;
+#X text 287 -53 This patcher uses the remote AT command message to get and set the I/O pins of a remote xbee;
 #X obj -2 436 s tox;
 #X obj 383 217 r tox;
 #X text 28 20 IO sample rate;
@@ -129,27 +124,21 @@ get and set the I/O pins of a remote xbee;
 #X obj 383 636 list trim;
 #X text 26 -24 I/O Digital Change Detection;
 #N canvas 74 83 1202 457 remote_status 0;
-#X obj 228 97 cnv 15 320 130 empty empty I/O_Pin_Function 20 12 0 14
--204786 -13381 0;
-#X obj 249 330 cnv 15 300 72 empty empty Pull-up_Resistor_Bitmap 4
-12 0 14 -204786 -13381 0;
-#X obj 131 426 cnv 15 300 72 empty empty I/O_Digital_Change_Detection_Bitmap
-4 12 0 14 -261682 -86853 0;
+#X obj 228 97 cnv 15 320 130 empty empty I/O_Pin_Function 20 12 0 14 -204786 -13381 0;
+#X obj 249 330 cnv 15 300 72 empty empty Pull-up_Resistor_Bitmap 4 12 0 14 -204786 -13381 0;
+#X obj 131 426 cnv 15 300 72 empty empty I/O_Digital_Change_Detection_Bitmap 4 12 0 14 -261682 -86853 0;
 #X obj 93 -11 inlet;
 #X obj 152 502 unpack 0 0;
 #X obj 152 561 +;
 #X obj 152 584 * 1.17188;
-#X obj 152 605 nbx 7 14 -1e+37 1e+37 0 0 empty empty mV 56 8 0 10 -4034
--258113 -1 0 256;
+#X obj 152 605 nbx 7 14 -1e+37 1e+37 0 0 empty empty mV 56 8 0 10 -4034 -258113 -1 0 256;
 #X text 386 309 1024/1200:;
 #X obj 171 36 * 100;
-#X obj 171 78 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034
--258113 -1 0 256;
+#X obj 171 78 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034 -258113 -1 0 256;
 #X obj 191 623 unpack 0 0;
 #X obj 191 682 +;
 #X obj 191 705 * 1.17188;
-#X obj 191 729 nbx 7 14 -1e+37 1e+37 0 0 empty empty mV 56 8 0 10 -4034
--258113 -1 0 256;
+#X obj 191 729 nbx 7 14 -1e+37 1e+37 0 0 empty empty mV 56 8 0 10 -4034 -258113 -1 0 256;
 #X text -40 56 Associate LED blink time:;
 #X text 85 77 RSSI PWM time:;
 #X text 60 602 supply voltage:;
@@ -157,88 +146,49 @@ get and set the I/O pins of a remote xbee;
 #X obj 211 230 unpack 0 0;
 #X obj 211 289 +;
 #X text 281 292 Pull-up Resistor bitmap:;
-#X obj 230 134 vradio 15 1 0 6 P0Val empty P0 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 250 134 vradio 15 1 0 6 P1Val empty P1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 270 134 vradio 15 1 0 6 P2Val empty P2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 310 134 vradio 15 1 0 6 D1Val empty D1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 330 134 vradio 15 1 0 6 D2Val empty D2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 350 134 vradio 15 1 0 6 D3Val empty D3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 370 134 vradio 15 1 0 6 D4Val empty D4 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 390 134 vradio 15 1 0 6 D5Val empty D5 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 290 134 vradio 15 1 0 6 empty D0Val D0 0 -8 0 10 -4034 -260097
--1 1;
+#X obj 230 134 vradio 15 1 0 6 P0Val empty P0 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 250 134 vradio 15 1 0 6 P1Val empty P1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 270 134 vradio 15 1 0 6 P2Val empty P2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 310 134 vradio 15 1 0 6 D1Val empty D1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 330 134 vradio 15 1 0 6 D2Val empty D2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 350 134 vradio 15 1 0 6 D3Val empty D3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 370 134 vradio 15 1 0 6 D4Val empty D4 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 390 134 vradio 15 1 0 6 D5Val empty D5 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 290 134 vradio 15 1 0 6 empty D0Val D0 0 -8 0 10 -4034 -260097 -1 1;
 #X obj 617 3 print other;
 #X obj 112 37 * 10;
-#X obj 112 59 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034
--258113 -1 0 256;
+#X obj 112 59 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034 -258113 -1 0 256;
 #X obj 93 325 unpack 0 0;
 #X obj 93 384 +;
-#X obj 251 369 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 271 369 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 291 369 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 311 369 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 331 369 vradio 15 1 0 2 empty empty D9 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 351 369 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 371 369 vradio 15 1 0 2 empty empty DI 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 391 369 vradio 15 1 0 2 empty empty D8 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 411 369 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 431 369 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 451 369 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 491 369 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 511 369 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 471 369 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 211 311 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-;
-#X obj 133 465 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 153 465 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 173 465 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 193 465 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 213 465 vradio 15 1 0 2 empty empty D9 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 233 465 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 253 465 vradio 15 1 0 2 empty empty DI 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 273 465 vradio 15 1 0 2 empty empty D8 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 293 465 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 313 465 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 333 465 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 373 465 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 393 465 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 353 465 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097
--1 0;
+#X obj 251 369 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 271 369 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 291 369 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 311 369 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 331 369 vradio 15 1 0 2 empty empty D9 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 351 369 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 371 369 vradio 15 1 0 2 empty empty DI 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 391 369 vradio 15 1 0 2 empty empty D8 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 411 369 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 431 369 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 451 369 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 491 369 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 511 369 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 471 369 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 211 311 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ;
+#X obj 133 465 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 153 465 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 173 465 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 193 465 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 213 465 vradio 15 1 0 2 empty empty D9 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 233 465 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 253 465 vradio 15 1 0 2 empty empty DI 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 273 465 vradio 15 1 0 2 empty empty D8 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 293 465 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 313 465 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 333 465 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 373 465 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 393 465 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 353 465 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097 -1 0;
 #X obj 93 406 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
 #X text 402 132 -Disabled;
 #X text 402 162 -Analog Input;
@@ -256,14 +206,11 @@ get and set the I/O pins of a remote xbee;
 #X text 33 182 I/O Sample Rate;
 #X obj 132 103 unpack 0 0;
 #X obj 132 162 +;
-#X obj 132 185 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034
--258113 -1 0 256;
-#X obj 587 266 cnv 15 324 68 empty empty Enabled_Digital_Ins 4 12 0
-14 -204786 -13381 0;
+#X obj 132 185 nbx 7 14 -1e+37 1e+37 0 0 empty empty ms 56 8 0 10 -4034 -258113 -1 0 256;
+#X obj 587 266 cnv 15 324 68 empty empty Enabled_Digital_Ins 4 12 0 14 -204786 -13381 0;
 #X text 709 214 1024/1200:;
 #X obj 587 105 +;
-#X obj 587 244 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-;
+#X obj 587 244 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ;
 #X floatatom 566 53 5 0 0 0 - - -;
 #X floatatom 587 131 5 0 0 0 - - -;
 #X obj 132 125 * 256;
@@ -272,18 +219,14 @@ get and set the I/O pins of a remote xbee;
 #X obj 93 347 * 256;
 #X obj 152 524 * 256;
 #X obj 191 645 * 256;
-#X obj 631 361 cnv 15 324 48 empty empty Enabled_Analog_Ins 4 12 0
-14 -204786 -13381 0;
+#X obj 631 361 cnv 15 324 48 empty empty Enabled_Analog_Ins 4 12 0 14 -204786 -13381 0;
 #X text 805 337 1024/1200:;
-#X obj 630 339 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-;
+#X obj 630 339 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ;
 #X floatatom 630 53 5 0 0 0 - - -;
-#X obj 651 165 cnv 15 348 74 empty empty Digital_In_Values 4 12 0 14
--261682 -13381 0;
+#X obj 651 165 cnv 15 348 74 empty empty Digital_In_Values 4 12 0 14 -261682 -13381 0;
 #X text 826 141 1024/1200:;
 #X obj 651 95 +;
-#X obj 651 143 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-;
+#X obj 651 143 bits xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ;
 #X floatatom 651 121 5 0 0 0 - - -;
 #X obj 651 73 * 256;
 #X obj 694 95 +;
@@ -301,84 +244,48 @@ get and set the I/O pins of a remote xbee;
 #X obj 865 95 +;
 #X floatatom 865 121 5 0 0 0 - - -;
 #X obj 865 73 * 256;
-#X obj 566 32 unpack 99 99 99 99 99 99 99 99 99 99 99 99 99 99 99 99
-;
-#X obj 1000 79 cnv 15 140 160 empty empty IO_Samples 20 12 0 14 -261682
--66577 0;
-#X obj 1016 111 nbx 5 14 -1e+37 1e+37 0 0 empty empty 1st 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 1016 131 nbx 5 14 -1e+37 1e+37 0 0 empty empty 2nd 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 1016 151 nbx 5 14 -1e+37 1e+37 0 0 empty empty 3rd 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 1016 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty 4th 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 1016 191 nbx 5 14 -1e+37 1e+37 0 0 empty empty 5th 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 1016 211 nbx 5 14 -1e+37 1e+37 0 0 empty empty 6th 60 8 0 10
--260097 -86853 -86853 0 256;
-#X obj 933 375 vradio 15 1 0 2 empty empty A0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 912 375 vradio 15 1 0 2 empty empty A1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 892 375 vradio 15 1 0 2 empty empty A2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 872 375 vradio 15 1 0 2 empty empty A3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 791 375 vradio 15 1 0 2 empty empty V+ 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 890 300 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 869 300 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 849 300 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 829 300 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 809 300 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 789 300 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 768 300 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 748 300 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 687 300 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 667 300 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 647 300 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097
--1 0;
+#X obj 566 32 unpack 99 99 99 99 99 99 99 99 99 99 99 99 99 99 99 99 ;
+#X obj 1000 79 cnv 15 140 160 empty empty IO_Samples 20 12 0 14 -261682 -66577 0;
+#X obj 1016 111 nbx 5 14 -1e+37 1e+37 0 0 empty empty 1st 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 1016 131 nbx 5 14 -1e+37 1e+37 0 0 empty empty 2nd 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 1016 151 nbx 5 14 -1e+37 1e+37 0 0 empty empty 3rd 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 1016 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty 4th 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 1016 191 nbx 5 14 -1e+37 1e+37 0 0 empty empty 5th 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 1016 211 nbx 5 14 -1e+37 1e+37 0 0 empty empty 6th 60 8 0 10 -260097 -86853 -86853 0 256;
+#X obj 933 375 vradio 15 1 0 2 empty empty A0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 912 375 vradio 15 1 0 2 empty empty A1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 892 375 vradio 15 1 0 2 empty empty A2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 872 375 vradio 15 1 0 2 empty empty A3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 791 375 vradio 15 1 0 2 empty empty V+ 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 890 300 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 869 300 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 849 300 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 829 300 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 809 300 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 789 300 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 768 300 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 748 300 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 687 300 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 667 300 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 647 300 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097 -1 0;
 #X text 905 313 -ON;
 #X text 905 297 -OFF;
 #X text 947 388 -ON;
 #X text 947 372 -OFF;
-#X obj 954 204 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 933 204 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 913 204 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 893 204 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 873 204 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 853 204 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 832 204 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 812 204 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 751 204 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 731 204 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 711 204 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097
--1 0;
+#X obj 954 204 vradio 15 1 0 2 empty empty D0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 933 204 vradio 15 1 0 2 empty empty D1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 913 204 vradio 15 1 0 2 empty empty D2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 893 204 vradio 15 1 0 2 empty empty D3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 873 204 vradio 15 1 0 2 empty empty D4 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 853 204 vradio 15 1 0 2 empty empty D5 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 832 204 vradio 15 1 0 2 empty empty D6 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 812 204 vradio 15 1 0 2 empty empty D7 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 751 204 vradio 15 1 0 2 empty empty P0 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 731 204 vradio 15 1 0 2 empty empty P1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 711 204 vradio 15 1 0 2 empty empty P2 0 -8 0 10 -4034 -260097 -1 0;
 #X text 969 217 -ON;
 #X text 969 201 -OFF;
-#X obj 93 15 route IC LT IR %V RP V+ PR P0 P1 P2 D0 D1 D2 D3 D4 D5
-IS;
+#X obj 93 15 route IC LT IR %V RP V+ PR P0 P1 P2 D0 D1 D2 D3 D4 D5 IS;
 #X obj 466 -10 route SAMPLE_FRAME;
 #X connect 3 0 161 0;
 #X connect 4 0 93 0;
@@ -520,17 +427,12 @@ IS;
 #X connect 162 0 120 0;
 #X connect 162 1 31 0;
 #X restore 383 659 pd remote_status;
-#X obj 714 -44 cnv 15 420 80 empty empty Set_Digital_Outputs 40 12
-0 14 -204786 -13381 0;
-#X obj 913 -17 tgl 15 0 empty empty D5 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 718 -17 tgl 15 0 empty empty P0 1 8 0 10 -4034 -258113 -1 0
-1;
+#X obj 714 -44 cnv 15 420 80 empty empty Set_Digital_Outputs 40 12 0 14 -204786 -13381 0;
+#X obj 913 -17 tgl 15 0 empty empty D5 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 718 -17 tgl 15 0 empty empty P0 1 8 0 10 -4034 -258113 -1 0 1;
 #N canvas 54 264 589 223 digital_outs 0;
-#X obj 6 -38 cnv 15 560 200 empty empty empty 20 12 0 14 -232576 -66577
-0;
-#X obj 26 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X obj 6 -38 cnv 15 560 200 empty empty empty 20 12 0 14 -232576 -66577 0;
+#X obj 26 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X msg 26 83 4;
 #X msg 53 83 5;
 #X obj 26 58 sel 0 1;
@@ -543,43 +445,35 @@ IS;
 #X obj 386 -27 inlet;
 #X obj 446 -27 inlet;
 #X obj 506 -27 inlet;
-#X obj 86 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X obj 86 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X msg 86 83 4;
 #X msg 113 83 5;
 #X obj 86 58 sel 0 1;
-#X obj 146 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 146 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 146 83 4;
 #X msg 173 83 5;
 #X obj 146 58 sel 0 1;
-#X obj 206 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 206 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 206 83 4;
 #X msg 233 83 5;
 #X obj 206 58 sel 0 1;
-#X obj 266 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 266 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 266 83 4;
 #X msg 293 83 5;
 #X obj 266 58 sel 0 1;
-#X obj 326 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 326 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 326 83 4;
 #X msg 353 83 5;
 #X obj 326 58 sel 0 1;
-#X obj 386 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 386 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 386 83 4;
 #X msg 413 83 5;
 #X obj 386 58 sel 0 1;
-#X obj 446 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 446 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 446 83 4;
 #X msg 473 83 5;
 #X obj 446 58 sel 0 1;
-#X obj 506 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 506 37 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1;
 #X msg 506 83 4;
 #X msg 533 83 5;
 #X obj 506 58 sel 0 1;
@@ -647,20 +541,13 @@ IS;
 #X connect 45 0 43 0;
 #X connect 45 1 44 0;
 #X restore 718 4 pd digital_outs xxxxxxxxxxxxxxxxx;
-#X obj 742 -17 tgl 15 0 empty empty P1 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 766 -17 tgl 15 0 empty empty P2 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 791 -17 tgl 15 0 empty empty D0 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 815 -17 tgl 15 0 empty empty D1 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 839 -17 tgl 15 0 empty empty D2 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 864 -17 tgl 15 0 empty empty D3 1 8 0 10 -4034 -258113 -1 0
-1;
-#X obj 888 -17 tgl 15 0 empty empty D4 1 8 0 10 -4034 -258113 -1 0
-1;
+#X obj 742 -17 tgl 15 0 empty empty P1 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 766 -17 tgl 15 0 empty empty P2 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 791 -17 tgl 15 0 empty empty D0 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 815 -17 tgl 15 0 empty empty D1 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 839 -17 tgl 15 0 empty empty D2 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 864 -17 tgl 15 0 empty empty D3 1 8 0 10 -4034 -258113 -1 0 1;
+#X obj 888 -17 tgl 15 0 empty empty D4 1 8 0 10 -4034 -258113 -1 0 1;
 #X text 624 132 P0 = pin6;
 #X text 624 142 P1 = pin7;
 #X text 624 152 P2 = pin4;
@@ -670,11 +557,9 @@ IS;
 #X text 624 192 D3 = pin17;
 #X text 624 202 D4 = pin11;
 #X text 624 212 D5 = pin15;
-#X obj 714 37 cnv 15 420 230 empty empty Set_Remote_IO_Pin_Function
-40 12 0 14 -261682 -86853 0;
+#X obj 714 37 cnv 15 420 230 empty empty Set_Remote_IO_Pin_Function 40 12 0 14 -261682 -86853 0;
 #N canvas 4 77 1271 611 set_pin_functions 0;
-#X obj 26 -23 cnv 15 1200 600 empty empty empty 20 12 0 14 -204800
--66577 0;
+#X obj 26 -23 cnv 15 1200 600 empty empty empty 20 12 0 14 -204800 -66577 0;
 #X obj 176 326 list append;
 #X msg 176 228 RAT;
 #X msg 41 199 0x0013A200406BFE6C;
@@ -802,26 +687,16 @@ IS;
 #X connect 39 0 8 1;
 #X connect 40 0 8 1;
 #X connect 41 0 8 1;
-#X restore 718 227 pd set_pin_functions XXXXXXXXXXXXXXXXXXXXXXXXXX
-;
-#X obj 718 79 vradio 15 1 0 6 empty empty P0 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 752 79 vradio 15 1 0 6 empty empty P1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 787 79 vradio 15 1 0 6 empty empty P2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 857 79 vradio 15 1 0 6 empty empty D1 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 892 79 vradio 15 1 0 6 empty empty D2 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 927 79 vradio 15 1 0 6 empty empty D3 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 962 79 vradio 15 1 0 6 empty empty D4 0 -8 0 10 -4034 -260097
--1 0;
-#X obj 997 79 vradio 15 1 0 6 empty empty D5 0 -8 0 10 -4034 -260097
--1 1;
-#X obj 822 79 vradio 15 1 0 6 empty empty D0 0 -8 0 10 -4034 -260097
--1 0;
+#X restore 718 227 pd set_pin_functions XXXXXXXXXXXXXXXXXXXXXXXXXX ;
+#X obj 718 79 vradio 15 1 0 6 empty empty P0 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 752 79 vradio 15 1 0 6 empty empty P1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 787 79 vradio 15 1 0 6 empty empty P2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 857 79 vradio 15 1 0 6 empty empty D1 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 892 79 vradio 15 1 0 6 empty empty D2 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 927 79 vradio 15 1 0 6 empty empty D3 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 962 79 vradio 15 1 0 6 empty empty D4 0 -8 0 10 -4034 -260097 -1 0;
+#X obj 997 79 vradio 15 1 0 6 empty empty D5 0 -8 0 10 -4034 -260097 -1 1;
+#X obj 822 79 vradio 15 1 0 6 empty empty D0 0 -8 0 10 -4034 -260097 -1 0;
 #X text 1009 77 -Disabled;
 #X text 1009 107 -Analog Input;
 #X text 1009 122 -Digital Input;
@@ -833,8 +708,7 @@ IS;
 #X msg 536 28 remote16 0x9A17;
 #X text 501 -24 set the 64-bit remote address;
 #X text 535 10 set the 16-bit remote address;
-#X obj 713 297 cnv 15 600 140 empty empty Sample 20 12 0 14 -257985
--83269 0;
+#X obj 713 297 cnv 15 600 140 empty empty Sample 20 12 0 14 -257985 -83269 0;
 #X msg 722 325 IS;
 #X text 749 324 force sample;
 #X obj 1139 36 r P0Val;
@@ -860,8 +734,7 @@ IS;
 #X text 275 60 set sample rate;
 #X floatatom 388 52 5 0 0 0 - - -;
 #X obj 373 75 f;
-#X obj 373 30 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 373 30 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1 -1;
 #X msg 1344 519 SAMPLE_FRAME;
 #X floatatom 1320 563 5 0 0 0 - - -;
 #X floatatom 1343 583 5 0 0 0 - - -;
@@ -879,61 +752,38 @@ IS;
 #X text 874 245 Sample Frame;
 #X obj 417 577 list trim;
 #X obj 872 266 route D0 D1 D2 D3 D4 D5 D10 D11 D12 A0 A1 A2 A3 A7;
-#X obj 866 296 cnv 15 300 50 empty empty Digital_Inputs 20 12 0 14
--204786 -13381 0;
-#X obj 866 347 cnv 15 400 90 empty empty Analog_Inputs 20 12 0 14 -232576
--45076 0;
-#X obj 869 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 929 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 989 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 1049 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3 40 8 0 10
--204800 -13330 -159808 0 256;
-#X obj 1109 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+ 40 8 0 10
--204800 -13330 -159808 0 256;
-#X obj 872 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D0 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 912 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D1 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 942 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D2 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 972 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D3 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 1002 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D4 8 20 0 10
--4034 -1 -258113 0 256;
-#X obj 1032 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D5 8 20 0 10
--4034 -1 -258113 0 256;
-#X obj 1062 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P0 8 20 0 10
--4034 -1 -258113 0 256;
-#X obj 1092 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P1 8 20 0 10
--4034 -1 -258113 0 256;
-#X obj 1122 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P2 8 20 0 10
--4034 -1 -258113 0 256;
+#X obj 866 296 cnv 15 300 50 empty empty Digital_Inputs 20 12 0 14 -204786 -13381 0;
+#X obj 866 347 cnv 15 400 90 empty empty Analog_Inputs 20 12 0 14 -232576 -45076 0;
+#X obj 869 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 929 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 989 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 1049 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 1109 380 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+ 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 872 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D0 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 912 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D1 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 942 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D2 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 972 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D3 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 1002 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D4 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 1032 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty D5 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 1062 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P0 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 1092 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P1 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 1122 322 nbx 2 14 -1e+37 1e+37 0 0 empty empty P2 8 20 0 10 -4034 -1 -258113 0 256;
 #X msg 270 114 RAT 0x0013A200406BFE6C 0x9A17 2 V+ \$1;
-#X obj 521 78 nbx 5 14 -1e+37 1e+37 0 0 empty empty Supply_Voltage_Threshold
-0 -8 0 10 -4034 -13381 -1 0 256;
-#X obj 869 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 521 78 nbx 5 14 -1e+37 1e+37 0 0 empty empty Supply_Voltage_Threshold 0 -8 0 10 -4034 -13381 -1 0 256;
+#X obj 869 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 869 399 * 1.17302;
-#X obj 949 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 949 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 949 399 * 1.17302;
-#X obj 1029 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2_mV 40 8 0
-10 -204800 -13330 -159808 0 256;
+#X obj 1029 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 1029 399 * 1.17302;
-#X obj 1109 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3_mV 40 8 0
-10 -204800 -13330 -159808 0 256;
+#X obj 1109 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 1109 399 * 1.17302;
-#X obj 1189 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+_mV 40 8 0
-10 -204800 -13330 -159808 0 256;
+#X obj 1189 419 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 1189 399 * 1.17302;
 #X msg 248 92 RAT 0x0013A200406BFE6C 0x9A17 2 IR \$1;
 #X text 424 51 ms;
 #X obj 506 97 f;
-#X obj 506 48 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 506 48 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1 -1;
 #X connect 2 0 3 0;
 #X connect 3 0 5 0;
 #X connect 4 0 5 0;
