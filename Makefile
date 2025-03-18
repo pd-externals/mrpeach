@@ -117,6 +117,7 @@ net_data = \
 	net/udpsend-help.pd \
 	net/udpsndrcv-help.pd \
 	net/httpreq-help.pd \
+	$(empty)
 osc_data = $(wildcard \
 	osc/osc-meta.pd \
 	osc/README.txt \
