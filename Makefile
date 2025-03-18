@@ -32,12 +32,12 @@ cmos_sources = \
 	cmos/cd4094.c \
 	cmos/cd4516.c \
 	$(empty)
-binfile_sources = \
+binfile_sources = $(wildcard \
 	binfile/binfile.c \
-	$(empty)
-midifile_sources = \
+	)
+midifile_sources = $(wildcard \
 	midifile/midifile.c \
-	$(empty)
+	)
 net_sources = \
 	net/udpsend.c \
 	net/httpreceive.c \
@@ -51,16 +51,16 @@ net_sources = \
 	net/tcpsend.c \
 	net/udpsend~.c \
 	$(empty)
-osc_sources = \
+osc_sources = $(wildcard \
 	osc/unpackOSC.c \
 	osc/routeOSC.c \
 	osc/packOSC.c \
 	osc/pipelist.c \
-	$(empty)
-slip_sources = \
+	)
+slip_sources = $(wildcard \
 	slip/slipdec.c \
 	slip/slipenc.c \
-	$(empty)
+	)
 
 cmos_data = \
 	cmos/cd4000-help.pd \
@@ -89,13 +89,13 @@ cmos_data = \
 	cmos/cd4094-help.pd \
 	cmos/cd4516-help.pd \
 	$(empty)
-binfile_data = \
+binfile_data = $(wildcard \
 	binfile/binfile-help.pd \
-	$(empty)
-midifile_data = \
+	)
+midifile_data = $(wildcard \
 	midifile/I_Wanna_Be_Sedated.mid \
 	midifile/midifile-help.pd \
-	$(empty)
+	)
 net_data = \
 	net/net-meta.pd \
 	net/README.txt \
@@ -117,7 +117,7 @@ net_data = \
 	net/udpsend-help.pd \
 	net/udpsndrcv-help.pd \
 	net/httpreq-help.pd \
-osc_data = \
+osc_data = $(wildcard \
 	osc/osc-meta.pd \
 	osc/README.txt \
 	osc/packOSC-help.pd \
@@ -128,11 +128,11 @@ osc_data = \
 	osc/unpackOSCstream-help.pd \
 	osc/unpackOSCstream.pd \
 	osc/routeOSC-help.pd \
-	$(empty)
-slip_data = \
+	)
+slip_data = $(wildcard \
 	slip/slipdec-help.pd \
 	slip/slipenc-help.pd \
-	$(empty)
+	)
 
 # input source file (class name == source file basename)
 class.sources = \
