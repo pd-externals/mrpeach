@@ -1,3 +1,63 @@
+2025-03-18 10:47  IOhannes m zmölnig
+
+	* [ba5c5f3] Bump midifile to v0.4.3
+
+2024-10-08 13:54  IOhannes m zmölnig
+
+	* [be20dfc] Update 'osc' submodule to v0.3
+
+2024-10-08 13:53  IOhannes m zmölnig
+
+	* [ec5e0bb] Use TIOCOUTQ as fallback for SIOCOUTQ
+
+2024-10-08 13:53  IOhannes m zmölnig
+
+	* [3068865] Fix FTBFS with sockfd retrieving when SIOCOUTQ is enabled
+
+2024-08-24 10:52  IOhannes m zmölnig
+
+	* [2a6b201] Replace error() with pd_error()
+
+2024-08-24 10:48  IOhannes m zmölnig
+
+	* [2ddb4b1] Fix new location of slipenc/slipdec
+
+2024-08-24 10:47  IOhannes m zmölnig
+
+	* [6971e73] Replace factored out modules with git-submodules
+
+2022-04-30 15:53  Roman Haefeli
+
+	* [6b8f782] slipdec: add note aobut new location
+
+2022-04-30 15:53  Roman Haefeli
+
+	* [2067907] slipenc: add note about new location
+
+2022-04-30 15:50  Roman Haefeli
+
+	* [592bf93] midifile: add note about new location
+
+2022-04-30 15:49  Roman Haefeli
+
+	* [6d5ba37] osc: add note about new location
+
+2022-04-30 15:46  Roman Haefeli
+
+	* [79198a8] binfile: add note about new repository
+
+2022-04-30 15:43  Roman Haefeli
+
+	* [0c52b1a] README formatting
+
+2022-04-30 15:42  Roman Haefeli
+
+	* [d856913] README formatting
+
+2022-04-30 15:41  Roman Haefeli
+
+	* [321e0e5] README: use .md extension; add warnings about split repositories
+
 2021-06-10 12:57  mrpeach
 
 	* [r17672] Removed the symbol received Overloaded the 'to' method,
