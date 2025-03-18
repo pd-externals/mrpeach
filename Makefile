@@ -165,6 +165,7 @@ class.sources = \
 
 # all extra files to be included in binary distribution of the library
 datafiles = \
+	README.deken.pd \
 	$(cmos_data) \
 	$(net_data) \
 	flist2tab/flist2tab-help.pd \
