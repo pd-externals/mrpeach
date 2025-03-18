@@ -1,4 +1,5 @@
-#N canvas 31 152 1205 761 12;
+#N canvas 90 66 1205 761 12;
+#X declare -path mrpeach;
 #X msg 208 155 disconnect;
 #X floatatom 473 566 3 0 0 0 - - -;
 #X floatatom 507 566 3 0 0 0 - - -;
@@ -89,6 +90,7 @@ unblock;
 #X floatatom 616 566 5 0 0 0 - - -;
 #X obj 473 538 unpack 0 0 0 0 0;
 #X text 23 647 2020/05/26 Martin Peach;
+#X obj 87 5 declare -path mrpeach;
 #X connect 0 0 6 0;
 #X connect 6 0 33 0;
 #X connect 6 1 62 0;
