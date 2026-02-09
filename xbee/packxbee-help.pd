@@ -1,17 +1,11 @@
 #N canvas 468 125 626 764 10;
 #X declare -lib mrpeach;
-#X obj 400 56 cnv 15 150 160 empty empty empty 20 12 0 14 -232576 -66577
-0;
-#X obj -15 8 cnv 15 400 280 empty empty empty 20 12 0 14 -232576 -66577
-0;
-#X obj -15 290 cnv 15 600 240 empty empty empty 20 12 0 14 -204786
--66577 0;
-#X obj -15 533 cnv 15 600 200 empty empty empty 20 12 0 14 -262130
--66577 0;
-#X obj 269 664 cnv 15 300 25 empty empty unpackxbee: 1 12 0 14 -257985
--159808 0;
-#X obj 74 181 cnv 15 300 25 empty empty packxbee: 1 12 0 14 -159808
--257985 0;
+#X obj 400 56 cnv 15 150 160 empty empty empty 20 12 0 14 -232576 -66577 0;
+#X obj -15 8 cnv 15 400 280 empty empty empty 20 12 0 14 -232576 -66577 0;
+#X obj -15 290 cnv 15 600 240 empty empty empty 20 12 0 14 -204786 -66577 0;
+#X obj -15 533 cnv 15 600 200 empty empty empty 20 12 0 14 -262130 -66577 0;
+#X obj 269 664 cnv 15 300 25 empty empty unpackxbee: 1 12 0 14 -257985 -159808 0;
+#X obj 74 181 cnv 15 300 25 empty empty packxbee: 1 12 0 14 -159808 -257985 0;
 #X obj 119 134 r topackxbee;
 #X msg 251 301 devices;
 #X msg -1 14 API 1;
@@ -22,8 +16,7 @@
 #X msg 326 376 baud 115200;
 #X msg 350 400 baud 9600;
 #X msg 280 570 verbosity \$1;
-#X obj 280 549 hradio 15 1 0 3 empty empty verbosity 0 -8 0 10 -4034
--1 -1 0;
+#X obj 280 549 hradio 15 1 0 3 empty empty verbosity 0 -8 0 10 -4034 -1 -1 0;
 #X obj 360 446 t f f;
 #X obj 360 695 print data;
 #N canvas 23 645 1232 329 status 0;
@@ -82,14 +75,10 @@
 #X text 542 123 packet type;
 #X floatatom 709 195 5 0 0 0 - - -;
 #X text 610 193 receive options;
-#X obj 709 245 tgl 15 0 empty empty acknowledged 17 7 0 10 -4034 -1
--1 0 1;
-#X obj 749 265 tgl 15 0 empty empty broadcast 17 7 0 10 -4034 -1 -1
-0 1;
-#X obj 789 285 tgl 15 0 empty empty encrypted 17 7 0 10 -4034 -1 -1
-0 1;
-#X obj 829 305 tgl 15 0 empty empty from_end_device 17 7 0 10 -4034
--1 -1 0 1;
+#X obj 709 245 tgl 15 0 empty empty acknowledged 17 7 0 10 -4034 -1 -1 0 1;
+#X obj 749 265 tgl 15 0 empty empty broadcast 17 7 0 10 -4034 -1 -1 0 1;
+#X obj 789 285 tgl 15 0 empty empty encrypted 17 7 0 10 -4034 -1 -1 0 1;
+#X obj 829 305 tgl 15 0 empty empty from_end_device 17 7 0 10 -4034 -1 -1 0 1;
 #X obj 709 209 & 1;
 #X obj 749 209 & 2;
 #X obj 789 209 & 32;
@@ -241,11 +230,9 @@
 #X connect 111 2 101 0;
 #X restore 429 695 pd status;
 #X obj 387 487 spigot;
-#X obj 420 467 tgl 15 0 empty empty print_serial_in 17 7 0 10 -4034
--1 -1 0 1;
+#X obj 420 467 tgl 15 0 empty empty print_serial_in 17 7 0 10 -4034 -1 -1 0 1;
 #X obj 178 227 spigot;
-#X obj 211 208 tgl 15 0 empty empty print_packets 17 7 0 10 -4034 -1
--1 0 1;
+#X obj 211 208 tgl 15 0 empty empty print_packets 17 7 0 10 -4034 -1 -1 0 1;
 #X obj 153 185 packxbee 2;
 #X obj 360 667 unpackxbee 2;
 #X obj 491 6 import mrpeach;
@@ -257,8 +244,7 @@
 #X text 22 35 NAME packxbee;
 #X text 22 130 OUTLET_0 list data;
 #X text 22 110 INLET_0 API TX TX64 TX16 AT ATQ RAT verbosity;
-#X text 22 75 DESCRIPTION [packxbee] builds packets for Series 1 or
-2 XBees in API modes 1 or 2;
+#X text 22 75 DESCRIPTION [packxbee] builds packets for Series 1 or 2 XBees in API modes 1 or 2;
 #X restore 534 26 pd META;
 #X msg 291 341 info;
 #X msg 271 321 open 4;
@@ -549,26 +535,19 @@
 #N canvas 368 164 744 407 TRANSMIT_COMMANDS 0;
 #X obj 172 292 s topackxbee;
 #X msg 79 182 TX 0x0013A20040769444 0xFFFE 0 0 1 2 3 4;
-#X obj 60 107 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 0;
-#X obj 57 126 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 0 256;
+#X obj 60 107 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144 -1 -1 0 0;
+#X obj 57 126 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 -262144 -1 -1 0 256;
 #X obj 57 84 f;
 #X obj 100 84 + 1;
 #X obj 144 82 % 128;
-#X obj 57 42 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X obj 57 42 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X obj 57 62 metro 2000;
-#X text 22 326 (prefix hexadecimal parameters with 0x to force Pd to
-see them as symbols);
-#X text 314 225 Series 1 data packet: 64-bit_destination options data
-;
+#X text 22 326 (prefix hexadecimal parameters with 0x to force Pd to see them as symbols);
+#X text 314 225 Series 1 data packet: 64-bit_destination options data ;
 #X msg 121 224 TX64 0x0013A200406ADE1E 0 255;
 #X msg 144 247 TX16 0x79D5 0 255;
-#X text 257 248 Series 1 data packet: 16-bit_destination options data
-;
-#X text 281 151 Series 2 data packet: 64-bit_destination 16-bit_destination
-broadcast_radius options data;
+#X text 257 248 Series 1 data packet: 16-bit_destination options data ;
+#X text 281 151 Series 2 data packet: 64-bit_destination 16-bit_destination broadcast_radius options data;
 #X msg 57 160 TX 0x0013A200406BFE6C 0x9A17 0 0 \$1;
 #X msg 100 203 TX 0x0013A200406ADE1E 0x79D6 0 0 64;
 #X connect 1 0 0 0;
@@ -586,8 +565,7 @@ broadcast_radius options data;
 #X connect 16 0 0 0;
 #X restore 408 70 pd TRANSMIT_COMMANDS;
 #X msg 85 100 verbosity \$1;
-#X obj 83 79 hradio 15 1 0 3 empty empty verbosity 0 -8 0 10 -4034
--1 -1 0;
+#X obj 83 79 hradio 15 1 0 3 empty empty verbosity 0 -8 0 10 -4034 -1 -1 0;
 #X obj 58 244 print packet;
 #X obj 457 444 print serial_info;
 #X text 148 375 set the interface baud rate;
@@ -596,36 +574,27 @@ broadcast_radius options data;
 #X text 65 320 open a port by number or by name;
 #X text 128 340 get current serial status;
 #X obj 214 264 spigot;
-#X obj 247 245 tgl 15 0 empty empty transmit_packets 17 7 0 10 -4034
--1 -1 0 1;
+#X obj 247 245 tgl 15 0 empty empty transmit_packets 17 7 0 10 -4034 -1 -1 0 1;
 #X obj 387 509 print serial_in;
 #X obj 249 135 packxbee-example;
-#X text -9 113 [packxbee] formats packets for use with xbees in API
-modes 1 or 2;
-#X text -9 150 [packxbee] outputs lists of bytes that are typically
-passed to a [comport] object.;
+#X text -9 113 [packxbee] formats packets for use with xbees in API modes 1 or 2;
+#X text -9 150 [packxbee] outputs lists of bytes that are typically passed to a [comport] object.;
 #X obj 360 427 comport 98 9600;
-#X text -10 626 The output of [comport] can be connected to an [unpackxbee]
-object to (at least partially) unpack the received packets.;
+#X text -10 626 The output of [comport] can be connected to an [unpackxbee] object to (at least partially) unpack the received packets.;
 #N canvas 195 133 741 379 REMOTE_COMMANDS 0;
-#X obj 72 25 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X obj 72 25 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X msg 72 138 4;
 #X msg 117 138 5;
-#X obj 72 74 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1
-;
+#X obj 72 74 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0 1 ;
 #X obj 72 95 sel 0 1;
 #X obj 72 50 metro 200;
 #X msg 223 206 RAT 0x0013A200406BFE6C 0x51D6 0 SL;
-#X text 169 123 remote AT command: 64-bit address \, 16-bit address
-\, options \, command \, parameters;
+#X text 169 123 remote AT command: 64-bit address \, 16-bit address \, options \, command \, parameters;
 #X obj 294 294 s topackxbee;
 #X msg 171 154 RAT 0x0013A200406BFE6C 0x9A17 2 P1 \$1;
 #X msg 246 230 RAT 0x0013A200406BFE6C 0x9A17 2 D0 4;
-#X text 324 250 switch remote IO pin 0 low (options = 2 = apply changes
-immediately);
-#X text 203 169 set PWM1/DIO11 (pin 7) on remote xbee to digital out
-high or low immediately;
+#X text 324 250 switch remote IO pin 0 low (options = 2 = apply changes immediately);
+#X text 203 169 set PWM1/DIO11 (pin 7) on remote xbee to digital out high or low immediately;
 #X msg 29 263 RAT 0x0013A200406BFE6C 0x9A17 0;
 #X obj 29 285 list append;
 #X obj 29 306 list trim;
@@ -653,52 +622,31 @@ high or low immediately;
 #N canvas 235 602 596 319 sample_frame 0;
 #X obj 62 53 inlet;
 #X obj 62 106 route D0 D1 D2 D3 D4 D5 D10 D11 D12 A0 A1 A2 A3 A7;
-#X obj 56 136 cnv 15 300 50 empty empty Digital_Inputs 20 12 0 14 -204786
--13381 0;
-#X obj 56 187 cnv 15 400 90 empty empty Analog_Inputs 20 12 0 14 -232576
--45076 0;
-#X obj 59 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 119 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 179 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 239 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 299 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+ 40 8 0 10 -204800
--13330 -159808 0 256;
-#X obj 62 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D0 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 102 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D1 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 132 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D2 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 162 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D3 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 192 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D4 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 222 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D5 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 252 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P0 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 282 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P1 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 312 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P2 8 20 0 10 -4034
--1 -258113 0 256;
-#X obj 59 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 56 136 cnv 15 300 50 empty empty Digital_Inputs 20 12 0 14 -204786 -13381 0;
+#X obj 56 187 cnv 15 400 90 empty empty Analog_Inputs 20 12 0 14 -232576 -45076 0;
+#X obj 59 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 119 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 179 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 239 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 299 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+ 40 8 0 10 -204800 -13330 -159808 0 256;
+#X obj 62 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D0 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 102 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D1 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 132 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D2 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 162 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D3 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 192 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D4 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 222 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty D5 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 252 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P0 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 282 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P1 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 312 162 nbx 2 14 -1e+37 1e+37 0 0 empty empty P2 8 20 0 10 -4034 -1 -258113 0 256;
+#X obj 59 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A0_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 59 239 * 1.17302;
-#X obj 139 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 139 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A1_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 139 239 * 1.17302;
-#X obj 219 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 219 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A2_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 219 239 * 1.17302;
-#X obj 299 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 299 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty A3_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 299 239 * 1.17302;
-#X obj 379 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+_mV 40 8 0 10
--204800 -13330 -159808 0 256;
+#X obj 379 259 nbx 5 14 -1e+37 1e+37 0 0 empty empty V+_mV 40 8 0 10 -204800 -13330 -159808 0 256;
 #X obj 379 239 * 1.17302;
 #X obj 62 78 list trim;
 #X obj 359 130 print more_sample_frame_stuff;
@@ -730,8 +678,7 @@ high or low immediately;
 #X connect 27 0 26 0;
 #X connect 28 0 1 0;
 #X restore 394 714 pd sample_frame;
-#X obj 401 222 cnv 15 150 60 empty empty empty 20 12 0 14 -261234 -66577
-0;
+#X obj 401 222 cnv 15 150 60 empty empty empty 20 12 0 14 -261234 -66577 0;
 #X text 404 221 remote xbee pin control:;
 #X obj 426 251 xbeeio;
 #X connect 6 0 24 0;

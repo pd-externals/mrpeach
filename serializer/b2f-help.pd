@@ -2,12 +2,20 @@
 #X obj 103 178 b2f;
 #X msg 103 83 0 1 2 3;
 #X text 77 53 [b2f] converts lists of 4 bytes to floats.;
-#X text 43 17 Assuming you received 4 bytes as a binary representation
-of a floating-point number \,;
+#X text 43 17 Assuming you received 4 bytes as a binary representation of a floating-point number \,;
 #X text 234 258 Martin Peach 2013_03_13;
 #X msg 181 83 208 15 73 64;
-#X floatatom 103 209 12 0 0 0 - - -;
+#X floatatom 103 209 12 0 0 0 - - - 0;
 #X msg 269 83 219 15 73 64;
+#N canvas 961 293 504 228 META 0;
+#X text 12 25 LICENSE GPL v2 or later;
+#X text 12 115 AUTHOR Martin Peach;
+#X text 12 5 KEYWORDS binary float;
+#X text 12 46 DESCRIPTION convert IEEE-754 binary representation (native endianness) to numbers, f 81;
+#X text 12 65 INLET_0 list (4 floats);
+#X text 12 85 OUTLET_0 float;
+#X text 12 135 HELP_PATCH_AUTHORS "pd meta" information added by IOhannes m zmölnig for mrpeach-1.0, f 49;
+#X restore 33 273 pd META;
 #X connect 0 0 6 0;
 #X connect 1 0 0 0;
 #X connect 5 0 0 0;

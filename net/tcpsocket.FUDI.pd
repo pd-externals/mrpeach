@@ -10,10 +10,8 @@
 #X obj 23 113 outlet;
 #X text 161 33 this is used to:;
 #X text 87 114 a) reset the sockethandler on a new connection;
-#X text 88 129 (for instance \, if the previous connection was quitted
-in the middle of a packet).;
-#X text 55 213 b) check for the socketserver \, if a sockethandler
-on specified socket already exists.;
+#X text 88 129 (for instance \, if the previous connection was quitted in the middle of a packet).;
+#X text 55 213 b) check for the socketserver \, if a sockethandler on specified socket already exists.;
 #X obj 55 191 s \$1.TCPSOCKET;
 #X obj 23 19 r \$1.TCPSOCKET;
 #X connect 0 0 1 0;
@@ -31,10 +29,8 @@ on specified socket already exists.;
 #X obj 41 391 list prepend socket.out;
 #X obj 58 345 list prepend ip.out;
 #X obj 7 442 list trim;
-#X text 16 220 the lower part makes [tcpsocketserver] behave like [tcpserver]
-;
-#X obj -2 136 cnv 15 450 70 empty empty empty 20 12 0 14 -204786 -66577
-0;
+#X text 16 220 the lower part makes [tcpsocketserver] behave like [tcpserver] ;
+#X obj -2 136 cnv 15 450 70 empty empty empty 20 12 0 14 -204786 -66577 0;
 #N canvas 385 67 606 479 FUDI 0;
 #X obj 23 6 inlet;
 #X obj 23 400 outlet;
@@ -60,8 +56,7 @@ on specified socket already exists.;
 #X obj 13 169 outlet;
 #X obj 13 121 list split 8192;
 #X obj 141 106 b;
-#X text 12 190 cut incoming list into pieces of a maximum of the buffersize.
-;
+#X text 12 190 cut incoming list into pieces of a maximum of the buffersize. ;
 #X connect 0 0 1 0;
 #X connect 1 0 5 0;
 #X connect 2 0 0 0;
@@ -105,8 +100,7 @@ on specified socket already exists.;
 #X obj 62 171 t a a;
 #X msg 62 193 59;
 #X text 119 182 <-;
-#X text 144 176 separate by 59 (semicolon) \, but ignore semicolons
-prepended by 92 (backslash);
+#X text 144 176 separate by 59 (semicolon) \, but ignore semicolons prepended by 92 (backslash);
 #X connect 0 0 2 0;
 #X connect 2 0 10 0;
 #X connect 3 0 15 0;
@@ -135,10 +129,8 @@ prepended by 92 (backslash);
 #X connect 18 0 12 1;
 #X restore 7 161 pd FUDI;
 #X text 70 162 <- PUT HERE THE PROTOCOL SPECIFIC DELIMITER CODE;
-#X text 15 197 --------------------------------------------------------
-;
-#X text 12 129 --------------------------------------------------------
-;
+#X text 15 197 -------------------------------------------------------- ;
+#X text 12 129 -------------------------------------------------------- ;
 #X obj 7 6 r \$1.TCPSOCKET;
 #X obj 7 465 s \$1.TCPSOCKET;
 #X obj 105 255 r \$1.TCPSOCKET;

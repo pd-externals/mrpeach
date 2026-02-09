@@ -1,9 +1,5 @@
 #N canvas 361 252 878 523 10;
-#X declare -stdpath extra/mrpeach;
-#X declare -stdpath extra/mrpeach;
-#X declare -lib moocow;
-#X declare -stdpath extra/mrpeach;
-#X declare -lib moocow;
+#X declare -path mrpreach -path osc -path net -lib moocow;
 #X msg 471 74 print;
 #X text 521 75 list of connections;
 #X text 627 103 send to all clients;
@@ -13,115 +9,93 @@
 #X text 474 48 (the first number is socket number);
 #X msg 556 257 disconnectsocket \$1;
 #X msg 484 284 disconnectclient \$1;
-#X floatatom 506 215 5 0 0 0 - - -;
+#X floatatom 506 215 5 0 0 0 - - - 0;
 #X obj 484 235 f;
-#X obj 484 216 bng 15 250 50 0 empty empty empty 17 7 0 10 -258699
--241291 -1;
-#X floatatom 578 216 5 0 0 0 - - -;
+#X obj 484 216 bng 15 250 50 0 empty empty empty 17 7 0 10 #fc2828 #e8e828 #000000;
+#X floatatom 578 216 5 0 0 0 - - - 0;
 #X obj 556 235 f;
-#X obj 556 216 bng 15 250 50 0 empty empty empty 17 7 0 10 -258699
--241291 -1;
+#X obj 556 216 bng 15 250 50 0 empty empty empty 17 7 0 10 #fc2828 #e8e828 #000000;
 #X text 483 197 disconnect by socket or client number;
 #X obj 618 335 unpack 0 0 0 0;
-#X floatatom 618 355 3 0 0 0 - - -;
-#X floatatom 649 355 3 0 0 0 - - -;
-#X floatatom 681 356 3 0 0 0 - - -;
-#X floatatom 715 356 3 0 0 0 - - -;
+#X floatatom 618 355 3 0 0 0 - - - 0;
+#X floatatom 649 355 3 0 0 0 - - - 0;
+#X floatatom 681 356 3 0 0 0 - - - 0;
+#X floatatom 715 356 3 0 0 0 - - - 0;
 #X text 616 372 IP;
-#X floatatom 569 355 5 0 0 0 - - -;
+#X floatatom 569 355 5 0 0 0 - - - 0;
 #X text 566 371 socket;
-#X floatatom 520 376 5 0 0 0 - - -;
+#X floatatom 520 376 5 0 0 0 - - - 0;
 #X text 520 391 number of connections;
 #X obj 471 433 spigot;
-#X obj 510 413 tgl 15 0 empty empty enable_print 17 7 0 10 -24198 -258699
--258699 0 1;
+#X obj 510 413 tgl 15 0 empty empty enable_print 17 7 0 10 #14e814 #fc2828 #fc2828 0 1;
 #X text 15 37 [tcpsocketserver <protocol> <port>];
-#X obj 469 311 cnv 15 185 22 empty empty empty 20 12 0 14 -204786 -66577
-0;
+#X obj 469 311 cnv 15 185 22 empty empty empty 20 12 0 14 #c4fcc4 #404040 0;
 #X obj 471 314 tcpsocketserver FUDI 2468;
-#X text 15 115 [tcpsocketserver] is able to handle multiple sockets
-of a packet oriented protocol correctly \, unlike [tcpserver] \, which
-might mix up packets from different sockets.;
+#X text 15 115 [tcpsocketserver] is able to handle multiple sockets of a packet oriented protocol correctly \, unlike [tcpserver] \, which might mix up packets from different sockets.;
 #X text 24 308 - OSC;
-#X text 16 245 each protocol requires its own specific socket handler
-abstraction \, which should be named [tcpsocket.PROTOCOL]. currently
-available are the protocols:;
+#X text 16 245 each protocol requires its own specific socket handler abstraction \, which should be named [tcpsocket.PROTOCOL]. currently available are the protocols:;
 #X text 23 293 - FUDI;
 #N canvas 702 157 472 356 EXTENDABILITY 0;
-#X text 3 39 Support for more protocols can easily be added. In order
-to do so:;
+#X text 3 39 Support for more protocols can easily be added. In order to do so:;
 #X text 5 10 EXTENDABILITY;
 #X text 6 105 - open tcpsocket.NEWPROTOCOL.pd;
 #X text 7 127 - edit the green-marked subpatch;
 #X text 10 208 - save it;
 #X text 12 227 - in order to use it \, instantiate:;
 #X text 46 247 [tcpsocketserver NEWPROTOCOL <port>];
-#X text 8 148 - replace code with code \, that creates proper packets
-out of the incoming stream for the desired protocol. don't forget to
-implement a reset mechanism \, in case a socket is closed in the middle
-of packet transmission.;
+#X text 8 148 - replace code with code \, that creates proper packets out of the incoming stream for the desired protocol. don't forget to implement a reset mechanism \, in case a socket is closed in the middle of packet transmission.;
 #X text 5 83 - copy tcpsocket.FUDI.pd to tcpsocket.NEWPROTOCOL.pd;
 #X restore 21 387 pd EXTENDABILITY;
 #X text 17 453 Author: Roman Haefeli;
 #X text 16 468 Version: 2009-01-11;
-#X text 15 65 [tcpsocketserver] is meant to be a protocol-aware drop-in
-replacement for [tcpserver]. it uses same the same inlet and outlet
-configuration as [tcpserver].;
+#X text 15 65 [tcpsocketserver] is meant to be a protocol-aware drop-in replacement for [tcpserver]. it uses same the same inlet and outlet configuration as [tcpserver].;
 #X text 469 478 only well-formed FUDI messages are received here.;
 #N canvas 463 454 147 274 EXAMPLES 0;
 #N canvas 705 77 571 769 FUDI 0;
-#X obj 8 52 cnv 15 550 240 empty empty client_1 20 12 0 14 -249661
--66577 0;
+#X obj 8 52 cnv 15 550 240 empty empty client_1 20 12 0 14 #f0f0f0 #404040 0;
 #X obj 24 206 tcpclient;
 #X msg 368 107 connect localhost 11001;
 #X msg 392 128 disconnect;
 #X obj 368 85 sel 1 0;
-#X obj 368 64 tgl 15 0 empty empty empty 17 7 0 10 -261234 -1 -1 0
-1;
+#X obj 368 64 tgl 15 0 empty empty empty 17 7 0 10 #fcc4c4 #000000 #000000 0 1;
 #X obj 24 272 print CLIENT_1;
 #X msg 24 83 one two;
 #X obj 24 104 any2string 0 -1;
 #X msg 68 164 59 10;
 #X msg 32 130 32 116 104 114 101 101 23;
-#X obj 8 299 cnv 15 550 150 empty empty client_2 20 12 0 14 -249661
--66577 0;
+#X obj 8 299 cnv 15 550 150 empty empty client_2 20 12 0 14 #f0f0f0 #404040 0;
 #X msg 368 354 connect localhost 11001;
 #X msg 392 375 disconnect;
 #X obj 368 332 sel 1 0;
-#X obj 368 311 tgl 15 0 empty empty empty 17 7 0 10 -261234 -1 -1 0
-1;
+#X obj 368 311 tgl 15 0 empty empty empty 17 7 0 10 #fcc4c4 #000000 #000000 0 1;
 #X obj 24 227 string2any 0 59;
 #X obj 24 247 route bang;
 #X obj 24 386 netclient;
 #X obj 24 415 print CLIENT_2;
 #X text 168 337 <- send FUDI message;
-#X obj 9 457 cnv 15 550 300 empty empty FUDI_server 20 12 0 14 -241408
--66577 0;
+#X obj 9 457 cnv 15 550 300 empty empty FUDI_server 20 12 0 14 #e8ecfc #404040 0;
 #X obj 11 613 tcpsocketserver FUDI 11001;
 #X obj 11 687 string2any 0 59;
 #X obj 11 708 route bang;
 #X obj 190 633 unpack 0 0 0 0;
-#X floatatom 190 653 3 0 0 0 - - -;
-#X floatatom 221 653 3 0 0 0 - - -;
-#X floatatom 253 654 3 0 0 0 - - -;
-#X floatatom 287 654 3 0 0 0 - - -;
+#X floatatom 190 653 3 0 0 0 - - - 0;
+#X floatatom 221 653 3 0 0 0 - - - 0;
+#X floatatom 253 654 3 0 0 0 - - - 0;
+#X floatatom 287 654 3 0 0 0 - - - 0;
 #X text 188 670 IP;
-#X floatatom 130 653 5 0 0 0 - - -;
-#X floatatom 70 654 5 0 0 0 - - -;
+#X floatatom 130 653 5 0 0 0 - - - 0;
+#X floatatom 70 654 5 0 0 0 - - - 0;
 #X text 59 669 clients;
 #X text 126 669 socket;
 #X text 131 688 <--;
-#X text 164 688 [tcpsocketserver FUDI] does _not_ remove the trailing
-' \; ';
+#X text 164 688 [tcpsocketserver FUDI] does _not_ remove the trailing ' \; ';
 #X text 164 83 1) start a FUDI message;
 #X text 231 131 2) continue;
 #X text 117 165 3) finish FUDI message (with semicolon - newline);
 #X text 390 65 connect;
 #X text 389 309 connect;
-#X text 19 488 [tcpsocketserver FUDI] doesn't take care of building
-FUDI-compliant messages. this should be done by the user.;
-#X text 153 229 4) try sending a message from client_2 during composing
-a message with client_1 and see \, how the server behaves.;
+#X text 19 488 [tcpsocketserver FUDI] doesn't take care of building FUDI-compliant messages. this should be done by the user.;
+#X text 153 229 4) try sending a message from client_2 during composing a message with client_1 and see \, how the server behaves.;
 #X text 278 535 <- this doesn't work;
 #X text 314 562 <- this should;
 #X msg 24 336 send four five six;
@@ -162,31 +136,26 @@ a message with client_1 and see \, how the server behaves.;
 #X connect 48 0 22 0;
 #X restore 23 25 pd FUDI;
 #N canvas 697 77 579 756 OSC 0;
-#X obj 9 39 cnv 15 550 240 empty empty client_1 20 12 0 14 -249661
--66577 0;
+#X obj 9 39 cnv 15 550 240 empty empty client_1 20 12 0 14 #f0f0f0 #404040 0;
 #X obj 25 211 tcpclient;
 #X msg 357 229 disconnect;
 #X obj 333 186 sel 1 0;
-#X obj 333 165 tgl 15 0 empty empty empty 17 7 0 10 -261234 -1 -1 0
-1;
+#X obj 333 165 tgl 15 0 empty empty empty 17 7 0 10 #fcc4c4 #000000 #000000 0 1;
 #X obj 25 259 print CLIENT_1;
-#X obj 9 286 cnv 15 550 150 empty empty client_2 20 12 0 14 -249661
--66577 0;
+#X obj 9 286 cnv 15 550 150 empty empty client_2 20 12 0 14 #f0f0f0 #404040 0;
 #X msg 393 362 disconnect;
 #X obj 369 319 sel 1 0;
-#X obj 369 298 tgl 15 0 empty empty empty 17 7 0 10 -261234 -1 -1 0
-1;
+#X obj 369 298 tgl 15 0 empty empty empty 17 7 0 10 #fcc4c4 #000000 #000000 0 1;
 #X obj 25 417 print CLIENT_2;
-#X obj 10 444 cnv 15 550 300 empty empty OSC_server 20 12 0 14 -241408
--66577 0;
+#X obj 10 444 cnv 15 550 300 empty empty OSC_server 20 12 0 14 #e8ecfc #404040 0;
 #X obj 188 636 unpack 0 0 0 0;
-#X floatatom 188 656 3 0 0 0 - - -;
-#X floatatom 219 656 3 0 0 0 - - -;
-#X floatatom 251 657 3 0 0 0 - - -;
-#X floatatom 285 657 3 0 0 0 - - -;
+#X floatatom 188 656 3 0 0 0 - - - 0;
+#X floatatom 219 656 3 0 0 0 - - - 0;
+#X floatatom 251 657 3 0 0 0 - - - 0;
+#X floatatom 285 657 3 0 0 0 - - - 0;
 #X text 186 673 IP;
-#X floatatom 130 656 5 0 0 0 - - -;
-#X floatatom 73 657 5 0 0 0 - - -;
+#X floatatom 130 656 5 0 0 0 - - - 0;
+#X floatatom 73 657 5 0 0 0 - - - 0;
 #X text 62 672 clients;
 #X text 126 672 socket;
 #X text 355 166 connect;
@@ -208,22 +177,18 @@ a message with client_1 and see \, how the server behaves.;
 #X obj 16 522 packOSCstream;
 #X obj 16 594 list trim;
 #X msg 16 473 /synth3/tone4/amplitude 0.36;
-#X obj 180 555 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -4034 -1
--1 0;
+#X obj 180 555 hradio 15 1 0 2 empty empty empty 0 -8 0 10 #00fc04 #000000 #000000 0;
 #X obj 180 573 + 1;
 #X text 221 555 client;
 #X obj 16 551 list prepend 1;
 #X obj 16 573 list prepend client;
 #X text 236 80 1) start sending an OSC packet;
 #X text 247 106 2) complete the OSC packet;
-#X text 59 137 also try sending an OSC packet from client_2 between
-1) and 2);
-#X text 124 520 <- use [packOSCstream] in order to create OSC packets
-suitable for tcp transport.;
+#X text 59 137 also try sending an OSC packet from client_2 between 1) and 2);
+#X text 124 520 <- use [packOSCstream] in order to create OSC packets suitable for tcp transport.;
 #X text 238 486 send to clients;
 #X text 93 695 <---;
-#X text 139 694 CAUTION: not [unpackOSCstream] is used here \, since
-[tcpsocket.OSC] already unwraps the OSC message;
+#X text 139 694 CAUTION: not [unpackOSCstream] is used here \, since [tcpsocket.OSC] already unwraps the OSC message;
 #X obj 8 9 import moocow;
 #X connect 1 0 29 0;
 #X connect 2 0 1 0;
@@ -267,13 +232,21 @@ suitable for tcp transport.;
 #X msg 471 128 client 1 97 98 99 59 10;
 #X msg 471 155 send 504 97 98 99 59 10;
 #X msg 471 28 10 97 98 99 59 10;
-#X text 17 8 TCPSOCKETSERVER - a protocol-aware wrapper aroun [tcpserver]
-;
-#X text 13 167 [tcpsocketserver] dynamically creates (internally) an
-instance of a socket handler abstraction [tcpsocket.PROTOCOL] for each
-opened socket. every socket handler creates proper packets from the
-incoming stream and sends them to the left outlet of [tcpsocketserver].
-;
+#X text 13 167 [tcpsocketserver] dynamically creates (internally) an instance of a socket handler abstraction [tcpsocket.PROTOCOL] for each opened socket. every socket handler creates proper packets from the incoming stream and sends them to the left outlet of [tcpsocketserver].;
+#N canvas 273 631 494 344 META 0;
+#X text 12 25 LICENSE GPL v2 or later;
+#X text 12 5 KEYWORDS control network;
+#X text 12 225 AUTHOR Roman Haefeli;
+#X text 12 245 HELP_PATCH_AUTHORS "pd meta" information added by IOhannes m zmölnig for mrpeach-1.0, f 50;
+#X text 12 105 OUTLET_0 message;
+#X text 12 76 INLET_0 message: send \, list \, broadcase \, client \, disconnectsocket \, disconnectclient \, print;
+#X text 12 125 OUTLET_1 float: number of connections;
+#X text 12 145 OUTLET_2 float: socket;
+#X text 12 165 OUTLET_3 list: IP address;
+#X text 12 45 DESCRIPTION protocol wrapper around tcpserver;
+#X obj 16 310 declare -path mrpreach -path osc -path net -lib moocow;
+#X restore 14 492 pd META;
+#X text 17 8 TCPSOCKETSERVER - a protocol-aware wrapper around [tcpserver], f 61;
 #X connect 0 0 30 0;
 #X connect 7 0 30 0;
 #X connect 8 0 30 0;

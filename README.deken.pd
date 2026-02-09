@@ -1,0 +1,18 @@
+#N canvas 2343 337 618 594 12;
+#X text 46 49 mrpeach - bag of tricks for Pure Data;
+#X text 46 65 =====================================;
+#X text 45 123 starting with mrpeach-1.0 \, the following objects have been split into separate libraries:;
+#X text 54 178 binfile: [binfile];
+#X text 47 198 midifile: [midifile];
+#X text 76 261 slip: [slipenc] \, [slipdec];
+#X text 82 226 osc: [packOSC] \, [unpackOSC] \, [routeOSC] \, [pipelist] \,;
+#X text 117 242 [packOSCstream] \, [unpackOSCstream];
+#X text 62 300 if you need these libraries \, please install them separately (available on deken);
+#X text 39 352 NOTE:;
+#X text 109 429 [packOSC] ->;
+#X text 95 455 [unpackOSC] ->;
+#X text 109 404 [binfile] ->;
+#X obj 207 404 file;
+#X obj 206 429 oscformat;
+#X obj 206 455 oscparse;
+#X text 88 353 as of Pd-0.52 \, Pure Data has some objects built-in that you might use instead:;

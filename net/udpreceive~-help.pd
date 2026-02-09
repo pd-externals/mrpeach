@@ -1,12 +1,10 @@
 #N canvas 221 129 767 415 10;
 #N canvas 874 257 494 344 META 0;
-#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
-Wilkes for Pd version 0.42.;
+#X text 12 155 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan Wilkes for Pd version 0.42.;
 #X text 12 25 LICENSE GPL v2 or later;
 #X text 12 135 AUTHOR Martin Peach;
 #X text 12 5 KEYWORDS control network;
-#X text 12 45 DESCRIPTION receive datagrams over a udp connection and
-outputs them as a signal;
+#X text 12 45 DESCRIPTION receive datagrams over a udp connection and outputs them as a signal;
 #X restore 695 379 pd META;
 #X obj 522 267 print udpreceive~;
 #X symbolatom 177 354 10 0 0 0 - - -;
@@ -40,26 +38,18 @@ outputs them as a signal;
 #X obj 82 152 dac~ 1 2;
 #X floatatom 453 332 9 0 0 0 - - -;
 #X text 401 331 packets:;
-#X text 348 142 To communicate \, a [udpreceive~] and [udpsend~] pair
-must have the same number of channels and the same blocksize. Also
-[udpsend~] must [connect( to the port on which [udpreceive~] is listening.
-;
+#X text 348 142 To communicate \, a [udpreceive~] and [udpsend~] pair must have the same number of channels and the same blocksize. Also [udpsend~] must [connect( to the port on which [udpreceive~] is listening. ;
 #X msg 56 79 buffer 2;
 #X text 118 78 set number of frames to buffer before playback;
-#X obj 177 230 route format channels framesize bitrate overflow underflow
-queuesize average packets tag_errors;
+#X obj 177 230 route format channels framesize bitrate overflow underflow queuesize average packets tag_errors;
 #X floatatom 487 310 9 0 0 0 - - -;
 #X text 421 309 tag errors:;
 #X obj 144 181 env~;
 #X floatatom 144 204 9 0 0 0 - - -;
-#X text 204 193 The rightmost signal outlet outputs 1 if the stream
-is valid \, else 0;
-#X text 420 77 Arguments: port \, channels \, blocksize \, multicast_address.
-Blocksize should match [udpsend~]. multicast_address is optional. Arguments
-must be in that order.;
+#X text 204 193 The rightmost signal outlet outputs 1 if the stream is valid \, else 0;
+#X text 420 77 Arguments: port \, channels \, blocksize \, multicast_address. Blocksize should match [udpsend~]. multicast_address is optional. Arguments must be in that order.;
 #X obj 81 121 udpreceive~ 9999 2 512;
-#X text 221 120 receives 2 channels on port 9999 Same blocksize as
-udpsend~;
+#X text 221 120 receives 2 channels on port 9999 Same blocksize as udpsend~;
 #X connect 6 0 2 0;
 #X connect 19 0 43 0;
 #X connect 20 0 43 0;

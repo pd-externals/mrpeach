@@ -1,6 +1,5 @@
 #N canvas 1 53 898 909 10;
-#X obj 369 293 bng 15 250 50 0 empty empty single_step 17 7 0 10 -4160
--4034 -4034;
+#X obj 369 293 bng 15 250 50 0 empty empty single_step 17 7 0 10 -4160 -4034 -4034;
 #X msg 124 46 dump;
 #X msg 103 25 clear;
 #X msg 250 172 reset;
@@ -8,8 +7,7 @@
 #X msg 166 88 flipv;
 #X msg 145 67 fliph;
 #X msg 187 109 invert \$1;
-#X obj 259 94 tgl 15 0 empty empty empty 17 7 0 10 -4160 -4034 -1 0
-1;
+#X obj 259 94 tgl 15 0 empty empty empty 17 7 0 10 -4160 -4034 -1 0 1;
 #X floatatom -9 224 2 0 0 0 - - -;
 #X floatatom 8 224 2 0 0 0 - - -;
 #X floatatom 25 224 2 0 0 0 - - -;
@@ -26,8 +24,7 @@
 #X floatatom 217 224 2 0 0 0 - - -;
 #X floatatom 234 224 2 0 0 0 - - -;
 #X floatatom 252 224 2 0 0 0 - - -;
-#X obj 398 337 life2x 16 16 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-;
+#X obj 398 337 life2x 16 16 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ;
 #X obj -1 204 unpack 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15;
 #X obj -43 187 r c0;
 #X obj 398 361 s c0;
@@ -173,8 +170,7 @@
 #X obj -44 440 r c6;
 #X obj -44 481 r c7;
 #X obj 448 270 metro 1000;
-#X obj 417 255 tgl 15 0 empty empty run -3 -8 0 10 -4160 -4034 -4034
-0 1;
+#X obj 417 255 tgl 15 0 empty empty run -3 -8 0 10 -4160 -4034 -4034 0 1;
 #X floatatom -11 560 2 0 0 0 - - -;
 #X floatatom 6 560 2 0 0 0 - - -;
 #X floatatom 23 560 2 0 0 0 - - -;
@@ -321,54 +317,40 @@
 #X obj -46 817 r c15;
 #X floatatom 268 114 5 0 0 0 - - -;
 #X msg 208 130 novar \$1;
-#X obj 704 407 nbx 5 14 -1e+37 1e+37 0 0 empty empty generation -65
-8 0 10 -4160 -4034 -4034 0 256;
-#X obj 670 441 nbx 5 14 -1e+37 1e+37 0 0 empty empty delta -35 8 0
-10 -4160 -4034 -4034 0 256;
-#X obj 687 424 nbx 5 14 -1e+37 1e+37 0 0 empty empty alive -35 8 0
-10 -4160 -4034 -4034 0 256;
-#X obj 755 389 bng 15 250 50 0 empty empty dead 17 7 0 10 -258113 -262144
--4034;
-#X obj 738 440 bng 15 250 50 0 empty empty no_variation 17 7 0 10 -258113
--262144 -4034;
+#X obj 704 407 nbx 5 14 -1e+37 1e+37 0 0 empty empty generation -65 8 0 10 -4160 -4034 -4034 0 256;
+#X obj 670 441 nbx 5 14 -1e+37 1e+37 0 0 empty empty delta -35 8 0 10 -4160 -4034 -4034 0 256;
+#X obj 687 424 nbx 5 14 -1e+37 1e+37 0 0 empty empty alive -35 8 0 10 -4160 -4034 -4034 0 256;
+#X obj 755 389 bng 15 250 50 0 empty empty dead 17 7 0 10 -258113 -262144 -4034;
+#X obj 738 440 bng 15 250 50 0 empty empty no_variation 17 7 0 10 -258113 -262144 -4034;
 #X obj 721 360 print dump_id_x_y;
 #X obj 448 197 pack 0 0;
 #X obj 466 162 t b f;
-#X obj 448 126 nbx 3 14 -99 99 0 0 empty empty x_shift -40 8 0 10 -4160
--4034 -4034 0 256;
-#X obj 466 144 nbx 3 14 -99 99 0 0 empty empty y_shift -40 8 0 10 -4160
--4034 -4034 0 256;
+#X obj 448 126 nbx 3 14 -99 99 0 0 empty empty x_shift -40 8 0 10 -4160 -4034 -4034 0 256;
+#X obj 466 144 nbx 3 14 -99 99 0 0 empty empty y_shift -40 8 0 10 -4160 -4034 -4034 0 256;
 #X msg 234 3 23/3;
 #X msg 349 271 rule \$1;
 #X obj 349 135 symbol;
 #X msg 270 39 012345678/;
-#X text 272 1 Rule for Conway life (default): A live cell survives
-if it has 2 or 3 neighbours. A dead cell becomes alive if it has 2
-neighbours.;
+#X text 272 1 Rule for Conway life (default): A live cell survives if it has 2 or 3 neighbours. A dead cell becomes alive if it has 2 neighbours.;
 #X text 343 38 Rule to freeze the current state;
 #X msg 291 60 23/36;
 #X text 328 60 "High Life" rule;
 #X msg 312 81 5678/35678;
 #X text 384 81 "Diamoeba" rule;
-#X text 433 320 creation arguments: number of columns \, number of
-rows;
-#X obj 582 256 nbx 5 14 1 1e+37 0 1 empty empty period_(ms) -70 8 0
-10 -4160 -4034 -4034 125 256;
+#X text 433 320 creation arguments: number of columns \, number of rows;
+#X obj 582 256 nbx 5 14 1 1e+37 0 1 empty empty period_(ms) -70 8 0 10 -4160 -4034 -4034 125 256;
 #X msg 335 104 /123;
 #X msg 292 214 shift \$1 \$2;
-#X obj 382 220 tgl 15 0 empty empty empty 17 7 0 10 -4160 -4034 -4034
-0 1;
+#X obj 382 220 tgl 15 0 empty empty empty 17 7 0 10 -4160 -4034 -4034 0 1;
 #X msg 313 235 thru \$1;
-#X text 401 219 If thru is on \, output state changes other than generations
-;
+#X text 401 219 If thru is on \, output state changes other than generations ;
 #X msg 533 185 set \$1 \$2 \$3;
 #X obj 533 158 pack 0 0 0;
 #X floatatom 537 107 3 0 0 0 - - -;
 #X floatatom 561 107 3 0 0 0 - - -;
 #X floatatom 590 107 3 0 0 0 - - -;
 #X obj 533 134 f;
-#X obj 533 68 bng 15 250 50 0 empty empty set_cell 17 7 0 10 -4160
--4034 -4034;
+#X obj 533 68 bng 15 250 50 0 empty empty set_cell 17 7 0 10 -4160 -4034 -4034;
 #X text 587 89 state;
 #X text 535 89 col;
 #X text 558 89 row;
@@ -382,11 +364,9 @@ rows;
 #X text 25 109 invert values for display:;
 #X text -40 130 generations of no variation before bang:;
 #N canvas 529 268 494 344 META 0;
-#X text 12 135 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
-Wilkes for Pd version 0.42.;
+#X text 12 135 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan Wilkes for Pd version 0.42.;
 #X text 12 115 AUTHOR Martin Peach;
-#X text 12 65 INLET_0 clear dump fliph flipv invert novar randomize
-reset return shift thru rule set;
+#X text 12 65 INLET_0 clear dump fliph flipv invert novar randomize reset return shift thru rule set;
 #X text 12 95 OUTLET_N list;
 #X text 12 25 LICENSE GPL v3 or later;
 #X text 12 45 DESCRIPTION Game of Life;
