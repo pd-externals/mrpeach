@@ -27,7 +27,7 @@
 #define LOWOFFSET 0
 #define int32 long
 #include <float.h> /* for _finite */
-#define finite _finite
+#define isfinite _finite
 #endif // _WIN32
 
 #if defined(__FreeBSD__) || defined(__APPLE__)
@@ -306,7 +306,7 @@ static t_int *sqosc_perform(t_int *w)
     }
     else f2 = -twothirds;
     sample = f1 + frac * (f2 - f1); /* the final sample */
-    if (finite(sample))*out++ = sample;
+    if (isfinite(sample))*out++ = sample;
     else *out++ = 0.0;
 
     tf.tf_d = UNITBIT32 * SQOSCTABSIZE; /* this just changes the exponent if the table size is a power of 2 */
