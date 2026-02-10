@@ -446,6 +446,7 @@ static void *tcp_client_sender_loop(void *w)
         }
     } // loop while connected
     pthread_exit((void *)w);
+    return 0;
 }
 
 static void tcpclient_sent(t_tcpclient *x)
