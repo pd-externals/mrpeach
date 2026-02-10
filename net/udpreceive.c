@@ -157,7 +157,7 @@ static int udpreceive_new_socket(t_udpreceive *x, char *address, int port)
     int                 multicast_joined = 0;
     struct sockaddr_in  server;
     struct hostent      *hp;
-#if defined __APPLE__ || defined _WIN32
+#if defined __APPLE__ || defined _WIN32 || defined __sgi__
     struct ip_mreq      mreq;
 #else
     struct ip_mreqn     mreq;
@@ -216,9 +216,9 @@ static int udpreceive_new_socket(t_udpreceive *x, char *address, int port)
         /* second join the multicast group */
         memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
 
-#if defined __APPLE__ || defined _WIN32
+#if defined __APPLE__ || defined _WIN32 || defined __sgi__
         mreq.imr_multiaddr.s_addr = server.sin_addr.s_addr;
-        mreq.imr_interface.s_addr = INADDR_ANY;/* can put a specific local IP address here if host is multihomed */
+        mreq.imr_interface.s_addr = INADDR_ANY; /* can put a specific local IP address here if host is multihomed */
 #else
         mreq.imr_multiaddr.s_addr = server.sin_addr.s_addr;
         mreq.imr_address.s_addr = INADDR_ANY;
