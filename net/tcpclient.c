@@ -99,7 +99,7 @@ typedef struct _tcpclient
     int                         x_verbosity; // 1 = post connection state changes to main window
     int                         x_fd; // the socket
     int                         x_fdbuf; // the socket's buffer size
-    char                        *x_hostname; // address we want to connect to as text
+    const char                  *x_hostname; // address we want to connect to as text
     int                         x_connectstate; // 0 = not connected, 1 = connected
     int                         x_port; // port we're connected to
     uint32_t                    x_addr; // address we're connected to as 32bit int
@@ -318,7 +318,8 @@ static void tcpclient_disconnect(t_tcpclient *x)
         }
         x->x_connectstate = 0; // sender thread looks for this
         result = pthread_join(x->x_sendthreadid, &status);
-        //post("tcpclient_disconnect pthread_join result = %d, status = %ld", result, (long)status);
+	if(0)
+	  post("tcpclient_disconnect pthread_join result = %d, status = %ld", result, (long)status);
         sys_closesocket(x->x_fd);
         x->x_fd = -1;
         x->x_ourAddr = 0L;
