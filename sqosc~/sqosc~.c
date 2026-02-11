@@ -19,6 +19,7 @@
 #define HIOFFSET 0    /* word offset to find MSB */
 #define LOWOFFSET 1    /* word offset to find LSB */
 #define int32 long  /* a data type that has 32 bits */
+#define NO_ISFINITE
 #endif /* __sgi__ */
 
 #ifdef _WIN32
@@ -58,6 +59,15 @@
 #include <sys/types.h>
 #define int32 int32_t
 #endif /* __unix__ or __APPLE__*/
+
+#ifdef NO_ISFINITE
+static int my_isfinite(const t_float x) {
+  const t_float y = x - x;
+  return (y == y);
+}
+#undef isfinite
+#define isfinite my_isfinite
+#endif
 
 union tabfudge
 {
