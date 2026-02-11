@@ -33,29 +33,37 @@
 
 #if defined(__FreeBSD__) || defined(__APPLE__)
 #include <machine/endian.h>
-#endif
-
-#ifdef __APPLE__
-#define __BYTE_ORDER BYTE_ORDER
-#define __LITTLE_ENDIAN LITTLE_ENDIAN
-#endif
-
-#ifdef __linux__
+#elif defined (__linux__)
 #include <endian.h>
 #endif
 
-#if defined(__unix__) || defined(__APPLE__)
-#if !defined(__BYTE_ORDER) || !defined(__LITTLE_ENDIAN)
-#error No byte order defined
+#if !defined(LITTLE_ENDIAN)
+# if defined(__LITTLE_ENDIAN)
+#  define LITTLE_ENDIAN __LITTLE_ENDIAN
+# endif
 #endif
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if !defined(BIG_ENDIAN)
+# if defined(__BIG_ENDIAN)
+#  define BIG_ENDIAN __BIG_ENDIAN
+# endif
+#endif
+
+#if !defined(BYTE_ORDER)
+# if defined(__BYTE_ORDER)
+#  define BYTE_ORDER __BYTE_ORDER
+# endif
+#endif
+
+#if BYTE_ORDER == LITTLE_ENDIAN
 #define HIOFFSET 1
 #define LOWOFFSET 0
 #else
 #define HIOFFSET 0    /* word offset to find MSB */
 #define LOWOFFSET 1    /* word offset to find LSB */
 #endif /* __BYTE_ORDER */
+
+#if defined(__unix__) || defined(__APPLE__)
 #include <sys/types.h>
 #define int32 int32_t
 #endif /* __unix__ or __APPLE__*/
