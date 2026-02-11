@@ -12,7 +12,7 @@
 
 #define UNITBIT32 1572864.  /* 3*2^19; bit 32 has place value 1 */
 
-/* machine-dependent definitions.  These ifdefs really
+/* machine-dependent definitions.  The following ifdefs really
 * should have been by CPU type and not by operating system! */
 
 /* ----------------- byte order ---------------- */
