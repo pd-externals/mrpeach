@@ -51,6 +51,8 @@ static char sys_dllextent[] = ".d_ppc", sys_dllextent2[] = ".pd_darwin";
 # endif
 #elif defined(_WIN32)
 static char sys_dllextent[] = ".m_i386", sys_dllextent2[] = ".dll";
+#else
+static char sys_dllextent[] = ".so", sys_dllextent2[] = ".so";
 #endif
 
 static void which_any(t_which *x, t_symbol *s, int argc, t_atom *argv);
