@@ -14,12 +14,12 @@
 
 /* machine-dependent definitions.  These ifdefs really
 * should have been by CPU type and not by operating system! */
-#ifdef IRIX
-/* big-endian.  Most significant byte is at low address in memory */
+#ifdef __sgi__
+/* IRIX is big-endian.  Most significant byte is at low address in memory */
 #define HIOFFSET 0    /* word offset to find MSB */
 #define LOWOFFSET 1    /* word offset to find LSB */
 #define int32 long  /* a data type that has 32 bits */
-#endif /* IRIX */
+#endif /* __sgi__ */
 
 #ifdef _WIN32
 /* little-endian; most significant byte is at highest address */
