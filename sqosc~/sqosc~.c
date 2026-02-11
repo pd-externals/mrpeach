@@ -65,11 +65,11 @@
 #endif /* BYTE_ORDER */
 
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define HIOFFSET 1
-#define LOWOFFSET 0
+# define HIOFFSET 1
+# define LOWOFFSET 0
 #else
-#define HIOFFSET 0    /* word offset to find MSB */
-#define LOWOFFSET 1    /* word offset to find LSB */
+# define HIOFFSET 0    /* word offset to find MSB */
+# define LOWOFFSET 1    /* word offset to find LSB */
 #endif /* __BYTE_ORDER */
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -82,8 +82,8 @@ static int my_isfinite(const t_float x) {
   const t_float y = x - x;
   return (y == y);
 }
-#undef isfinite
-#define isfinite my_isfinite
+# undef isfinite
+# define isfinite my_isfinite
 #endif
 
 union tabfudge
