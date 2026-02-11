@@ -99,10 +99,10 @@ static void which_bang(t_which *x)
     The "nameresult" pointer will be set somewhere in
     the interior of "dirresult" and will give the file basename (with
     slashes trimmed).  If "bin" is set a 'binary' open is
-    attempted, otherwise ASCII (this only matters on Microsoft.) 
+    attempted, otherwise ASCII (this only matters on Microsoft.)
     If "x" is zero, the file is sought in the directory "." or in the
     global path.
-    
+
     */
     /* try looking in the path for (objectname).(sys_dllextent) ... */
 
