@@ -38,24 +38,24 @@
 #ifdef __APPLE__
 #define __BYTE_ORDER BYTE_ORDER
 #define __LITTLE_ENDIAN LITTLE_ENDIAN
-#endif                                                                          
+#endif
 
 #ifdef __linux__
 #include <endian.h>
 #endif
 
 #if defined(__unix__) || defined(__APPLE__)
-#if !defined(__BYTE_ORDER) || !defined(__LITTLE_ENDIAN)                         
-#error No byte order defined                                                    
-#endif                                                                          
+#if !defined(__BYTE_ORDER) || !defined(__LITTLE_ENDIAN)
+#error No byte order defined
+#endif
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN                                             
-#define HIOFFSET 1                                                              
-#define LOWOFFSET 0                                                             
-#else                                                                           
-#define HIOFFSET 0    /* word offset to find MSB */                             
-#define LOWOFFSET 1    /* word offset to find LSB */                            
-#endif /* __BYTE_ORDER */                                                       
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define HIOFFSET 1
+#define LOWOFFSET 0
+#else
+#define HIOFFSET 0    /* word offset to find MSB */
+#define LOWOFFSET 1    /* word offset to find LSB */
+#endif /* __BYTE_ORDER */
 #include <sys/types.h>
 #define int32 int32_t
 #endif /* __unix__ or __APPLE__*/
@@ -170,7 +170,7 @@ B0-------------->B1---------->B2----->B3----->B4----->B5----->B6----->B7----->
 Union tabfudge
 {
  double tf_d;
- int32 tf_i[2]; 
+ int32 tf_i[2];
 }
 
 In dsp_perfrom:
@@ -209,7 +209,7 @@ static t_int *sqosc_perform(t_int *w)
     t_float         sample;
     int             n = (int)(w[4]);
     float           f1, f2, frac;
-    int             index;  
+    int             index;
     double          dphase = x->x_phase + UNITBIT32;
     int             normhipart;
     union           tabfudge tf;
@@ -347,7 +347,7 @@ static void sqosc_pw(t_sqosc *x, t_float pw)
 }
 
 void sqosc_tilde_setup(void)
-{    
+{
     sqosc_class = class_new(gensym("sqosc~"), (t_newmethod)sqosc_new, 0,
         sizeof(t_sqosc), 0, A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
     CLASS_MAINSIGNALIN(sqosc_class, t_sqosc, x_f);/* x_f is used when no signal is input */
