@@ -14,15 +14,8 @@
 
 /* machine-dependent definitions.  These ifdefs really
 * should have been by CPU type and not by operating system! */
-#ifdef __sgi__
-#define NO_ISFINITE
-#endif /* __sgi__ */
 
 /* ----------------- byte order ---------------- */
-#ifdef _WIN32
-#include <float.h> /* for _finite */
-#define isfinite _finite
-#endif // _WIN32
 
 #if defined(__FreeBSD__) || defined(__APPLE__)
 #include <machine/endian.h>
@@ -70,6 +63,14 @@
 # define LOWOFFSET 1    /* word offset to find LSB */
 #endif /* __BYTE_ORDER */
 
+
+/* ----------------- isfinite() ---------------- */
+#if defined(_WIN32)
+# include <float.h> /* for _finite */
+# define isfinite _finite
+#elif defined(__sgi__)
+# define NO_ISFINITE 1
+#endif
 
 #ifdef NO_ISFINITE
 static int my_isfinite(const t_float x) {
