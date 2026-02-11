@@ -35,24 +35,21 @@ objects.  The specific name is the letter b, l, d, or m for  BSD, linux,
 darwin, or microsoft, followed by a more specific string, either "fat" for
 a fat binary or an indication of the instruction set. */
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__)
 static char sys_dllextent[] = ".b_i386", sys_dllextent2[] = ".pd_freebsd";
-#endif
-#ifdef __linux__
-#ifdef __x86_64__
+#elif defined(__linux__)
+# ifdef __x86_64__
 static char sys_dllextent[] = ".l_ia64", sys_dllextent2[] = ".pd_linux";
-#else
+# else
 static char sys_dllextent[] = ".l_i386", sys_dllextent2[] = ".pd_linux";
-#endif
-#endif
-#ifdef __APPLE__
-#ifndef MACOSX3
+# endif
+#elif defined(__APPLE__)
+# ifndef MACOSX3
 static char sys_dllextent[] = ".d_fat", sys_dllextent2[] = ".pd_darwin";
-#else
+# else
 static char sys_dllextent[] = ".d_ppc", sys_dllextent2[] = ".pd_darwin";
-#endif
-#endif
-#ifdef _WIN32
+# endif
+#elif defined(_WIN32)
 static char sys_dllextent[] = ".m_i386", sys_dllextent2[] = ".dll";
 #endif
 
