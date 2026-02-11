@@ -15,13 +15,11 @@
 /* machine-dependent definitions.  These ifdefs really
 * should have been by CPU type and not by operating system! */
 #ifdef __sgi__
-#define int32 long  /* a data type that has 32 bits */
 #define NO_ISFINITE
 #endif /* __sgi__ */
 
 /* ----------------- byte order ---------------- */
 #ifdef _WIN32
-#define int32 long
 #include <float.h> /* for _finite */
 #define isfinite _finite
 #endif // _WIN32
@@ -72,10 +70,6 @@
 # define LOWOFFSET 1    /* word offset to find LSB */
 #endif /* __BYTE_ORDER */
 
-#if defined(__unix__) || defined(__APPLE__)
-#include <sys/types.h>
-#define int32 int32_t
-#endif /* __unix__ or __APPLE__*/
 
 #ifdef NO_ISFINITE
 static int my_isfinite(const t_float x) {
@@ -85,6 +79,18 @@ static int my_isfinite(const t_float x) {
 # undef isfinite
 # define isfinite my_isfinite
 #endif
+
+
+/* ----------------- int32 ---------------- */
+#if defined(_WIN32)
+# define int32 long
+#elif defined(__sgi__)
+# define int32 long  /* a data type that has 32 bits */
+#else
+# include <sys/types.h>
+# define int32 int32_t
+#endif /* __unix__ or __APPLE__*/
+
 
 union tabfudge
 {
