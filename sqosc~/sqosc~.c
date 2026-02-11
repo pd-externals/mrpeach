@@ -15,17 +15,12 @@
 /* machine-dependent definitions.  These ifdefs really
 * should have been by CPU type and not by operating system! */
 #ifdef __sgi__
-/* IRIX is big-endian.  Most significant byte is at low address in memory */
-#define HIOFFSET 0    /* word offset to find MSB */
-#define LOWOFFSET 1    /* word offset to find LSB */
 #define int32 long  /* a data type that has 32 bits */
 #define NO_ISFINITE
 #endif /* __sgi__ */
 
+/* ----------------- byte order ---------------- */
 #ifdef _WIN32
-/* little-endian; most significant byte is at highest address */
-#define HIOFFSET 1
-#define LOWOFFSET 0
 #define int32 long
 #include <float.h> /* for _finite */
 #define isfinite _finite
@@ -40,12 +35,16 @@
 #if !defined(LITTLE_ENDIAN)
 # if defined(__LITTLE_ENDIAN)
 #  define LITTLE_ENDIAN __LITTLE_ENDIAN
+# else
+#  define LITTLE_ENDIAN 1234
 # endif
 #endif
 
 #if !defined(BIG_ENDIAN)
 # if defined(__BIG_ENDIAN)
 #  define BIG_ENDIAN __BIG_ENDIAN
+# else
+#  define BIG_ENDIAN 1234
 # endif
 #endif
 
@@ -54,6 +53,16 @@
 #  define BYTE_ORDER __BYTE_ORDER
 # endif
 #endif
+
+#ifndef BYTE_ORDER
+# if defined(_WIN32)
+/* little-endian; most significant byte is at highest address */
+#  define BYTE_ORDER LITTLE_ENDIAN
+# elif defined(__sgi__)
+/* IRIX is big-endian.  Most significant byte is at low address in memory */
+#  define BYTE_ORDER BIG_ENDIAN
+# endif
+#endif /* BYTE_ORDER */
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 #define HIOFFSET 1
